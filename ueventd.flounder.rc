@@ -1,0 +1,7 @@
+/dev/knvmap     0660    system  system
+/dev/nvmap      0666    system  system
+/dev/tegra_dc*  0660    system  system
+/dev/nvhdcp0    0666    system  system
+/dev/nvhdcp1    0666    system  system
+/dev/nvhost*    0666    root    root
+/dev/raydium_ts 0777    system  system
