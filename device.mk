@@ -56,6 +56,9 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml
 
+PRODUCT_COPY_FILES += \
+    device/htc/flounder/bcmdhd.cal:system/etc/wifi/bcmdhd.cal
+
 PRODUCT_AAPT_CONFIG := xlarge hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
@@ -111,3 +114,4 @@ PRODUCT_PACKAGES += \
 $(call inherit-product-if-exists, hardware/nvidia/tegra124/tegra124.mk)
 $(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra124/tegra124-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/flounder/device-vendor.mk)
+$(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4350/device-bcm.mk)
