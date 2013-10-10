@@ -78,6 +78,7 @@ service battery_charger /charger
 # Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
 service watchdogd /sbin/watchdogd 10 20
     class core
+    disabled
     seclabel u:r:watchdogd:s0
 
 # on userdebug and eng builds, enable kgdb on the serial console
