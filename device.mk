@@ -35,6 +35,10 @@ PRODUCT_COPY_FILES += \
     device/nvidia/ardbeg/ueventd.ardbeg.rc:root/ueventd.ardbeg.rc \
     device/nvidia/ardbeg/raydium_ts.idc:system/usr/idc/raydium_ts.idc
 
+PRODUCT_PACKAGES += \
+    power.ardbeg \
+    lights.ardbeg
+
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
