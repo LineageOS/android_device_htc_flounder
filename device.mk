@@ -67,7 +67,8 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
 PRODUCT_PACKAGES += \
-    power.flounder
+    power.flounder \
+    lights.flounder
 
 # Filesystem management tools
 PRODUCT_PACKAGES += \

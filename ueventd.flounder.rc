@@ -5,3 +5,5 @@
 /dev/nvhdcp1    0666    system  system
 /dev/nvhost*    0666    root    root
 /dev/raydium_ts 0777    system  system
+
+/sys/devices/platform/pwm-backlight/backlight/pwm-backlight    brightness    0660   system   system
