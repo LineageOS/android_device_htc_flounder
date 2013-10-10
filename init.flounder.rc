@@ -33,8 +33,36 @@ on boot
     chmod 0222 /sys/kernel/debug/tracing/trace_marker
     write /sys/kernel/debug/tracing/tracing_on 0
 
+    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/no_lp 0
+
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor conservative
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor conservative
+
+    write /sys/devices/system/cpu/cpufreq/conservative/up_threshold 95
+    write /sys/devices/system/cpu/cpufreq/conservative/down_threshold 50
+    write /sys/devices/system/cpu/cpufreq/conservative/freq_step 3
+
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor interactive
+    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 696000
+    write /sys/devices/system/cpu/cpufreq/interactive/target_loads "75 228000:85 696000:90 1530000:95"
+    write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay "20000 1530000:50000"
+
+    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/down_delay 500
+    write /sys/devices/system/cpu/cpuquiet/current_governor runnable
+
+    # Enable power gating of fast CPU's
+    write /sys/module/cpuidle_t11x/parameters/cpu_power_gating_in_idle 31
+    write /sys/module/cpuidle/parameters/power_down_in_idle 1
+
     write /sys/devices/system/cpu/cpuquiet/current_governor runnable
     write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 1
+
+    write /sys/kernel/debug/cpuidle/force_clkgt_at_vmin 0x2
 
 on fs
     mount_all /fstab.flounder
