@@ -15,6 +15,8 @@ on init
     symlink /storage/emulated/legacy /storage/sdcard0
     symlink /mnt/shell/emulated/0 /storage/emulated/legacy
 
+    mkdir /factory
+
 on post-fs-data
     setprop vold.post_fs_data_done 1
     mkdir /data/misc/wifi 0770 wifi wifi
