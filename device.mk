@@ -44,6 +44,7 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
     frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
+    frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
     frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
     frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
@@ -57,6 +58,12 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml
 
 PRODUCT_COPY_FILES += \
+    device/htc/flounder/media_codecs.xml:system/etc/media_codecs.xml \
+    device/htc/flounder/media_profiles.xml:system/etc/media_profiles.xml \
+    device/htc/flounder/audio_policy.conf:system/etc/audio_policy.conf
+
+PRODUCT_COPY_FILES += \
+    device/htc/flounder/nvaudio_conf.xml:system/etc/nvaudio_conf.xml \
     device/htc/flounder/bcmdhd.cal:system/etc/wifi/bcmdhd.cal
 
 PRODUCT_AAPT_CONFIG := xlarge hdpi xhdpi
