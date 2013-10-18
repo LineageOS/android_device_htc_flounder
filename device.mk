@@ -22,10 +22,10 @@ endif
 
 PRODUCT_COPY_FILES := \
     $(LOCAL_KERNEL):kernel \
-    device/htc/flounder/init.flounder.rc:root/init.flounder.rc \
-    device/htc/flounder/init.flounder.usb.rc:root/init.flounder.usb.rc \
-    device/htc/flounder/fstab.flounder:root/fstab.flounder \
-    device/htc/flounder/ueventd.flounder.rc:root/ueventd.flounder.rc
+    $(LOCAL_PATH)/init.flounder.rc:root/init.flounder.rc \
+    $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder.usb.rc \
+    $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder \
+    $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder.rc
 
 # Copy ardbeg files to allow booting on flounder or ardbeg for now
 PRODUCT_COPY_FILES += \
@@ -58,13 +58,13 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml
 
 PRODUCT_COPY_FILES += \
-    device/htc/flounder/media_codecs.xml:system/etc/media_codecs.xml \
-    device/htc/flounder/media_profiles.xml:system/etc/media_profiles.xml \
-    device/htc/flounder/audio_policy.conf:system/etc/audio_policy.conf
+    $(LOCAL_PATH)/media_codecs.xml:system/etc/media_codecs.xml \
+    $(LOCAL_PATH)/media_profiles.xml:system/etc/media_profiles.xml \
+    $(LOCAL_PATH)/audio_policy.conf:system/etc/audio_policy.conf
 
 PRODUCT_COPY_FILES += \
-    device/htc/flounder/nvaudio_conf.xml:system/etc/nvaudio_conf.xml \
-    device/htc/flounder/bcmdhd.cal:system/etc/wifi/bcmdhd.cal
+    $(LOCAL_PATH)/nvaudio_conf.xml:system/etc/nvaudio_conf.xml \
+    $(LOCAL_PATH)/bcmdhd.cal:system/etc/wifi/bcmdhd.cal
 
 PRODUCT_AAPT_CONFIG := xlarge hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
@@ -72,7 +72,7 @@ PRODUCT_AAPT_PREF_CONFIG := xhdpi
 PRODUCT_CHARACTERISTICS := tablet,nosdcard
 
 DEVICE_PACKAGE_OVERLAYS := \
-    device/htc/flounder/overlay
+    $(LOCAL_PATH)/overlay
 
 PRODUCT_TAGS += dalvik.gc.type-precise
 
