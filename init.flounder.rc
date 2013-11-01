@@ -25,6 +25,13 @@ on post-fs-data
     chown dhcp dhcp /data/misc/dhcp
 
 on boot
+  # bluetooth
+    # change back to bluetooth from system
+    chown bluetooth net_bt_stack /data/misc/bluetooth
+
+    # power down interface
+    write /sys/class/rfkill/rfkill0/state 0
+
     mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
 
     setprop ro.radio.noril true

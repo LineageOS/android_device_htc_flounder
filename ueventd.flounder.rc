@@ -20,8 +20,8 @@
 /dev/nvhdcp0    0666    system  system
 /dev/nvhdcp1    0666    system  system
 /dev/nvhost*    0666    root    root
-/dev/ttyHS1    0664    root    system
-/dev/ttyHS2    0660    bluetooth       bluetooth
+/dev/ttyHS1     0664    root    system
+/dev/ttyHS2     0660    bluetooth    net_bt_stack
 #for FM V4L2 Radio
 /dev/radio      0666    system  radio
 /dev/mpu        0640    system  system
@@ -33,4 +33,6 @@
 /dev/timerinfo  0444    system  system
 /dev/pn544      0660    nfc     nfc
 
+/sys/class/rfkill/rfkill0/state  0660    bluetooth    net_bt_stack
+/sys/class/rfkill/rfkill0/type   0660    bluetooth    net_bt_stack
 /sys/devices/platform/pwm-backlight/backlight/pwm-backlight    brightness    0660   system   system
