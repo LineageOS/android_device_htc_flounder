@@ -25,7 +25,7 @@ on post-fs-data
     chown dhcp dhcp /data/misc/dhcp
 
 on boot
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
+    mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
 
     setprop ro.radio.noril true
 
