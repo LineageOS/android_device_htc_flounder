@@ -33,6 +33,6 @@
 /dev/timerinfo  0444    system  system
 /dev/pn544      0660    nfc     nfc
 
-/sys/class/rfkill/rfkill0/state  0660    bluetooth    net_bt_stack
-/sys/class/rfkill/rfkill0/type   0660    bluetooth    net_bt_stack
+/sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  state  0660    bluetooth    net_bt_stack
+/sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  type   0660    bluetooth    net_bt_stack
 /sys/devices/platform/pwm-backlight/backlight/pwm-backlight    brightness    0660   system   system
