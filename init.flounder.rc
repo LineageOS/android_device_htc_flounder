@@ -43,21 +43,22 @@ on boot
     write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/no_lp 0
 
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
-    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 696000
-    write /sys/devices/system/cpu/cpufreq/interactive/target_loads "75 228000:85 696000:90 1530000:95"
-    write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay "20000 1530000:50000"
+    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 624000
+    write /sys/devices/system/cpu/cpufreq/interactive/target_loads "65 228000:75 624000:85"
+    write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 20000
 
     write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/down_delay 500
+    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/idle_top_freq 444000
     write /sys/devices/system/cpu/cpuquiet/current_governor runnable
 
     # Enable power gating of fast CPU's
     write /sys/module/cpuidle_t11x/parameters/cpu_power_gating_in_idle 31
+    write /sys/module/cpuidle_t11x/parameters/slow_cluster_power_gating_noncpu 1
     write /sys/module/cpuidle/parameters/power_down_in_idle 1
 
+    write /sys/module/cpuidle_t11x/parameters/stop_mc_clk_in_idle 1
     write /sys/devices/system/cpu/cpuquiet/current_governor runnable
     write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 1
-
-    write /sys/kernel/debug/cpuidle/force_clkgt_at_vmin 0x2
 
     # TODO: Remove this once we have dynamic frequency scaling in place
     write /sys/devices/platform/host1x/gk20a.0/user 1
