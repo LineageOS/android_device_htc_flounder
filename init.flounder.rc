@@ -78,7 +78,7 @@ service watchdogd /sbin/watchdogd 10 20
 
 # on userdebug and eng builds, enable kgdb on the serial console
 on property:ro.debuggable=1
-    write /sys/module/kgdboc/parameters/kgdboc ttyFIQ2
+    write /sys/module/kgdboc/parameters/kgdboc ttyFIQ0
     write /sys/module/fiq_debugger/parameters/kgdb_enable 1
 
 # bugreport is triggered by holding down volume down, volume up and power
