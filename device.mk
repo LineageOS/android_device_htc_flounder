@@ -20,6 +20,12 @@ else
 LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
 
+PRODUCT_PACKAGES := \
+    libwpa_client \
+    hostapd \
+    wpa_supplicant \
+    wpa_supplicant.conf
+
 PRODUCT_COPY_FILES := \
     $(LOCAL_KERNEL):kernel \
     $(LOCAL_PATH)/init.flounder.rc:root/init.flounder.rc \
