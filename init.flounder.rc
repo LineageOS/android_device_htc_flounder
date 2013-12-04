@@ -59,6 +59,10 @@ on boot
 
     write /sys/kernel/debug/cpuidle/force_clkgt_at_vmin 0x2
 
+    # TODO: Remove this once we have dynamic frequency scaling in place
+    write /sys/devices/platform/host1x/gk20a.0/user 1
+    write /sys/devices/platform/host1x/gk20a.0/freq_request 540000000
+
 on fs
     mount_all /fstab.flounder
     setprop ro.crypto.fuse_sdcard true
