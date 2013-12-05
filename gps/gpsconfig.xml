@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<glgps xmlns="http://www.glpals.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.glpals.com/ glconfig.xsd" >
+
+  <hal
+    PortName="/dev/ttyHS1"
+    BaudRate="921600"
+    LogEnabled="false"
+    Log="DAEMON"
+    LogDirectory="/data/gps/gpslog/"
+    NmeaOutName="/data/gps/nmea_out"
+    CtrlPipe="/data/gps/glgpsctrl"
+    GpioNStdbyPath="/sys/class/gpio/gpio61/value"
+    GpioDelayMs="130"
+    NvStorageDir="/data/gps/"
+    HttpSyncLto="true"
+    LtoFileName="lto2.dat"
+    LtoDir="/data/gps/"
+    HulaEnable="false"
+  />
+
+  <gll
+    LogPriMask="LOG_DEBUG"
+    LogFacMask="LOG_GLLAPI | LOG_NMEA | LOG_RAWDATA | LOG_GLLIO"
+    FrqPlan="FRQ_PLAN_26MHZ_2PPM"
+    RfType="GL_RF_47521_BRCM_EXT_LNA"
+  />
+
+</glgps>
