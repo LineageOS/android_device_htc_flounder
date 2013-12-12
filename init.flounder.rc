@@ -68,6 +68,18 @@ on fs
     mount_all /fstab.flounder
     setprop ro.crypto.fuse_sdcard true
 
+    # for GPS files
+    mkdir /data/gps 0770 gps system
+    chown gps system /data/gps
+    chmod 0770 /data/gps
+
+    # GPS init
+    write /sys/class/gpio/export 61
+    write /sys/class/gpio/gpio61/value 0
+    write /sys/class/gpio/gpio61/direction out
+    chown gps system /sys/class/gpio/gpio61/value
+    chmod 0660 /sys/class/gpio/gpio61/value
+
 # virtual sdcard daemon running as media_rw (1023)
 service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
     class late_start
@@ -109,6 +121,12 @@ service p2p_supplicant /system/bin/wpa_supplicant \
     socket wpa_wlan0 dgram 660 wifi wifi
     disabled
     oneshot
+
+service gpsd /system/bin/glgps -c /system/etc/gpsconfig.xml
+    class main
+    user gps
+    socket gps seqpacket 0660 gps system
+    group system inet sdcard_rw sdcard_r
 
 service wpa_supplicant /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
