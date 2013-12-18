@@ -1,0 +1,9 @@
+<mixer>
+  <!-- These are the initial mixer settings -->
+  <ctl name="HDMI/DP,pcm=3 Jack" value="0"/>
+
+  <path name="hdmi">
+    <ctl name="HDMI/DP,pcm=3 Jack" value="1"/>
+  </path>
+
+</mixer>
