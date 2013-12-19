@@ -144,4 +144,4 @@ PRODUCT_PACKAGES += \
 $(call inherit-product-if-exists, hardware/nvidia/tegra124/tegra124.mk)
 $(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra124/tegra124-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/flounder/device-vendor.mk)
-$(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4350/device-bcm.mk)
+$(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4354/device-bcm.mk)
