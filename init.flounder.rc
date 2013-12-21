@@ -60,10 +60,6 @@ on boot
     write /sys/devices/system/cpu/cpuquiet/current_governor runnable
     write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 1
 
-    # TODO: Remove this once we have dynamic frequency scaling in place
-    write /sys/devices/platform/host1x/gk20a.0/user 1
-    write /sys/devices/platform/host1x/gk20a.0/freq_request 540000000
-
 on fs
     mount_all /fstab.flounder
     setprop ro.crypto.fuse_sdcard true
