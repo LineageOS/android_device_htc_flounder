@@ -4,53 +4,56 @@
   <ctl name="Int Mic Switch" value="0"/>
   <ctl name="Mic Jack Switch" value="0"/>
   <ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
+  <ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
+  <ctl name="TDM1 Mode" value="Normal"/>
 
   <!-- TODO other defaults -->
 
   <path name="speaker">
-    <ctl name="Headphone Jack Switch" value="1"/>
   </path>
 
   <path name="speaker-reverse">
-    <ctl name="Headphone Jack Switch" value="1"/>
   </path>
 
   <path name="headphones">
     <ctl name="Headphone Jack Switch" value="1"/>
   </path>
 
-  <path name="bt-sco-headset">
+  <path name="speaker-and-headphones">
     <ctl name="Headphone Jack Switch" value="1"/>
   </path>
 
+  <path name="bt-sco-headset">
+  </path>
+
   <path name="speaker-mic">
-    <ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-    <ctl name="TDM1 Mode" value="2"/>
-    <ctl name="Mic Jack Switch" value="1"/>
+    <ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
+    <ctl name="TDM1 Mode" value="LL Copy"/>
+    <ctl name="Int Mic Switch" value="1"/>
   </path>
 
   <path name="handset-mic">
-    <ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-    <ctl name="TDM1 Mode" value="2"/>
-    <ctl name="Mic Jack Switch" value="1"/>
+    <ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
+    <ctl name="TDM1 Mode" value="LL Copy"/>
+    <ctl name="Int Mic Switch" value="1"/>
   </path>
 
   <path name="headset-mic">
     <ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-    <ctl name="TDM1 Mode" value="2"/>
+    <ctl name="TDM1 Mode" value="RR Copy"/>
     <ctl name="Mic Jack Switch" value="1"/>
   </path>
 
   <path name="camcorder-mic">
-    <ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-    <ctl name="TDM1 Mode" value="2"/>
-    <ctl name="Mic Jack Switch" value="1"/>
+    <ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
+    <ctl name="TDM1 Mode" value="LL Copy"/>
+    <ctl name="Int Mic Switch" value="1"/>
   </path>
 
   <path name="voice-rec-mic">
-    <ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
-    <ctl name="TDM1 Mode" value="2"/>
-    <ctl name="Mic Jack Switch" value="1"/>
+    <ctl name="Mono ADC MIXL ADC2 Switch" value="1"/>
+    <ctl name="TDM1 Mode" value="LL Copy"/>
+    <ctl name="Int Mic Switch" value="1"/>
   </path>
 
 </mixer>
