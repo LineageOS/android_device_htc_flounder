@@ -63,10 +63,7 @@ struct pcm_device_profile pcm_device_playback_hs = {
     .card = 1,
     .id = 0,
     .type = PCM_PLAYBACK,
-/* FIXME headphone jack only on ardbeg board
-    .devices = AUDIO_DEVICE_OUT_WIRED_HEADSET|AUDIO_DEVICE_OUT_WIRED_HEADPHONE, */
-    .devices =
-         AUDIO_DEVICE_OUT_SPEAKER|AUDIO_DEVICE_OUT_WIRED_HEADSET|AUDIO_DEVICE_OUT_WIRED_HEADPHONE,
+    .devices = AUDIO_DEVICE_OUT_WIRED_HEADSET|AUDIO_DEVICE_OUT_WIRED_HEADPHONE,
 };
 
 struct pcm_device_profile pcm_device_capture = {
@@ -102,9 +99,7 @@ struct pcm_device_profile pcm_device_playback_spk = {
     .card = 1,
     .id = 1,
     .type = PCM_PLAYBACK,
-/* FIXME headphone jack only on ardbeg board
-    .devices = AUDIO_DEVICE_OUT_SPEAKER, */
-    .devices = 0,
+    .devices = AUDIO_DEVICE_OUT_SPEAKER,
 };
 
 struct pcm_device_profile pcm_device_playback_sco = {
