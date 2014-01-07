@@ -60,6 +60,8 @@ on boot
     write /sys/devices/system/cpu/cpuquiet/current_governor runnable
     write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 1
 
+    chmod 0444 /sys/kernel/debug/bq2419x-regs
+
 on fs
     mount_all /fstab.flounder
     setprop ro.crypto.fuse_sdcard true
