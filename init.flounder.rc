@@ -78,6 +78,11 @@ on fs
     chown gps system /sys/class/gpio/gpio61/value
     chmod 0660 /sys/class/gpio/gpio61/value
 
+    # Touch init
+    chmod 0770 /system/vendor/bin/touch_fusion
+    chmod 0660 /system/vendor/firmware/touch_fusion.cfg
+    chmod 0660 /system/vendor/firmware/maxim_fp35.bin
+
 # virtual sdcard daemon running as media_rw (1023)
 service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
     class late_start
@@ -155,3 +160,10 @@ service iprenew_p2p /system/bin/dhcpcd -n
     class main
     disabled
     oneshot
+
+# Maxim touch setting
+service touch_fusion \
+    /vendor/bin/touch_fusion \
+    daemon touch_fusion /vendor/firmware/touch_fusion.cfg
+    class main
+	user root
