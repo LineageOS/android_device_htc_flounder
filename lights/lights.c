@@ -67,7 +67,7 @@ static int set_light_backlight(struct light_device_t *dev,
     int brightness = rgb_to_brightness(state);
 
     pthread_mutex_lock(&g_lock);
-    err = write_int("/sys/class/backlight/pwm-backlight/brightness",
+    err = write_int("/sys/class/backlight/tegra-pwm-bl/brightness",
             brightness);
     pthread_mutex_unlock(&g_lock);
 
