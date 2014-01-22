@@ -877,6 +877,11 @@ static int select_devices(struct audio_device *adev,
     usecase->in_snd_device = in_snd_device;
     usecase->out_snd_device = out_snd_device;
 
+    if (out_snd_device != SND_DEVICE_NONE)
+        if (usecase->devices & (AUDIO_DEVICE_OUT_WIRED_HEADSET | AUDIO_DEVICE_OUT_WIRED_HEADPHONE))
+            if (adev->htc_acoustic_set_rt5506_amp != NULL)
+                adev->htc_acoustic_set_rt5506_amp(adev->mode, usecase->devices);
+
     return status;
 }
 
@@ -2942,7 +2947,25 @@ static int adev_open(const hw_module_t *module, const char *name,
         }
     }
 
+    if (access(HTC_ACOUSTIC_LIBRARY_PATH, R_OK) == 0) {
+        adev->htc_acoustic_lib = dlopen(HTC_ACOUSTIC_LIBRARY_PATH, RTLD_NOW);
+        if (adev->htc_acoustic_lib == NULL) {
+            ALOGE("%s: DLOPEN failed for %s", __func__, HTC_ACOUSTIC_LIBRARY_PATH);
+        } else {
+            ALOGV("%s: DLOPEN successful for %s", __func__, HTC_ACOUSTIC_LIBRARY_PATH);
+            adev->htc_acoustic_init_rt5506 =
+                        (int (*)())dlsym(adev->htc_acoustic_lib,
+                                                        "init_rt5506");
+            adev->htc_acoustic_set_rt5506_amp =
+                        (int (*)(int, int))dlsym(adev->htc_acoustic_lib,
+                                                        "set_rt5506_amp");
+        }
+    }
+
     *device = &adev->device.common;
+
+    if (adev->htc_acoustic_init_rt5506 != NULL)
+        adev->htc_acoustic_init_rt5506();
 
     ALOGV("%s: exit", __func__);
     return 0;
