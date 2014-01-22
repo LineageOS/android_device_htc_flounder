@@ -134,7 +134,8 @@ PRODUCT_PROPERTY_OVERRIDES := \
     ro.hwui.text_small_cache_height=1024 \
     ro.hwui.text_large_cache_width=2048 \
     ro.hwui.text_large_cache_height=1024 \
-    ro.hwui.disable_scissor_opt=true
+    ro.hwui.disable_scissor_opt=true \
+    ro.bt.bdaddr_path=/sys/module/flounder_bdaddress/parameters/bdaddress
 
 # setup dalvik vm configs.
 $(call inherit-product, frameworks/native/build/tablet-10in-xhdpi-2048-dalvik-heap.mk)
