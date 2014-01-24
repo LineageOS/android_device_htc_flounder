@@ -68,13 +68,6 @@ on fs
     chown gps system /data/gps
     chmod 0770 /data/gps
 
-    # GPS init
-    write /sys/class/gpio/export 61
-    write /sys/class/gpio/gpio61/value 0
-    write /sys/class/gpio/gpio61/direction out
-    chown gps system /sys/class/gpio/gpio61/value
-    chmod 0660 /sys/class/gpio/gpio61/value
-
     # Touch init
     chmod 0770 /system/vendor/bin/touch_fusion
     chmod 0660 /system/vendor/firmware/touch_fusion.cfg
@@ -102,6 +95,13 @@ on property:ro.debuggable=1
     write /sys/module/kgdboc/parameters/kgdboc ttyFIQ0
     write /sys/module/fiq_debugger/parameters/kgdb_enable 1
 
+# for loading correct gps hal share libraries
+on property:ro.boot.baseband=N/A
+    setprop ro.hardware.gps bcm47521
+
+on property:ro.baseband=unknown
+    setprop ro.hardware.gps bcm47521
+
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B \
         -o /data/data/com.android.shell/files/bugreports/bugreport
@@ -128,9 +128,13 @@ service p2p_supplicant /system/bin/wpa_supplicant \
 
 service gpsd /system/bin/glgps -c /system/etc/gpsconfig.xml
     class main
+    disabled
     user gps
     socket gps seqpacket 0660 gps system
     group system inet sdcard_rw sdcard_r
+
+on property:ro.hardware.gps=bcm47521
+    start gpsd
 
 service wpa_supplicant /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \

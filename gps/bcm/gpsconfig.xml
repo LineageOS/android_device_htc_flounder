@@ -2,14 +2,14 @@
 <glgps xmlns="http://www.glpals.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.glpals.com/ glconfig.xsd" >
 
   <hal
-    PortName="/dev/ttyHS1"
+    PortName="/dev/ttyTHS1"
     BaudRate="921600"
     LogEnabled="false"
     Log="DAEMON"
     LogDirectory="/data/gps/gpslog/"
     NmeaOutName="/data/gps/nmea_out"
     CtrlPipe="/data/gps/glgpsctrl"
-    GpioNStdbyPath="/sys/class/gpio/gpio61/value"
+    GpioNStdbyPath="/dev/gps_onoff"
     GpioDelayMs="130"
     NvStorageDir="/data/gps/"
     HttpSyncLto="true"
