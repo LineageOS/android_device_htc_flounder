@@ -27,8 +27,16 @@ TARGET_CPU_VARIANT := cortex-a15
 TARGET_NO_BOOTLOADER := true
 
 TARGET_NO_RADIOIMAGE := true
+
+ifeq ($(TARGET_DEVICE),flounder64)
+TARGET_BOARD_PLATFORM := tegra132
+TARGET_BOARD_INFO_FILE := device/htc/flounder/board-info64.txt
+else
 TARGET_BOARD_PLATFORM := tegra124
 TARGET_BOARD_INFO_FILE := device/htc/flounder/board-info.txt
+endif
+
+TARGET_BOOTLOADER_BOARD_NAME := flounder
 
 USE_OPENGL_RENDERER := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3

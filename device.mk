@@ -27,6 +27,13 @@ PRODUCT_COPY_FILES := \
     $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder \
     $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder.rc
 
+# Copy flounder files as flounder64
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/init.flounder64.rc:root/init.flounder64.rc \
+    $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder64.usb.rc \
+    $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder64 \
+    $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder64.rc
+
 # Copy ardbeg files to allow booting on flounder or ardbeg for now
 PRODUCT_COPY_FILES += \
     device/nvidia/ardbeg/init.ardbeg.rc:root/init.ardbeg.rc \
@@ -156,7 +163,5 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default \
 
-$(call inherit-product-if-exists, hardware/nvidia/tegra124/tegra124.mk)
-$(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra124/tegra124-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/flounder/device-vendor.mk)
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4354/device-bcm.mk)

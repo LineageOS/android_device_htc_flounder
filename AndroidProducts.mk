@@ -14,4 +14,6 @@
 # limitations under the License.
 #
 
-PRODUCT_MAKEFILES := $(LOCAL_DIR)/aosp_flounder.mk
+PRODUCT_MAKEFILES := \
+	$(LOCAL_DIR)/aosp_flounder.mk \
+	$(LOCAL_DIR)/aosp_flounder64.mk
