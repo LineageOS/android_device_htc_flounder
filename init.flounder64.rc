@@ -1,0 +1,13 @@
+import /init.flounder.rc
+
+on boot
+    write /sys/module/tegra3_emc/parameters/emc_enable 0
+    #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 1000000
+    write /sys/module/cpu_tegra/parameters/cpu_user_cap 700000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor userspace
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor userspace
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed 700000
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_setspeed 700000
+    #write /sys/devices/system/cpu/cpufreq/interactive/boost_factor 2
+    #write /sys/devices/system/cpu/cpufreq/interactive/sustain_load 80
+    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 0
