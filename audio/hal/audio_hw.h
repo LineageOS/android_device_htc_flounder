@@ -32,6 +32,7 @@
 
 
 #define OFFLOAD_FX_LIBRARY_PATH "/system/lib/soundfx/libnvidiaoffloadfx.so"
+#define HTC_ACOUSTIC_LIBRARY_PATH "/system/lib/libhtcacoustic.so"
 
 #define TTY_MODE_OFF    1
 #define TTY_MODE_FULL   2
@@ -331,6 +332,10 @@ struct audio_device {
     void*                   offload_fx_lib;
     int                     (*offload_fx_start_output)(audio_io_handle_t);
     int                     (*offload_fx_stop_output)(audio_io_handle_t);
+
+    void*                   htc_acoustic_lib;
+    int                     (*htc_acoustic_init_rt5506)();
+    int                     (*htc_acoustic_set_rt5506_amp)(int, int);
 };
 
 /*
