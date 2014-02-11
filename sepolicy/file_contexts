@@ -1,0 +1,8 @@
+###### GPU device (world r/w)
+/dev/nvhost-as-gpu		u:object_r:gpu_device:s0
+/dev/nvhost-ctrl		u:object_r:gpu_device:s0
+/dev/nvhost-ctrl-gpu		u:object_r:gpu_device:s0
+/dev/nvhost-gpu			u:object_r:gpu_device:s0
+/dev/nvhost-vic			u:object_r:gpu_device:s0
+/dev/nvmap			u:object_r:gpu_device:s0
+/dev/nvhdcp0			u:object_r:gpu_device:s0
