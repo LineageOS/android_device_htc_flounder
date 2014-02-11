@@ -91,12 +91,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/gpsconfig.xml:system/etc/gpsconfig.xml \
     $(LOCAL_PATH)/gps/gps.flounder.so:system/lib/hw/gps.flounder.so
 
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/touch/touch_fusion:system/vendor/bin/touch_fusion \
-    $(LOCAL_PATH)/touch/touch_fusion.cfg:system/vendor/firmware/touch_fusion.cfg \
-    $(LOCAL_PATH)/touch/maxim_fp35.bin:system/vendor/firmware/maxim_fp35.bin \
-    $(LOCAL_PATH)/touch/touch_fusion.idc:system/usr/idc/touch_fusion.idc
-
 PRODUCT_AAPT_CONFIG := xlarge hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
