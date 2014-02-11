@@ -157,10 +157,3 @@ service iprenew_p2p /system/bin/dhcpcd -n
     class main
     disabled
     oneshot
-
-# Maxim touch setting
-service touch_fusion \
-    /vendor/bin/touch_fusion \
-    daemon touch_fusion /vendor/firmware/touch_fusion.cfg
-    class main
-	user root
