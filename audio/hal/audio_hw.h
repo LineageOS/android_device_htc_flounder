@@ -154,6 +154,9 @@ enum {
 #define COMPRESS_OFFLOAD_PLAYBACK_LATENCY 96
 #define COMPRESS_PLAYBACK_VOLUME_MAX 0x2000
 
+#define DEEP_BUFFER_OUTPUT_SAMPLING_RATE 48000
+#define DEEP_BUFFER_OUTPUT_PERIOD_SIZE 480
+#define DEEP_BUFFER_OUTPUT_PERIOD_COUNT 8
 
 #define MAX_SUPPORTED_CHANNEL_MASKS 2
 
@@ -169,6 +172,7 @@ typedef enum {
     USECASE_AUDIO_PLAYBACK = 0,
     USECASE_AUDIO_PLAYBACK_MULTI_CH,
     USECASE_AUDIO_PLAYBACK_OFFLOAD,
+    USECASE_AUDIO_PLAYBACK_DEEP_BUFFER,
 
     /* Capture usecases */
     USECASE_AUDIO_CAPTURE,
@@ -336,6 +340,14 @@ struct audio_device {
     void*                   htc_acoustic_lib;
     int                     (*htc_acoustic_init_rt5506)();
     int                     (*htc_acoustic_set_rt5506_amp)(int, int);
+    int                     (*htc_acoustic_set_amp_mode)(int, int, int, int, bool);
+
+    int                     tfa9895_init;
+    int                     deepbuf_thread_timeout;
+    int                     deepbuf_thread_cancel;
+    int                     deepbuf_thread_active;
+    pthread_mutex_t         deepbuf_thread_lock;
+    pthread_t               deepbuf_thread;
 };
 
 /*

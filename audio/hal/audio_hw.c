@@ -180,6 +180,19 @@ static const char * const use_case_table[AUDIO_USECASE_MAX] = {
 
 #define STRING_TO_ENUM(string) { #string, string }
 
+static unsigned int audio_device_ref_count;
+
+struct pcm_config pcm_config_deep_buffer = {
+	.channels = 2,
+	.rate = DEEP_BUFFER_OUTPUT_SAMPLING_RATE,
+	.period_size = DEEP_BUFFER_OUTPUT_PERIOD_SIZE,
+	.period_count = DEEP_BUFFER_OUTPUT_PERIOD_COUNT,
+	.format = PCM_FORMAT_S16_LE,
+	.start_threshold = DEEP_BUFFER_OUTPUT_PERIOD_SIZE / 4,
+	.stop_threshold = INT_MAX,
+	.avail_min = DEEP_BUFFER_OUTPUT_PERIOD_SIZE / 4,
+};
+
 struct string_to_enum {
     const char *name;
     uint32_t value;
@@ -2495,6 +2508,11 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
         ALOGV("%s: offloaded output offload_info version %04x bit rate %d",
                 __func__, config->offload_info.version,
                 config->offload_info.bit_rate);
+    } else if (out->flags & (AUDIO_OUTPUT_FLAG_DEEP_BUFFER)) {
+        out->usecase = USECASE_AUDIO_PLAYBACK_DEEP_BUFFER;
+        out->config = pcm_config_deep_buffer;
+        out->sample_rate = out->config.rate;
+        ALOGD("%s: use AUDIO_PLAYBACK_DEEP_BUFFER",__func__);
     } else {
         out->usecase = USECASE_AUDIO_PLAYBACK;
         out->sample_rate = out->config.rate;
@@ -2867,17 +2885,87 @@ static int adev_dump(const audio_hw_device_t *device, int fd)
 static int adev_close(hw_device_t *device)
 {
     struct audio_device *adev = (struct audio_device *)device;
+    audio_device_ref_count--;
     free(adev->snd_dev_ref_cnt);
     free_mixer_list(adev);
     free(device);
     return 0;
 }
 
+static void *deepbuf_thread(void *context)
+{
+	ALOGD("%s: enter", __func__);
+	struct audio_device *adev = (struct audio_device *)context;
+	struct audio_config config;
+	struct audio_stream_out *out = NULL;
+	unsigned char data[DEEP_BUFFER_OUTPUT_PERIOD_SIZE*2] = {0};
+	memset(&config, 0 , sizeof(struct audio_config));
+
+	while (1) {
+		pthread_mutex_lock(&adev->deepbuf_thread_lock);
+
+		if (out == NULL)
+			adev->device.open_output_stream(&adev->device, 0, AUDIO_DEVICE_OUT_SPEAKER,
+			    AUDIO_OUTPUT_FLAG_DEEP_BUFFER, &config, &out);
+		if (out) {
+			out->write(out, data, DEEP_BUFFER_OUTPUT_PERIOD_SIZE*2);
+			adev->deepbuf_thread_active = 1;
+		} else
+			ALOGD("%s: cant open a output deep stream", __func__);
+
+		if (adev->deepbuf_thread_cancel || adev->deepbuf_thread_timeout-- <= 0) {
+			adev->deepbuf_thread_active = 0;
+			adev->deepbuf_thread_cancel = 0;
+			if (out)
+				adev->device.close_output_stream(&adev->device, out);
+			pthread_mutex_unlock(&adev->deepbuf_thread_lock);
+
+			break;
+		}
+
+		pthread_mutex_unlock(&adev->deepbuf_thread_lock);
+		usleep(1000);
+	}
+
+	return NULL;
+}
+
+static void deepbuf_thread_open(struct audio_device *adev)
+{
+	adev->deepbuf_thread_timeout = 6000;
+	adev->deepbuf_thread_cancel = 0;
+	adev->deepbuf_thread_active = 0;
+	pthread_mutex_init(&adev->deepbuf_thread_lock, (const pthread_mutexattr_t *) NULL);
+	if (!adev->deepbuf_thread)
+		pthread_create(&adev->deepbuf_thread, (const pthread_attr_t *) NULL, deepbuf_thread, adev);
+}
+
+static void deepbuf_thread_close(struct audio_device *adev)
+{
+	int retry_cnt = 20;
+	pthread_mutex_lock(&adev->deepbuf_thread_lock);
+	adev->deepbuf_thread_cancel = 1;
+	pthread_mutex_unlock(&adev->deepbuf_thread_lock);
+
+	while (retry_cnt > 0) {
+		if (adev->deepbuf_thread_active == 0)
+			break;
+
+		retry_cnt--;
+		usleep(1000);
+	}
+
+	if (adev->deepbuf_thread_active)
+		ALOGD("audio path may out of order");
+	else
+		pthread_mutex_destroy(&adev->deepbuf_thread_lock);
+}
+
 static int adev_open(const hw_module_t *module, const char *name,
                      hw_device_t **device)
 {
     struct audio_device *adev;
-    int i, ret;
+    int i, ret, retry_count;
 
     ALOGD("%s: enter", __func__);
     if (strcmp(name, AUDIO_HARDWARE_INTERFACE) != 0) return -EINVAL;
@@ -2959,6 +3047,9 @@ static int adev_open(const hw_module_t *module, const char *name,
             adev->htc_acoustic_set_rt5506_amp =
                         (int (*)(int, int))dlsym(adev->htc_acoustic_lib,
                                                         "set_rt5506_amp");
+            adev->htc_acoustic_set_amp_mode =
+                        (int (*)(int , int, int, int, bool))dlsym(adev->htc_acoustic_lib,
+                                                        "set_amp_mode");
         }
     }
 
@@ -2966,6 +3057,18 @@ static int adev_open(const hw_module_t *module, const char *name,
 
     if (adev->htc_acoustic_init_rt5506 != NULL)
         adev->htc_acoustic_init_rt5506();
+
+    if (adev->htc_acoustic_set_amp_mode && audio_device_ref_count == 0) {
+        deepbuf_thread_open(adev);
+        retry_count = RETRY_NUMBER;
+        while (!adev->deepbuf_thread_active && retry_count-- > 0)
+            usleep(10000);
+        if(adev->deepbuf_thread_active)
+            adev->tfa9895_init = adev->htc_acoustic_set_amp_mode(0, AUDIO_DEVICE_OUT_SPEAKER, 0, 0, false);
+        deepbuf_thread_close(adev);
+    }
+
+    audio_device_ref_count++;
 
     ALOGV("%s: exit", __func__);
     return 0;
