@@ -11,6 +11,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/touch/touch_fusion.idc:system/usr/idc/touch_fusion.idc
 
 $(call inherit-product-if-exists, device/htc/flounder/device.mk)
+$(call inherit-product-if-exists, vendor/htc/flounder/device32-vendor.mk)
 
 $(call inherit-product-if-exists, hardware/nvidia/tegra124/tegra124.mk)
 $(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra124/tegra124-vendor.mk)
