@@ -151,5 +151,4 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default \
 
-$(call inherit-product-if-exists, vendor/htc/flounder/device-vendor.mk)
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4354/device-bcm.mk)
