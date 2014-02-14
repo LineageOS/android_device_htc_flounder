@@ -74,3 +74,5 @@ WIFI_DRIVER_FW_PATH_AP      := "/vendor/firmware/fw_bcmdhd_apsta.bin"
 BOARD_SEPOLICY_DIRS := device/htc/flounder/sepolicy
 BOARD_SEPOLICY_UNION := \
 	file_contexts \
+	bluetooth.te
+
