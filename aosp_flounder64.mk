@@ -37,6 +37,8 @@ PRODUCT_PROPERTY_OVERRIDES := \
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
 $(call inherit-product, device/htc/flounder/device.mk)
 
+PRODUCT_RUNTIMES := runtime_libart_default
+
 PRODUCT_NAME := aosp_flounder64
 PRODUCT_DEVICE := flounder64
 PRODUCT_BRAND := Android
