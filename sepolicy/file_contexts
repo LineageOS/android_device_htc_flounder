@@ -6,3 +6,5 @@
 /dev/nvhost-vic			u:object_r:gpu_device:s0
 /dev/nvmap			u:object_r:gpu_device:s0
 /dev/nvhdcp0			u:object_r:gpu_device:s0
+# enable UART port permission
+/dev/ttyTHS2			u:object_r:hci_attach_dev:s0
