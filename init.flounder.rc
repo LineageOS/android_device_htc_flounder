@@ -36,25 +36,16 @@ on boot
     chmod 0222 /sys/kernel/debug/tracing/trace_marker
     write /sys/kernel/debug/tracing/tracing_on 0
 
-    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/no_lp 0
-
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
-    write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 624000
-    write /sys/devices/system/cpu/cpufreq/interactive/target_loads "65 228000:75 624000:85"
-    write /sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay 20000
-
-    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/down_delay 500
-    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/idle_top_freq 444000
-    write /sys/devices/system/cpu/cpuquiet/current_governor runnable
-
-    # Enable power gating of fast CPU's
-    write /sys/module/cpuidle_t11x/parameters/cpu_power_gating_in_idle 31
-    write /sys/module/cpuidle_t11x/parameters/slow_cluster_power_gating_noncpu 1
-    write /sys/module/cpuidle/parameters/power_down_in_idle 1
-
-    write /sys/module/cpuidle_t11x/parameters/stop_mc_clk_in_idle 1
-    write /sys/devices/system/cpu/cpuquiet/current_governor runnable
-    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 1
+    write /sys/module/tegra3_emc/parameters/emc_enable 0
+    #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 1000000
+    write /sys/module/cpu_tegra/parameters/cpu_user_cap 700000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor userspace
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor userspace
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed 700000
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_setspeed 700000
+    #write /sys/devices/system/cpu/cpufreq/interactive/boost_factor 2
+    #write /sys/devices/system/cpu/cpufreq/interactive/sustain_load 80
+    write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 0
 
     chmod 0444 /sys/kernel/debug/bq2419x-regs
 

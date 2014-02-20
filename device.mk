@@ -14,6 +14,12 @@
 # limitations under the License.
 #
 
+ifeq ($(TARGET_PREBUILT_KERNEL),)
+LOCAL_KERNEL := device/htc/flounder-kernel/Image
+else
+LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
+endif
+
 PRODUCT_COPY_FILES := \
     $(LOCAL_KERNEL):kernel \
     $(LOCAL_PATH)/init.flounder.rc:root/init.flounder.rc \
@@ -23,7 +29,7 @@ PRODUCT_COPY_FILES := \
 
 # Copy flounder files as flounder64
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/init.flounder64.rc:root/init.flounder64.rc \
+    $(LOCAL_PATH)/init.flounder.rc:root/init.flounder64.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder64.usb.rc \
     $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder64 \
     $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder64.rc
@@ -35,6 +41,12 @@ PRODUCT_COPY_FILES += \
     device/nvidia/ardbeg/fstab.ardbeg:root/fstab.ardbeg \
     device/nvidia/ardbeg/ueventd.ardbeg.rc:root/ueventd.ardbeg.rc \
     device/nvidia/ardbeg/raydium_ts.idc:system/usr/idc/raydium_ts.idc
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/touch/touch_fusion.cfg:system/vendor/firmware/touch_fusion.cfg \
+    $(LOCAL_PATH)/touch/maxim_fp35.bin:system/vendor/firmware/maxim_fp35.bin \
+    $(LOCAL_PATH)/touch/touch_fusion.idc:system/usr/idc/touch_fusion.idc \
+    $(LOCAL_PATH)/touch/touch_fusion:system/vendor/bin/touch_fusion
 
 PRODUCT_PACKAGES += \
     power.ardbeg \
@@ -151,4 +163,6 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default \
 
+$(call inherit-product-if-exists, hardware/nvidia/tegra132/tegra132.mk)
+$(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra132/tegra132-vendor.mk)
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4354/device-bcm.mk)

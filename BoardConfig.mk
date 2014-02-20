@@ -28,13 +28,8 @@ TARGET_NO_BOOTLOADER := true
 
 TARGET_NO_RADIOIMAGE := true
 
-ifeq ($(TARGET_DEVICE),flounder64)
 TARGET_BOARD_PLATFORM := tegra132
-TARGET_BOARD_INFO_FILE := device/htc/flounder/board-info64.txt
-else
-TARGET_BOARD_PLATFORM := tegra124
 TARGET_BOARD_INFO_FILE := device/htc/flounder/board-info.txt
-endif
 
 TARGET_BOOTLOADER_BOARD_NAME := flounder
 
@@ -76,3 +71,5 @@ BOARD_SEPOLICY_UNION := \
 	file_contexts \
 	bluetooth.te
 
+TARGET_USES_64_BIT_BCMDHD := true
+TARGET_USES_64_BIT_BINDER := true

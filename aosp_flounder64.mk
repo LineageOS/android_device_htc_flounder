@@ -35,7 +35,7 @@ PRODUCT_PROPERTY_OVERRIDES := \
 
 # Inherit from those products. Most specific first.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
-$(call inherit-product, device/htc/flounder/device64.mk)
+$(call inherit-product, device/htc/flounder/device.mk)
 
 PRODUCT_NAME := aosp_flounder64
 PRODUCT_DEVICE := flounder64
