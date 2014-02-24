@@ -61,6 +61,11 @@ static void sysfs_write(const char *path, char *s)
 
 static void power_init(struct power_module *module)
 {
+    /*
+     * HACK: Dummy return until powerhal freq scaling getting ready.
+     */
+    return;
+
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
                 "20000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_slack",
@@ -81,6 +86,11 @@ static void power_init(struct power_module *module)
 
 static void power_set_interactive(struct power_module *module, int on)
 {
+    /*
+     * HACK: Dummy return until powerhal freq scaling getting ready.
+     */
+    return;
+
     ALOGV("power_set_interactive: %d\n", on);
 
     /*
