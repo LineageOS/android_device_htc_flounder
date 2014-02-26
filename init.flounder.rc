@@ -18,6 +18,9 @@ on init
     mkdir /factory
 
 on post-fs-data
+    mkdir /data/media 0770 media_rw media_rw
+    restorecon_recursive /data/media
+
     setprop vold.post_fs_data_done 1
 
 on boot
