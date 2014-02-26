@@ -12,10 +12,6 @@ TARGET_2ND_CPU_ABI := armeabi-v7a
 TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := cortex-a15
 
-# Disable wifi until it can build for 64-bit
-WPA_SUPPLICANT_VERSION      :=
-BOARD_WLAN_DEVICE           :=
-
 # Disable 64-bit surfaceflinger until we have 64-bit GL libraries
 TARGET_32_BIT_SURFACEFLINGER := true
 
