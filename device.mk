@@ -20,8 +20,15 @@ else
 LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
 
+ifeq ($(TARGET_PREBUILT_KERNEL_DTB),)
+LOCAL_KERNEL_DTB := device/htc/flounder-kernel/tegra132-flounder64.dtb
+else
+LOCAL_KERNEL_DTB := $(TARGET_PREBUILT_KERNEL_DTB)
+endif
+
 PRODUCT_COPY_FILES := \
     $(LOCAL_KERNEL):kernel \
+    $(LOCAL_KERNEL_DTB):kernel.dtb \
     $(LOCAL_PATH)/init.flounder.rc:root/init.flounder.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder.usb.rc \
     $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder \
