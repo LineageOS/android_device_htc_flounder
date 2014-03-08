@@ -40,7 +40,7 @@ static int write_int(char const *path, int value)
 	fd = open(path, O_RDWR);
 	if (fd >= 0) {
 		char buffer[20];
-		int bytes = snprintf(buffer, 20, "%d\n", value);
+		int bytes = snprintf(buffer, 20, "%x\n", value);
 		int amt = write(fd, buffer, bytes);
 		close(fd);
 		return amt == -1 ? -errno : 0;
@@ -67,7 +67,7 @@ static int set_light_battery(struct light_device_t* dev,
 	int err;
 	pthread_mutex_lock(&g_lock);
 	ALOGE("set_light_battery, flashMode:%x, color:%x", state->flashMode, state->color);
-	if(state->flashMode)
+	if(state->color)
 		err = write_int(MODE_RGB_FILE, 0x1ffffff);
 	else
 		err = write_int(MODE_RGB_FILE, 0x00);
