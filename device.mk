@@ -110,6 +110,13 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/gpsconfig.xml:system/etc/gpsconfig.xml \
     $(LOCAL_PATH)/gps/gps.flounder.so:system/lib/hw/gps.flounder.so
 
+# NFC feature + config files
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.nfc.xml:system/etc/permissions/android.hardware.nfc.xml \
+    frameworks/native/data/etc/android.hardware.nfc.hce.xml:system/etc/permissions/android.hardware.nfc.hce.xml \
+    device/htc/flounder/nfc/libnfc-brcm.conf:system/etc/libnfc-brcm.conf \
+    device/htc/flounder/nfc/libnfc-brcm-20795a10.conf:system/etc/libnfc-brcm-20795a10.conf
+
 PRODUCT_AAPT_CONFIG := xlarge hdpi xhdpi
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
@@ -121,10 +128,13 @@ DEVICE_PACKAGE_OVERLAYS := \
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 # NFC packages
+# Note: NFC HAL is built with $(TARGET_DEVICE), so this
+# includes both flounder and flounder64 HALs to support both
 PRODUCT_PACKAGES += \
+    nfc_nci.flounder \
+    nfc_nci.flounder64 \
     NfcNci \
     Tag \
-    com.android.nfc_extras
 
 PRODUCT_PACKAGES += \
     librs_jni \

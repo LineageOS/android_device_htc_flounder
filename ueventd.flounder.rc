@@ -35,7 +35,7 @@
 /dev/raydium_ts 0777    system  system
 /dev/ion        0666    system  system
 /dev/timerinfo  0444    system  system
-/dev/pn544      0660    nfc     nfc
+/dev/bcm2079x   0660    nfc     nfc
 /dev/adf*       0660    media   graphics
 
 /sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  state  0660    bluetooth    net_bt_stack

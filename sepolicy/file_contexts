@@ -8,3 +8,7 @@
 /dev/nvhdcp0			u:object_r:gpu_device:s0
 # enable UART port permission
 /dev/ttyTHS2			u:object_r:hci_attach_dev:s0
+# nfc
+/dev/bcm2079x			u:object_r:nfc_device:s0
+
+/data/nfc(/.*)?			u:object_r:nfc_data_file:s0
