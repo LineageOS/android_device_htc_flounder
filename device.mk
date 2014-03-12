@@ -104,10 +104,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/bcmdhd.cal:system/etc/wifi/bcmdhd.cal
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/gps/gps.conf:system/etc/gps.conf \
-    $(LOCAL_PATH)/gps/glgps:system/bin/glgps \
-    $(LOCAL_PATH)/gps/gpsconfig.xml:system/etc/gpsconfig.xml \
-    $(LOCAL_PATH)/gps/gps.flounder.so:system/lib/hw/gps.flounder.so
+    $(LOCAL_PATH)/gps/bcm/gps.bcm47521.conf:system/etc/gps.bcm47521.conf \
+    $(LOCAL_PATH)/gps/bcm/glgps:system/bin/glgps \
+    $(LOCAL_PATH)/gps/bcm/gpsconfig.xml:system/etc/gpsconfig.xml \
+    $(LOCAL_PATH)/gps/bcm/gps.bcm47521.so:system/lib/hw/gps.bcm47521.so
 
 # NFC feature + config files
 PRODUCT_COPY_FILES += \
