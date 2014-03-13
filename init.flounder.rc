@@ -155,6 +155,11 @@ service dhcpcd_p2p /system/bin/dhcpcd -aABKL
     disabled
     oneshot
 
+service dhcpcd_bt-pan /system/bin/dhcpcd -aABDKL
+    class main
+    disabled
+    oneshot
+
 service iprenew_wlan0 /system/bin/dhcpcd -n
     class main
     disabled
