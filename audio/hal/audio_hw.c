@@ -943,6 +943,8 @@ static int get_next_buffer(struct resampler_buffer_provider *buffer_provider,
     buffer->frame_count = (buffer->frame_count > in->frames_in) ?
                                 in->frames_in : buffer->frame_count;
     buffer->i16 = in->buffer + (in->config.period_size - in->frames_in);
+    buffer->i16 = in->buffer + (in->config.period_size- in->frames_in) *
+            popcount(in->channel_mask);
 
     return in->read_status;
 
