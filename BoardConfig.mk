@@ -55,6 +55,8 @@ BOARD_USES_ALSA_AUDIO := true
 
 BOARD_HAL_STATIC_LIBRARIES := libdumpstate.flounder
 
+BOARD_VENDOR_USE_SENSOR_HAL := sensor_hub
+
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := NL80211
 WPA_SUPPLICANT_VERSION      := VER_0_8_X
