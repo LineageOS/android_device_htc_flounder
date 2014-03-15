@@ -45,3 +45,5 @@
 #$(call add-clean-step, rm -rf $(PRODUCT_OUT)/data/*)
 $(call add-clean-step, rm -rf $(OUT_DIR)/target/product/flounder64)
 $(call add-clean-step, rm -rf $(OUT_DIR)/buildcache/aosp_flounder64)
+$(call add-clean-step, rm -rf $(OUT_DIR)/target/product/flounder)
+$(call add-clean-step, rm -rf $(OUT_DIR)/buildcache/aosp_flounder)
