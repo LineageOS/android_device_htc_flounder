@@ -40,8 +40,8 @@ $(call inherit-product, device/htc/flounder/device.mk)
 PRODUCT_RUNTIMES := runtime_libart_default
 
 PRODUCT_NAME := aosp_flounder64
-PRODUCT_DEVICE := flounder
+PRODUCT_DEVICE := flounder64
 PRODUCT_BRAND := Android
-PRODUCT_MODEL := AOSP on Flounder
+PRODUCT_MODEL := AOSP on Flounder64
 PRODUCT_MANUFACTURER := nVidia
 PRODUCT_RESTRICT_VENDOR_FILES := owner path
