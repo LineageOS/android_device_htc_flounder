@@ -1369,6 +1369,14 @@ static int out_close_pcm_devices(struct stream_out *out)
         if (pcm_device->pcm) {
             pcm_close(pcm_device->pcm);
         }
+        if (pcm_device->resampler) {
+            release_resampler(pcm_device->resampler);
+            pcm_device->resampler = NULL;
+        }
+        if (pcm_device->res_buffer) {
+            free(pcm_device->res_buffer);
+            pcm_device->res_buffer = NULL;
+        }
     }
 
     return 0;
@@ -1391,6 +1399,24 @@ static int out_open_pcm_devices(struct stream_out *out)
             pcm_device->pcm = NULL;
             ret = -EIO;
             goto error_open;
+        }
+        /*
+        * If the stream rate differs from the PCM rate, we need to
+        * create a resampler.
+        */
+        if (out->sample_rate != pcm_device->pcm_profile->config.rate) {
+            ALOGV("%s: create_resampler(), pcm_device_card(%d), pcm_device_id(%d), \
+                    out_rate(%d), device_rate(%d)",__func__,
+                    pcm_device->pcm_profile->card, pcm_device->pcm_profile->id,
+                    out->sample_rate, pcm_device->pcm_profile->config.rate);
+            ret = create_resampler(out->sample_rate,
+                    pcm_device->pcm_profile->config.rate,
+                    popcount(out->channel_mask),
+                    RESAMPLER_QUALITY_DEFAULT,
+                    NULL,
+                    &pcm_device->resampler);
+            pcm_device->res_byte_count = 0;
+            pcm_device->res_buffer = NULL;
         }
     }
     return ret;
@@ -1891,6 +1917,8 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
     ssize_t ret = 0;
     struct pcm_device *pcm_device;
     struct listnode *node;
+    size_t frame_size = audio_stream_frame_size(&out->stream.common);
+    size_t frames_wr = 0, frames_rq = 0;
 
     pthread_mutex_lock(&out->lock);
     if (out->standby) {
@@ -1930,9 +1958,32 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
             memset((void *)buffer, 0, bytes);
         list_for_each(node, &out->pcm_dev_list) {
             pcm_device = node_to_item(node, struct pcm_device, stream_list_node);
+            if (pcm_device->resampler) {
+                if (bytes * pcm_device->pcm_profile->config.rate / out->sample_rate
+                        > pcm_device->res_byte_count) {
+                    pcm_device->res_byte_count =
+                        bytes * pcm_device->pcm_profile->config.rate / out->sample_rate;
+                    pcm_device->res_buffer =
+                        realloc(pcm_device->res_buffer, pcm_device->res_byte_count);
+                    ALOGV("%s: resampler res_byte_count = %d", __func__,
+                        pcm_device->res_byte_count);
+                }
+                frames_rq = bytes / frame_size;
+                frames_wr = pcm_device->res_byte_count / frame_size;
+                ALOGVV("%s: resampler request frames = %d frame_size = %d",
+                    __func__, frames_rq, frame_size);
+                resampler_resample_from_input(pcm_device->resampler,
+                    (int16_t *)buffer, &frames_rq, (int16_t *)pcm_device->res_buffer, &frames_wr);
+                ALOGVV("%s: resampler output frames_= %d", __func__, frames_wr);
+            }
             if (pcm_device->pcm) {
                 ALOGVV("%s: writing buffer (%d bytes) to pcm device", __func__, bytes);
-                pcm_device->status = pcm_write(pcm_device->pcm, (void *)buffer, bytes);
+                if (pcm_device->resampler && pcm_device->res_buffer)
+                    pcm_device->status =
+                        pcm_write(pcm_device->pcm, (void *)pcm_device->res_buffer,
+                            frames_wr * frame_size);
+                else
+                    pcm_device->status = pcm_write(pcm_device->pcm, (void *)buffer, bytes);
                 if (pcm_device->status != 0)
                     ret = pcm_device->status;
             }
