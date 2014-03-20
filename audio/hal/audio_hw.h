@@ -111,12 +111,12 @@ enum {
  * We should take care of returning proper size when AudioFlinger queries for
  * the buffer size of an input/output stream
  */
-#define PLAYBACK_PERIOD_SIZE 1024
-#define PLAYBACK_PERIOD_COUNT 4
+#define PLAYBACK_PERIOD_SIZE 512
+#define PLAYBACK_PERIOD_COUNT 2
 #define PLAYBACK_DEFAULT_CHANNEL_COUNT 2
 #define PLAYBACK_DEFAULT_SAMPLING_RATE 48000
-#define PLAYBACK_START_THRESHOLD 4095
-#define PLAYBACK_STOP_THRESHOLD 4096
+#define PLAYBACK_START_THRESHOLD 1023
+#define PLAYBACK_STOP_THRESHOLD 1024
 #define PLAYBACK_AVAILABLE_MIN 1
 
 
