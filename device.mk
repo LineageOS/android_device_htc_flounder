@@ -21,7 +21,7 @@ PRODUCT_PACKAGES := \
     wpa_supplicant.conf
 
 ifeq ($(TARGET_PREBUILT_KERNEL),)
-LOCAL_KERNEL := device/htc/flounder-kernel/Image
+LOCAL_KERNEL := device/htc/flounder-kernel/Image.gz-dtb
 else
 LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
