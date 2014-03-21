@@ -47,3 +47,23 @@
 /sys/devices/platform/tegra-dsi-backlight.0/backlight/tegra-dsi-backlight.0    brightness    0660   system   system
 
 /sys/devices/platform/tegra12-i2c.1/i2c-1/1-0032/leds/indicator  ModeRGB 0660 system system
+
+/sys/devices/virtual/htc_sensorhub/sensor_hub  ap_calibrator_data_acc_rl 0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_data_acc       0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_data_acc_rl    0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_data_barometer 0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_data_gyro      0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_data_light     0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_data_mag       0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_en             0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_status_acc     0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_status_gyro    0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  calibrator_status_mag     0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  data_barometer            0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  data_light_kadc           0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  data_light_polling        0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  delay_ms                  0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  enable                    0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  firmware_version          0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  hall_sensor               0660 system system
+/sys/devices/virtual/htc_sensorhub/sensor_hub  sensor_hub_rdata          0660 system system
