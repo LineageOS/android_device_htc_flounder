@@ -32,7 +32,7 @@
 
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 char const* const MODE_RGB_FILE = "/sys/class/leds/indicator/ModeRGB";
-char const* const BACKLIGHT_FILE = "/sys/class/backlight/tegra-pwm-bl/brightness";
+char const* const BACKLIGHT_FILE = "/sys/class/backlight/tegra-dsi-backlight.0/brightness";
 static int write_int(char const *path, int value)
 {
 	int fd;

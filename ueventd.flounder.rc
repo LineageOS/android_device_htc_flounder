@@ -44,7 +44,6 @@
 
 /sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  state  0660    bluetooth    net_bt_stack
 /sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  type   0660    bluetooth    net_bt_stack
-/sys/devices/platform/pwm-backlight/backlight/pwm-backlight    brightness    0660   system   system
-/sys/devices/platform/tegra-pwm-bl/backlight/tegra-pwm-bl    brightness    0660   system   system
+/sys/devices/platform/tegra-dsi-backlight.0/backlight/tegra-dsi-backlight.0    brightness    0660   system   system
 
 /sys/devices/platform/tegra12-i2c.1/i2c-1/1-0032/leds/indicator  ModeRGB 0660 system system
