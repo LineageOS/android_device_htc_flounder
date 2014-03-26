@@ -49,8 +49,6 @@ on boot
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor interactive
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 510000
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 510000
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1224000
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1224000
     #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed 700000
     #write /sys/devices/system/cpu/cpu1/cpufreq/scaling_setspeed 700000
     #write /sys/devices/system/cpu/cpufreq/interactive/boost_factor 2
