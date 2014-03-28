@@ -6,6 +6,7 @@
   <ctl name="Mono ADC MIXR ADC1 Switch" value="0"/>
   <ctl name="Mono ADC MIXL ADC2 Switch" value="0"/>
   <ctl name="TDM1 Mode" value="Normal"/>
+  <ctl name="Mono ADC Capture Volume" value="77"/>
 
   <!-- TODO other defaults -->
 
@@ -39,6 +40,7 @@
   </path>
 
   <path name="headset-mic">
+    <ctl name="Mono ADC Capture Volume" value="66"/>
     <ctl name="Mono ADC MIXR ADC1 Switch" value="1"/>
     <ctl name="TDM1 Mode" value="RR Copy"/>
     <ctl name="Mic Jack Switch" value="1"/>
