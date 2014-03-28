@@ -10,5 +10,7 @@
 /dev/ttyTHS2			u:object_r:hci_attach_dev:s0
 # nfc
 /dev/bcm2079x			u:object_r:nfc_device:s0
+# camera devices
+/dev/camera.pcl			u:object_r:camera_device:s0
 
 /data/nfc(/.*)?			u:object_r:nfc_data_file:s0

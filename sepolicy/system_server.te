@@ -1,0 +1,2 @@
+# allow power hal to adjust max frequency
+allow system_server sysfs_devices_system_cpu:file w_file_perms;
