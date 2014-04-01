@@ -40,7 +40,7 @@ static int write_int(char const *path, int value)
 	fd = open(path, O_RDWR);
 	if (fd >= 0) {
 		char buffer[20];
-		int bytes = snprintf(buffer, 20, "%x\n", value);
+		int bytes = snprintf(buffer, 20, "%d\n", value);
 		int amt = write(fd, buffer, bytes);
 		close(fd);
 		return amt == -1 ? -errno : 0;
