@@ -123,7 +123,7 @@ enum {
 #define SCO_PERIOD_SIZE 1024
 #define SCO_PERIOD_COUNT 4
 #define SCO_DEFAULT_CHANNEL_COUNT 2
-#define SCO_DEFAULT_SAMPLING_RATE 48000
+#define SCO_DEFAULT_SAMPLING_RATE 8000
 #define SCO_START_THRESHOLD 4095
 #define SCO_STOP_THRESHOLD 4096
 #define SCO_AVAILABLE_MIN 1
@@ -230,6 +230,10 @@ struct pcm_device {
     struct pcm_device_profile* pcm_profile;
     struct pcm*                pcm;
     int                        status;
+    /* TODO: remove resampler if possible when AudioFlinger supports downsampling from 48 to 8 */
+    struct resampler_itfe*     resampler;
+    int16_t*                   res_buffer;
+    size_t                     res_byte_count;
 };
 
 struct stream_out {
