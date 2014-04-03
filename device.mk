@@ -183,6 +183,10 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default \
 
+# add verity dependencies
+$(call inherit-product, build/target/product/verity.mk)
+PRODUCT_VERITY_PARTITION := /dev/block/platform/sdhci-tegra.3/by-name/APP
+
 $(call inherit-product-if-exists, hardware/nvidia/tegra132/tegra132.mk)
 $(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra132/tegra132-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/flounder/device-vendor.mk)
