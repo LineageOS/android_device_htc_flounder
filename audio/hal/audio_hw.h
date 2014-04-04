@@ -101,6 +101,7 @@ enum {
 
 
 #define MIXER_CARD 1
+#define HDMI_CARD  0
 #define SOUND_CARD 1
 
 /*
