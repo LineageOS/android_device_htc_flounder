@@ -94,6 +94,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/mixer_paths_1.xml:system/etc/mixer_paths_1.xml \
     $(LOCAL_PATH)/mixer_paths_0.xml:system/etc/mixer_paths_0.xml
 
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/enctune.conf:system/etc/enctune.conf
+
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/nvaudio_conf.xml:system/etc/nvaudio_conf.xml \
     $(LOCAL_PATH)/nvcamera.conf:system/etc/nvcamera.conf \
