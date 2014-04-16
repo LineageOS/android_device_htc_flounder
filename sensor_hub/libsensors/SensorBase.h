@@ -70,6 +70,8 @@ public:
     virtual int setEnable(int32_t handle, int enabled) = 0;
     // It returns the number of reference.
     virtual int getEnable(int32_t handle) = 0;
+    virtual int batch(int handle, int flags, int64_t period_ns, int64_t timeout) = 0;
+    virtual int flush(int handle) = 0;
 };
 
 /*****************************************************************************/

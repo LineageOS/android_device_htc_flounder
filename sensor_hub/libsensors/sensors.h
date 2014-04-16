@@ -58,53 +58,19 @@ __BEGIN_DECLS
 #define EVENT_TYPE_LIGHT           ABS_MISC
 
 enum ABS_status {
-        ABS_ACC_X = 0x01,
-        ABS_ACC_Y = 0x02,
-        ABS_ACC_Z = 0x03,
-        ABS_MAG_X = 0x04,
-        ABS_MAG_Y = 0x05,
-        ABS_MAG_Z = 0x06,
-        ABS_GYRO_X = 0x07,
-        ABS_GYRO_Y = 0x08,
-        ABS_GYRO_Z = 0x09,
-        ABS_MAG_ACCURACY = 0x0A,
-        ABS_ORI_ACCURACY = 0x0B,
-        ABS_LIGHT_Z = 0x0C,
-        ABS_GEOMAGNETIC_ROTATION_VECTOR_X = 0x0D,
-        ABS_GEOMAGNETIC_ROTATION_VECTOR_Y = 0x0E,
-        ABS_GEOMAGNETIC_ROTATION_VECTOR_Z = 0x0F,
-        ABS_PRESSURE_X = 0x10,
-        ABS_PRESSURE_Y = 0x11,
-        ABS_PRESSURE_Z = 0x12,
-        ABS_ORI_X = 0x13,
-        ABS_ORI_Y = 0x14,
-        ABS_ORI_Z = 0x15,
-        ABS_ROT_X = 0x16,
-        ABS_ROT_Y = 0x17,
-        ABS_ROT_Z = 0x18,
-        ABS_LIN_X = 0x1A, // Jump over ABS_DISTANCE
-        ABS_LIN_Y = 0x1B,
-        ABS_LIN_Z = 0x1C,
-        ABS_GRA_X = 0x1D,
-        ABS_GRA_Y = 0x1E,
-        ABS_GRA_Z = 0x1F,
-        ABS_STEP_DETECTOR = 0x23,
-        ABS_STEP_COUNTER = 0x24,
-        ABS_MAGNETIC_UNCALIBRATED_X = 0x30, // Jump oveer ABS_MT_SLOT, Sensor HAL cannot receive
-        ABS_MAGNETIC_UNCALIBRATED_Y = 0x31,
-        ABS_MAGNETIC_UNCALIBRATED_Z = 0x32,
-        ABS_MAGNETIC_UNCALIBRATED_BIAS_X = 0x3F, // Jump over ABS_MT_WIDTH_MINOR, this cause little white point, and touch fails
-        ABS_MAGNETIC_UNCALIBRATED_BIAS_Y = 0x34,
-        ABS_MAGNETIC_UNCALIBRATED_BIAS_Z = 0x35,
-        ABS_GYROSCOPE_UNCALIBRATED_X = 0x36,
-        ABS_GYROSCOPE_UNCALIBRATED_Y = 0x37,
-        ABS_GYROSCOPE_UNCALIBRATED_Z = 0x38,
-        ABS_GYROSCOPE_UNCALIBRATED_BIAS_X = 0x39,
-        ABS_GYROSCOPE_UNCALIBRATED_BIAS_Y = 0x3A,
-        ABS_GYROSCOPE_UNCALIBRATED_BIAS_Z = 0x3B,
-        ABS_GAME_ROTATION_VECTOR_X = 0x3C,
-        ABS_GAME_ROTATION_VECTOR_Y = 0x3D,
-        ABS_GAME_ROTATION_VECTOR_Z = 0x3E,
+	CW_ABS_X = 0x01,
+	CW_ABS_Y,
+	CW_ABS_Z,
+	CW_ABS_X1,
+	CW_ABS_Y1,
+	CW_ABS_Z1,
+	CW_ABS_TIMEDIFF,
+	ABS_MAG_ACCURACY = 0x0A,
+	ABS_ORI_ACCURACY = 0x0B,
+	ABS_PRESSURE_X = 0x10,
+	ABS_PRESSURE_Y = 0x11,
+	ABS_PRESSURE_Z = 0x12,
+	ABS_TRANSPORT_BUFFER_FULL = 0x2E,
 };
 
 #define CONVERT_A        0.01f
@@ -115,6 +81,12 @@ enum ABS_status {
 #define CONVERT_ALL      0.01f
 #define CONVERT_PRESSURE 100
 #define CONVERT_RV       10000
+
+#define CONVERT_1		1.0f
+#define CONVERT_10		0.1f
+#define CONVERT_100		0.01f
+#define CONVERT_1000		0.001f
+#define CONVERT_10000		0.0001f
 
 #define RANGE_A                     (2*GRAVITY_EARTH)
 #define RESOLUTION_A                (RANGE_A/(256*1))

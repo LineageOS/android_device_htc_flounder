@@ -151,13 +151,15 @@ struct sensors_module_t HAL_MODULE_INFO_SYM = {
 };
 
 struct sensors_poll_context_t {
-    struct sensors_poll_device_t device; // must be first
+    sensors_poll_device_1_t device; // must be first
 
         sensors_poll_context_t();
         ~sensors_poll_context_t();
     int activate(int handle, int enabled);
     int setDelay(int handle, int64_t ns);
     int pollEvents(sensors_event_t* data, int count);
+    int batch(int handle, int flags, int64_t period_ns, int64_t timeout);
+    int flush(int handle);
 
 private:
     enum {
@@ -270,9 +272,7 @@ int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
             // some events immediately or just wait if we don't have
             // anything to return
             do {
-                //ALOGD("pollEvents: Before poll(), nbEvents = %d", nbEvents);
                 TEMP_FAILURE_RETRY(n = poll(mPollFds, numFds, nbEvents ? 0 : -1));
-                //ALOGD("pollEvents: After poll(), n = %d", n);
             } while (n < 0 && errno == EINTR);
             if (n<0) {
                 ALOGE("poll() failed (%s)", strerror(errno));
@@ -288,9 +288,33 @@ int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
         }
         // if we have events and space, go read them
     } while (n && count);
-    //ALOGD("pollEvents: return whole pollEvents, nbEvents = %d\n", nbEvents);
     return nbEvents;
 }
+
+int sensors_poll_context_t::batch(int handle, int flags, int64_t period_ns, int64_t timeout)
+{
+    int index = handleToDriver(handle);
+
+    if (index < 0)
+        return index;
+
+    int err = mSensors[index]->batch(handle, flags, period_ns, timeout);
+
+    return err;
+}
+
+int sensors_poll_context_t::flush(int handle)
+{
+    int index = handleToDriver(handle);
+
+    if (index < 0)
+        return index;
+
+    int err = mSensors[index]->flush(handle);
+
+    return err;
+}
+
 
 /*****************************************************************************/
 
@@ -321,6 +345,19 @@ static int poll__poll(struct sensors_poll_device_t *dev,
     return ctx->pollEvents(data, count);
 }
 
+static int poll__batch(struct sensors_poll_device_1 *dev,
+                      int handle, int flags, int64_t period_ns, int64_t timeout)
+{
+    sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
+    return ctx->batch(handle, flags, period_ns, timeout);
+}
+
+static int poll__flush(struct sensors_poll_device_1 *dev,
+                      int handle)
+{
+    sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
+    return ctx->flush(handle);
+}
 /*****************************************************************************/
 
 // Open a new instance of a sensor device using name
@@ -329,15 +366,19 @@ static int open_sensors(const struct hw_module_t* module, const char*,
 {
     sensors_poll_context_t *dev = new sensors_poll_context_t();
 
-    memset(&dev->device, 0, sizeof(sensors_poll_device_t));
+    memset(&dev->device, 0, sizeof(sensors_poll_device_1_t));
 
     dev->device.common.tag = HARDWARE_DEVICE_TAG;
-    dev->device.common.version  = 0;
+    dev->device.common.version  = SENSORS_DEVICE_API_VERSION_1_1;
     dev->device.common.module   = const_cast<hw_module_t*>(module);
     dev->device.common.close    = poll__close;
     dev->device.activate        = poll__activate;
     dev->device.setDelay        = poll__setDelay;
     dev->device.poll            = poll__poll;
+
+    // Batch processing
+    dev->device.batch           = poll__batch;
+    dev->device.flush           = poll__flush;
 
     *device = &dev->device.common;
 

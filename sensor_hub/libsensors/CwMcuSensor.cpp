@@ -33,11 +33,12 @@
 
 
 #define REL_Significant_Motion REL_WHEEL
-#define REL_HTC_Any_Motion 0x09
 #define LIGHTSENSOR_LEVEL 10
 #define DEBUG_DATA 0
 #define COMPASS_CALIBRATION_DATA_SIZE 26
 #define NS_PER_MS 1000000LL
+#define SYNC_ACK_MAGIC  0x66
+#define EXHAUSTED_MAGIC 0x77
 
 /*****************************************************************************/
 
@@ -49,11 +50,10 @@ CwMcuSensor::CwMcuSensor()
     : SensorBase(NULL, "CwMcuSensor")
     , mEnabled(0)
     , mInputReader(4)
-    , mHasPendingEventPressure(false)
-    , mHasPendingEventActivity(false)
-    , mHasPendingEventLight(false)
-    , mHasPendingEventMagnetic(false)
-    , mHasPendingEventOrientation(false) {
+    , mFlushSensorEnabled(-1)
+    , l_timestamp(0)
+    , g_timestamp(0) {
+
     int rc;
 
     mPendingEvents[CW_ACCELERATION].version = sizeof(sensors_event_t);
@@ -132,6 +132,10 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_STEP_COUNTER].sensor = ID_CW_STEP_COUNTER;
     mPendingEvents[CW_STEP_COUNTER].type = SENSOR_TYPE_STEP_COUNTER;
 
+    mPendingEventsFlush.version = META_DATA_VERSION;
+    mPendingEventsFlush.sensor = 0;
+    mPendingEventsFlush.type = SENSOR_TYPE_META_DATA;
+
     if (data_fd) {
         ALOGW("%s: 11 Before pthread_mutex_lock()\n", __func__);
         pthread_mutex_lock(&sys_fs_mutex);
@@ -169,8 +173,9 @@ CwMcuSensor::CwMcuSensor()
         ALOGD("Get g-sensor user calibration data from data/misc/ x is %d ,y is %d ,z is %d\n",
               gs_temp_data[0],gs_temp_data[1],gs_temp_data[2]);
         strcpy(&input_sysfs_path[input_sysfs_path_len], "calibrator_data_acc");
-        if(!(gs_temp_data[0] == 0 && gs_temp_data[1] == 0 && gs_temp_data[2] == 0 ))
+        if(!(gs_temp_data[0] == 0 && gs_temp_data[1] == 0 && gs_temp_data[2] == 0 )) {
             cw_save_calibrator_file(CW_ACCELERATION, input_sysfs_path, gs_temp_data);
+        }
     } else {
         ALOGI("G-Sensor user calibration data does not exist\n");
     }
@@ -193,103 +198,10 @@ float CwMcuSensor::indexToValue(size_t index) const {
     };
 
     const size_t maxIndex = (LIGHTSENSOR_LEVEL - 1);
-    if (index > maxIndex)
+    if (index > maxIndex) {
         index = maxIndex;
-    return luxValues[index];
-}
-
-int CwMcuSensor::setInitialState(int id) {
-    struct input_absinfo absinfo;
-    float temp_value;
-
-    ALOGD("CwMcuSensor::setInitialState\n");
-
-    switch (id) {
-    case ID_L:
-        if (!ioctl(data_fd, EVIOCGABS(EVENT_TYPE_LIGHT), &absinfo)) {
-            // make sure to report an event immediately
-            temp_value = absinfo.value;
-            mPendingMask |= 1<<CW_LIGHT;
-            mPendingEvents[CW_LIGHT].light = indexToValue(temp_value);
-            ALOGD("LightSensor::setInitialState: Reporting mPendingEvent.light = %lf\n",
-                  mPendingEvents[CW_LIGHT].light);
-            mHasPendingEventLight = true;
-        } else {
-            ALOGW("LightSensor::setInitialState: Cannot get EVENT_TYPE_LIGHT initial value!\n");
-        }
-        break;
-    case ID_PS:
-        if (!ioctl(data_fd, EVIOCGABS(ABS_PRESSURE_X), &absinfo)) {
-            temp_value = (float)absinfo.value;
-            mPendingMask |= 1<<CW_PRESSURE;
-            mPendingEvents[CW_PRESSURE].data[0] = temp_value/100;
-            ALOGD("CW_PRESSURE::setInitialState: ABS_PRESSURE_X: value = %d\n",
-                  absinfo.value);
-            mHasPendingEventPressure = true;
-        } else {
-            mPendingEvents[CW_PRESSURE].data[0] = 0;
-            ALOGW("CW_PRESSURE::setInitialState: Cannot get ABS_PRESSURE_X initial value!\n");
-        }
-
-        if (!ioctl(data_fd, EVIOCGABS(ABS_PRESSURE_Y), &absinfo)) {
-            temp_value = (float)absinfo.value;
-            mPendingMask |= 1<<CW_PRESSURE;
-            mPendingEvents[CW_PRESSURE].data[1] = temp_value/100;
-            ALOGD("CW_PRESSURE::setInitialState: ABS_PRESSURE_Y: value = %d\n",
-                  absinfo.value);
-            mHasPendingEventPressure = true;
-        } else {
-            mPendingEvents[CW_PRESSURE].data[1] = 0;
-            ALOGW("CW_PRESSURE::setInitialState: Cannot get ABS_PRESSURE_Y initial value!\n");
-        }
-
-        if (!ioctl(data_fd, EVIOCGABS(ABS_PRESSURE_Z), &absinfo)) {
-            temp_value = (float)absinfo.value;
-            mPendingMask |= 1<<CW_PRESSURE;
-            mPendingEvents[CW_PRESSURE].data[2] = temp_value/100;
-            ALOGD("CW_PRESSURE::setInitialState: ABS_PRESSURE_Z: value = %d\n",
-                  absinfo.value);
-            mHasPendingEventPressure = true;
-        } else {
-            mPendingEvents[CW_PRESSURE].data[2] = 0;
-            ALOGW("CW_PRESSURE::setInitialState: Cannot get ABS_PRESSURE_Z initial value!\n");
-        }
-
-        break;
-    case ID_M:
-        if (!ioctl(data_fd, EVIOCGABS(ABS_MAG_ACCURACY), &absinfo)) {
-            // make sure to report an event immediately
-            temp_value = (float)absinfo.value;
-            mPendingMask |= 1<<CW_MAGNETIC;
-            mPendingEvents[CW_MAGNETIC].magnetic.status = temp_value;
-            ALOGD("CW_MAGNETIC::setInitialState: mPendingEvent.status = %d\n",
-                  mPendingEvents[CW_MAGNETIC].magnetic.status);
-            mHasPendingEventMagnetic = true;
-        } else {
-            ALOGW("CW_MAGNETIC::setInitialState: strerr = %s\n",
-                  strerror(errno));
-        }
-        break;
-
-    case ID_O:
-        if(!ioctl(data_fd, EVIOCGABS(ABS_ORI_ACCURACY), &absinfo)) {
-            // make sure to report an event immediately
-            temp_value = (float)absinfo.value;
-            mPendingEvents[CW_ORIENTATION].orientation.status = temp_value;
-            ALOGD("CW_ORIENTATION::setInitialState: mPendingEvent.status = %d\n",
-                  mPendingEvents[CW_ORIENTATION].orientation.status);
-        } else {
-            ALOGW("CW_ORIENTATION::setInitialState: strerr = %s\n",
-                  strerror(errno));
-        }
-        break;
-
-    default:
-        ALOGW("AkmSensor::setInitialState: unknown id (%d)", id);
-        return -EINVAL;
     }
-
-    return 0;
+    return luxValues[index];
 }
 
 
@@ -344,9 +256,6 @@ int CwMcuSensor::find_sensor(int32_t handle) {
     case ID_L:
         what = CW_LIGHT;
         break;
-    case ID_Any_Motion:
-        what = HTC_ANY_MOTION;
-        break;
     }
     return what;
 }
@@ -354,6 +263,10 @@ int CwMcuSensor::find_sensor(int32_t handle) {
 int CwMcuSensor::getEnable(int32_t handle) {
     ALOGD("CwMcuSensor::getEnable: handle = %d\n", handle);
     return  0;
+}
+
+int min(int a, int b) {
+    return (a < b) ? a : b;
 }
 
 int CwMcuSensor::setEnable(int32_t handle, int en) {
@@ -373,10 +286,11 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     property_get("debug.sensorhal.fill.block", value, "0");
     ALOGD("CwMcuSensor::setEnable: debug.sensorhal.fill.block= %s", value);
-    if (atoi(value) == 1)
+    if (atoi(value) == 1) {
         fill_block_debug = 1;
-    else
+    } else {
         fill_block_debug = 0;
+    }
 
     what = find_sensor(handle);
 
@@ -389,23 +303,13 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     strcpy(&input_sysfs_path[input_sysfs_path_len], "enable");
     fd = open(input_sysfs_path, O_RDWR);
     if (fd >= 0) {
-        snprintf(buf, sizeof(buf), "%d %d\n", what, flags);
-        err = write(fd, buf, strlen(buf));
+        int n = snprintf(buf, sizeof(buf), "%d %d\n", what, flags);
+        err = write(fd, buf, min(n, sizeof(buf)));
         if (err < 0) {
             ALOGE("%s: write failed: %s", __func__, strerror(errno));
         }
 
         close(fd);
-
-        if ((what == CW_MAGNETIC_UNCALIBRATED) ||
-                (what == CW_PRESSURE) ||
-                (what == CW_LIGHT) ||
-                (what == CW_MAGNETIC) ||
-                (what == CW_ORIENTATION)
-           ) {
-            if (en)
-                setInitialState(what);
-        }
 
         mEnabled &= ~(1<<what);
         mEnabled |= (uint32_t(flags)<<what);
@@ -423,29 +327,175 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
         rc = cw_read_calibrator_file(CW_MAGNETIC, input_sysfs_path, temp_data);
         if (rc== 0) {
             cw_save_calibrator_file(CW_MAGNETIC, SAVE_PATH_MAG, temp_data);
-        } else
+        } else {
             ALOGI("Compass calibration data from driver fails\n");
+        }
     }
 
     pthread_mutex_unlock(&sys_fs_mutex);
     return 0;
 }
 
+int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout)
+{
+    int what;
+    int fd;
+    char buf[32] = {0};
+    int err;
+    int delay_ms;
+    int timeout_ms;
+    bool dryRun = false;
+
+    ALOGD("CwMcuSensor::batch++: handle = %d, flags = %d, period_ns = %lld, timeout = %lld\n",
+        handle, flags, period_ns, timeout);
+
+    what = find_sensor(handle);
+    delay_ms = period_ns/NS_PER_MS;
+    timeout_ms = timeout/NS_PER_MS;
+
+    if(flags & SENSORS_BATCH_DRY_RUN) {
+        dryRun = true;
+    }
+
+    if (uint32_t(what) >= CW_SENSORS_ID_END) {
+        return -EINVAL;
+    }
+
+    if (flags == SENSORS_BATCH_WAKE_UPON_FIFO_FULL) {
+        ALOGD("CwMcuSensor::batch: SENSORS_BATCH_WAKE_UPON_FIFO_FULL~!!\n");
+    }
+
+    switch (what) {
+    case CW_SIGNIFICANT_MOTION:
+        if (timeout > 0) {
+            ALOGI("CwMcuSensor::batch: handle = %d, not support batch mode", handle);
+            return -EINVAL;
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (dryRun == true) {
+        ALOGI("CwMcuSensor::batch: SENSORS_BATCH_DRY_RUN is set\n");
+        return 0;
+    }
+
+    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    pthread_mutex_lock(&sys_fs_mutex);
+    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+
+    sync_timestamp_locked();
+
+    strcpy(&input_sysfs_path[input_sysfs_path_len], "batch_enable");
+
+    fd = open(input_sysfs_path, O_RDWR);
+    if (fd < 0) {
+        err = -errno;
+    } else {
+        int n = snprintf(buf, sizeof(buf), "%d %d %d %d\n", what, flags, delay_ms, timeout_ms);
+        err = write(fd, buf, min(n, sizeof(buf)));
+        if (err < 0) {
+            err = -errno;
+        } else {
+            err = 0;
+        }
+        close(fd);
+    }
+    pthread_mutex_unlock(&sys_fs_mutex);
+
+    ALOGD("CwMcuSensor::batch: fd = %d, sensors_id = %d, flags = %d, delay_ms= %d,"
+          " timeout_ms = %d, path = %s, err = %d\n",
+          fd , what, flags, delay_ms, timeout_ms, input_sysfs_path, err);
+
+    return err;
+}
+
+
+int CwMcuSensor::flush(int handle)
+{
+    int what;
+    int fd;
+    char buf[10] = {0};
+    int err;
+
+    what = handle;
+    mFlushSensorEnabled = handle;
+
+    if (uint32_t(what) >= CW_SENSORS_ID_END) {
+        return -EINVAL;
+    }
+
+    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    pthread_mutex_lock(&sys_fs_mutex);
+    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+
+    strcpy(&input_sysfs_path[input_sysfs_path_len], "flush");
+
+    fd = open(input_sysfs_path, O_RDWR);
+    if (fd >= 0) {
+        int n = snprintf(buf, sizeof(buf), "%d\n", what);
+        err = write(fd, buf, min(n, sizeof(buf)));
+        if (err < 0) {
+            err = -errno;
+        } else {
+            err = 0;
+        }
+        close(fd);
+    } else {
+        ALOGI("CwMcuSensor::flush: flush not supported\n");
+        err = -EINVAL;
+    }
+    pthread_mutex_unlock(&sys_fs_mutex);
+    ALOGD("CwMcuSensor::flush: fd = %d, sensors_id = %d, path = %s, err = %d\n",
+          fd, what, input_sysfs_path, err);
+    return err;
+}
+
+
+int CwMcuSensor::sync_timestamp_locked(void) {
+    int fd;
+    char buf[10] = {0};
+    int err;
+
+    strcpy(&input_sysfs_path[input_sysfs_path_len], "flush");
+
+    fd = open(input_sysfs_path, O_RDWR);
+    if (fd >= 0) {
+        int n = snprintf(buf, sizeof(buf), "%d\n", TIMESTAMP_SYNC_CODE);
+        err = write(fd, buf, min(n, sizeof(buf)));
+        close(fd);
+        if (err < 0) {
+            err = -EIO;
+        } else {
+            l_timestamp = getTimestamp();
+            err = 0;
+        }
+    } else {
+        err = -ENOENT;
+    }
+    return err;
+}
+
+int CwMcuSensor::sync_timestamp(void)
+{
+    int err;
+
+    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    pthread_mutex_lock(&sys_fs_mutex);
+    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+
+    err = sync_timestamp_locked();
+
+    pthread_mutex_unlock(&sys_fs_mutex);
+
+    ALOGD("CwMcuSensor::sync_timestamp: path = %s, err = %d\n", input_sysfs_path, err);
+
+    return err;
+}
+
 bool CwMcuSensor::hasPendingEvents() const {
-    ALOGD_IF(fill_block_debug == 1, "CwMcuSensor::hasPendingEvents: "
-             "mHasPendingEvent(Pre, Act, Lig, Mag, Ori) = (%d, %d, %d, %d, %d, %d)\n",
-             mHasPendingEventPressure,
-             mHasPendingEventActivity,
-             mHasPendingEventLight,
-             mHasPendingEventMagnetic,
-             mHasPendingEventOrientation
-            );
-    return (mHasPendingEventPressure ||
-            mHasPendingEventActivity ||
-            mHasPendingEventLight ||
-            mHasPendingEventMagnetic ||
-            mHasPendingEventOrientation
-           );
+    return mPendingMask;
 }
 
 int CwMcuSensor::setDelay(int32_t handle, int64_t delay_ns) {
@@ -468,8 +518,8 @@ int CwMcuSensor::setDelay(int32_t handle, int64_t delay_ns) {
     strcpy(&input_sysfs_path[input_sysfs_path_len], "delay_ms");
     fd = open(input_sysfs_path, O_RDWR);
     if (fd >= 0) {
-        snprintf(buf, sizeof(buf), "%d %lld\n", what, (delay_ns/NS_PER_MS));
-        write(fd, buf, strlen(buf));
+        int n = snprintf(buf, sizeof(buf), "%d %lld\n", what, (delay_ns/NS_PER_MS));
+        write(fd, buf, min(n, sizeof(buf)));
         close(fd);
     }
 
@@ -502,56 +552,16 @@ void CwMcuSensor::calculate_rv_4th_element(int sensors_id) {
 int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
     int64_t mtimestamp = getTimestamp();
 
-    if (count < 1)
+    if (count < 1) {
         return -EINVAL;
-
-    if(mHasPendingEventPressure) {
-        ALOGD("CwMcuSensor::readEvents: Init pressure\n");
-        mHasPendingEventPressure = false;
-        mPendingEvents[CW_PRESSURE].timestamp = mtimestamp;
-        *data = mPendingEvents[CW_PRESSURE];
-        ALOGD("CwMcuSensor::readEvents: returning pressure, mEnabled = 0x%x\n", mEnabled);
-        return !!mEnabled;
-    }
-
-    if(mHasPendingEventLight) {
-        ALOGD("CwMcuSensor::readEvents: Init light\n");
-        mHasPendingEventLight = false;
-        mPendingEvents[CW_LIGHT].timestamp = mtimestamp;
-        *data = mPendingEvents[CW_LIGHT];
-        ALOGD("CwMcuSensor::readEvents: returning light, mEnabled = 0x%x\n", mEnabled);
-        return !!mEnabled;
-    }
-
-    if (mHasPendingEventMagnetic) {
-        ALOGD("CwMcuSensor::readEvents: Init CW_MAGNETIC\n");
-        mHasPendingEventMagnetic = false;
-        mPendingEvents[CW_MAGNETIC].timestamp = mtimestamp;
-        *data = mPendingEvents[CW_MAGNETIC];
-        ALOGD("CwMcuSensor::readEvents: returning CW_MAGNETIC, mEnabled = 0x%x\n", mEnabled);
-        return !!mEnabled;
-    }
-
-    if (mHasPendingEventOrientation) {
-        ALOGD("CwMcuSensor::readEvents: Init CW_ORIENTATION\n");
-        mHasPendingEventOrientation = false;
-        mPendingEvents[CW_ORIENTATION].timestamp = mtimestamp;
-        *data = mPendingEvents[CW_ORIENTATION];
-        ALOGD("CwMcuSensor::readEvents: reporting CW_ORIENTATION(y, p, r) ="
-              " (%8.5f, %8.5f, %8.5f), mEnabled = 0x%x\n",
-              mPendingEvents[CW_ORIENTATION].data[0],
-              mPendingEvents[CW_ORIENTATION].data[1],
-              mPendingEvents[CW_ORIENTATION].data[2],
-              mEnabled);
-        ALOGD("CwMcuSensor::readEvents: returning CW_ORIENTATION, mEnabled = 0x%x\n", mEnabled);
-        return !!mEnabled;
     }
 
     ALOGD_IF(fill_block_debug == 1, "CwMcuSensor::readEvents: Before fill\n");
     ssize_t n = mInputReader.fill(data_fd);
     ALOGD_IF(fill_block_debug == 1, "CwMcuSensor::readEvents: After fill, n = %d\n", n);
-    if (n < 0)
+    if (n < 0) {
         return n;
+    }
 
     int numEventReceived = 0;
     input_event const* event;
@@ -572,30 +582,43 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
             ALOGD("CwMcuSensor ==REL==: event (type=%d, code=%d, value=%d)\n",
                   event->type, event->code, event->value);
 
-            if(event->code == REL_HTC_Any_Motion) {
-                mPendingMask |= 1<<HTC_ANY_MOTION;
-                mPendingEvents[HTC_ANY_MOTION].data[0] = 1;
-                ALOGI("HTC_ANY_MOTION\n");
-            }
-
             if(event->code == REL_Significant_Motion) {
                 mPendingMask |= 1<<CW_SIGNIFICANT_MOTION;
                 mPendingEvents[CW_SIGNIFICANT_MOTION].data[0] = 1;
                 ALOGI("Significant Motion detected!\n");
             }
         } else if (event->type == EV_SYN) {
-            int64_t time = timevalToNano(event->time);
+
+            if (flush_event == 1) {
+                ALOGI("Send flush event, handle = %d\n", mPendingEventsFlush.meta_data.sensor);
+                flush_event = 0;
+                mPendingEventsFlush.timestamp = getTimestamp();
+                *data++ = mPendingEventsFlush;
+                numEventReceived++;
+            }
+
             for (int j=0 ; count && mPendingMask && j<numSensors ; j++) {
                 if (mPendingMask & (1<<j)) {
                     mPendingMask &= ~(1<<j);
 
-                    if (j == CW_SIGNIFICANT_MOTION)
+                    if (j == CW_SIGNIFICANT_MOTION) {
                         setEnable(ID_CW_SIGNIFICANT_MOTION, 0);
+                    }
 
-                    mPendingEvents[j].timestamp = time;
-                    if (mEnabled & (1<<j)) {
+                    mPendingEvents[j].timestamp = g_timestamp ?
+                                                      g_timestamp + (mPendingEvents[j].timestamp * NS_PER_MS) :
+                                                      getTimestamp();
+                    if ((mEnabled & (1<<j)) || (j == CW_META_DATA)) {
 
                         calculate_rv_4th_element(j);
+
+                        if (j == CW_PRESSURE) {
+                            int32_t pressure_val;
+
+                            pressure_val = ((int32_t)mPendingEvents[j].data[1] << 16) |
+                                           ((int32_t)mPendingEvents[j].data[0] & 0xFFFF);
+                            mPendingEvents[j].pressure = (float)pressure_val * CONVERT_100;
+                        }
 
                         *data++ = mPendingEvents[j];
                         count--;
@@ -612,212 +635,106 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
     return numEventReceived;
 }
 
-void CwMcuSensor::processEvent(int code, float value) {
+void CwMcuSensor::processEvent(int code, int value){
+    int sensorsid;
+    int index = -1;
+    int16_t data = 0;
+
+    sensorsid = (int)((uint32_t)value >> 16);
+    data |= value;
+
     switch (code) {
-    case ABS_ACC_X:
-        mPendingMask |= 1<<CW_ACCELERATION;
-        mPendingEvents[CW_ACCELERATION].data[0] = value * CONVERT_A;
+    case CW_ABS_X:
+        index = 0;
+        if (data == 1) {// Dummy event for flush input sub system
+            return;
+        }
         break;
-    case ABS_ACC_Y:
-        mPendingMask |= 1<<CW_ACCELERATION;
-        mPendingEvents[CW_ACCELERATION].data[1] = value * CONVERT_A;
+    case CW_ABS_Y:
+        index = 1;
         break;
-    case ABS_ACC_Z:
-        mPendingMask |= 1<<CW_ACCELERATION;
-        mPendingEvents[CW_ACCELERATION].data[2] = value * CONVERT_A;
+    case CW_ABS_Z:
+        index = 2;
         break;
-
-    case ABS_MAG_X:
-        mPendingMask |= 1<<CW_MAGNETIC;
-        mPendingEvents[CW_MAGNETIC].data[0] = value * CONVERT_M;
+    case CW_ABS_X1:
+        index = 3;
         break;
-    case ABS_MAG_Y:
-        mPendingMask |= 1<<CW_MAGNETIC;
-        mPendingEvents[CW_MAGNETIC].data[1] = value * CONVERT_M;
+    case CW_ABS_Y1:
+        index = 4;
         break;
-    case ABS_MAG_Z:
-        mPendingMask |= 1<<CW_MAGNETIC;
-        mPendingEvents[CW_MAGNETIC].data[2] = value * CONVERT_M;
+    case CW_ABS_Z1:
+        index = 5;
         break;
-    case ABS_MAG_ACCURACY:
-        mPendingMask |= 1<<CW_MAGNETIC;
-        ALOGD("ABS_MAG_ACCURACY: value = %f\n", value);
-        mPendingEvents[CW_MAGNETIC].magnetic.status = value;
-        break;
-
-    case ABS_GYRO_X:
-        mPendingMask |= 1<<CW_GYRO;
-        mPendingEvents[CW_GYRO].data[0] = value * CONVERT_GYRO;
-        break;
-    case ABS_GYRO_Y:
-        mPendingMask |= 1<<CW_GYRO;
-        mPendingEvents[CW_GYRO].data[1] = value * CONVERT_GYRO;
-        break;
-    case ABS_GYRO_Z:
-        mPendingMask |= 1<<CW_GYRO;
-        mPendingEvents[CW_GYRO].data[2] = value * CONVERT_GYRO;
-        break;
-    case ABS_PRESSURE_X:
-        mPendingMask |= 1<<CW_PRESSURE;
-        mPendingEvents[CW_PRESSURE].data[0] = value/CONVERT_PRESSURE;
-        break;
-    case ABS_PRESSURE_Y:
-        mPendingMask |= 1<<CW_PRESSURE;
-        mPendingEvents[CW_PRESSURE].data[1] = value/CONVERT_PRESSURE;
-        break;
-    case ABS_PRESSURE_Z:
-        mPendingMask |= 1<<CW_PRESSURE;
-        mPendingEvents[CW_PRESSURE].data[2] = value/CONVERT_PRESSURE;
-        break;
-    case ABS_ORI_X:
-        mPendingMask |= 1<<CW_ORIENTATION;
-        mPendingEvents[CW_ORIENTATION].data[0] = value * CONVERT_O;
-        ALOGD_IF((DEBUG_DATA == 1), "CW_ORIENTATION [0] = %f\n", mPendingEvents[CW_ORIENTATION].data[0]);
-        break;
-    case ABS_ORI_Y:
-        mPendingMask |= 1<<CW_ORIENTATION;
-        mPendingEvents[CW_ORIENTATION].data[1] = value * CONVERT_O;
-        ALOGD_IF((DEBUG_DATA == 1), "CW_ORIENTATION [1] = %f\n", mPendingEvents[CW_ORIENTATION].data[1]);
-        break;
-    case ABS_ORI_Z:
-        mPendingMask |= 1<<CW_ORIENTATION;
-        mPendingEvents[CW_ORIENTATION].data[2] = value * CONVERT_O;
-        ALOGD_IF((DEBUG_DATA == 1), "CW_ORIENTATION [2] = %f\n", mPendingEvents[CW_ORIENTATION].data[2]);
-        break;
-    case ABS_ORI_ACCURACY:
-        mPendingMask |= 1<<CW_ORIENTATION;
-        ALOGD("ABS_ORI_ACCURACY: value = %f\n", value);
-        mPendingEvents[CW_ORIENTATION].orientation.status = value;
-        break;
-
-    case ABS_ROT_X:
-        mPendingMask |= 1<<CW_ROTATIONVECTOR;
-        mPendingEvents[CW_ROTATIONVECTOR].data[0] = value/CONVERT_RV;
-        break;
-    case ABS_ROT_Y:
-        mPendingMask |= 1<<CW_ROTATIONVECTOR;
-        mPendingEvents[CW_ROTATIONVECTOR].data[1] = value/CONVERT_RV;
-        break;
-    case ABS_ROT_Z:
-        mPendingMask |= 1<<CW_ROTATIONVECTOR;
-        mPendingEvents[CW_ROTATIONVECTOR].data[2] = value/CONVERT_RV;
-        break;
-
-    case ABS_LIN_X:
-        mPendingMask |= 1<<CW_LINEARACCELERATION;
-        mPendingEvents[CW_LINEARACCELERATION].data[0] = value * CONVERT_ALL;
-        break;
-    case ABS_LIN_Y:
-        mPendingMask |= 1<<CW_LINEARACCELERATION;
-        mPendingEvents[CW_LINEARACCELERATION].data[1] = value * CONVERT_ALL;
-        break;
-    case ABS_LIN_Z:
-        mPendingMask |= 1<<CW_LINEARACCELERATION;
-        mPendingEvents[CW_LINEARACCELERATION].data[2] = value * CONVERT_ALL;
-        break;
-
-    case ABS_GRA_X:
-        mPendingMask |= 1<<CW_GRAVITY;
-        mPendingEvents[CW_GRAVITY].data[0] = value * CONVERT_ALL;
-        break;
-    case ABS_GRA_Y:
-        mPendingMask |= 1<<CW_GRAVITY;
-        mPendingEvents[CW_GRAVITY].data[1] = value * CONVERT_ALL;
-        break;
-    case ABS_GRA_Z:
-        mPendingMask |= 1<<CW_GRAVITY;
-        mPendingEvents[CW_GRAVITY].data[2] = value * CONVERT_ALL;
-        break;
-
-    case ABS_MAGNETIC_UNCALIBRATED_X:
-        mPendingMask |= 1<<CW_MAGNETIC_UNCALIBRATED;
-        mPendingEvents[CW_MAGNETIC_UNCALIBRATED].uncalibrated_magnetic.uncalib[0] = value * CONVERT_M;
-        break;
-    case ABS_MAGNETIC_UNCALIBRATED_Y:
-        mPendingMask |= 1<<CW_MAGNETIC_UNCALIBRATED;
-        mPendingEvents[CW_MAGNETIC_UNCALIBRATED].uncalibrated_magnetic.uncalib[1] = value * CONVERT_M;
-        break;
-    case ABS_MAGNETIC_UNCALIBRATED_Z:
-        mPendingMask |= 1<<CW_MAGNETIC_UNCALIBRATED;
-        mPendingEvents[CW_MAGNETIC_UNCALIBRATED].uncalibrated_magnetic.uncalib[2] = value * CONVERT_M;
-        break;
-    case ABS_MAGNETIC_UNCALIBRATED_BIAS_X:
-        mPendingMask |= 1<<CW_MAGNETIC_UNCALIBRATED;
-        mPendingEvents[CW_MAGNETIC_UNCALIBRATED].uncalibrated_magnetic.bias[0] = value * CONVERT_M;
-        break;
-    case ABS_MAGNETIC_UNCALIBRATED_BIAS_Y:
-        mPendingMask |= 1<<CW_MAGNETIC_UNCALIBRATED;
-        mPendingEvents[CW_MAGNETIC_UNCALIBRATED].uncalibrated_magnetic.bias[1] = value * CONVERT_M;
-        break;
-    case ABS_MAGNETIC_UNCALIBRATED_BIAS_Z:
-        mPendingMask |= 1<<CW_MAGNETIC_UNCALIBRATED;
-        mPendingEvents[CW_MAGNETIC_UNCALIBRATED].uncalibrated_magnetic.bias[2] = value * CONVERT_M;
-        break;
-
-    case ABS_GYROSCOPE_UNCALIBRATED_X:
-        mPendingMask |= 1<<CW_GYROSCOPE_UNCALIBRATED;
-        mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].uncalibrated_gyro.uncalib[0] = value * CONVERT_GYRO;
-        break;
-    case ABS_GYROSCOPE_UNCALIBRATED_Y:
-        mPendingMask |= 1<<CW_GYROSCOPE_UNCALIBRATED;
-        mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].uncalibrated_gyro.uncalib[1] = value * CONVERT_GYRO;
-        break;
-    case ABS_GYROSCOPE_UNCALIBRATED_Z:
-        mPendingMask |= 1<<CW_GYROSCOPE_UNCALIBRATED;
-        mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].uncalibrated_gyro.uncalib[2] = value * CONVERT_GYRO;
-        break;
-    case ABS_GYROSCOPE_UNCALIBRATED_BIAS_X:
-        mPendingMask |= 1<<CW_GYROSCOPE_UNCALIBRATED;
-        mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].uncalibrated_gyro.bias[0] = value * CONVERT_GYRO;
-        break;
-    case ABS_GYROSCOPE_UNCALIBRATED_BIAS_Y:
-        mPendingMask |= 1<<CW_GYROSCOPE_UNCALIBRATED;
-        mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].uncalibrated_gyro.bias[1] = value * CONVERT_GYRO;
-        break;
-    case ABS_GYROSCOPE_UNCALIBRATED_BIAS_Z:
-        mPendingMask |= 1<<CW_GYROSCOPE_UNCALIBRATED;
-        mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].uncalibrated_gyro.bias[2] = value * CONVERT_GYRO;
-        break;
-
-    case ABS_GAME_ROTATION_VECTOR_X:
-        mPendingMask |= 1<<CW_GAME_ROTATION_VECTOR;
-        mPendingEvents[CW_GAME_ROTATION_VECTOR].data[0] = value / CONVERT_RV;
-        break;
-    case ABS_GAME_ROTATION_VECTOR_Y:
-        mPendingMask |= 1<<CW_GAME_ROTATION_VECTOR;
-        mPendingEvents[CW_GAME_ROTATION_VECTOR].data[1] = value / CONVERT_RV;
-        break;
-    case ABS_GAME_ROTATION_VECTOR_Z:
-        mPendingMask |= 1<<CW_GAME_ROTATION_VECTOR;
-        mPendingEvents[CW_GAME_ROTATION_VECTOR].data[2] = value / CONVERT_RV;
-        break;
-
-    case ABS_GEOMAGNETIC_ROTATION_VECTOR_X:
-        mPendingMask |= 1<<CW_GEOMAGNETIC_ROTATION_VECTOR;
-        mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR].data[0] = value / CONVERT_RV;
-        break;
-    case ABS_GEOMAGNETIC_ROTATION_VECTOR_Y:
-        mPendingMask |= 1<<CW_GEOMAGNETIC_ROTATION_VECTOR;
-        mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR].data[1] = value / CONVERT_RV;
-        break;
-    case ABS_GEOMAGNETIC_ROTATION_VECTOR_Z:
-        mPendingMask |= 1<<CW_GEOMAGNETIC_ROTATION_VECTOR;
-        mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR].data[2] = value / CONVERT_RV;
-        break;
-
-    case ABS_STEP_DETECTOR:
-        mPendingMask |= 1<<CW_STEP_DETECTOR;
-        mPendingEvents[CW_STEP_DETECTOR].data[0] = value;
-        ALOGD("CW_STEP_DETECTOR: value = %f\n", value);
-        break;
-
-    case ABS_STEP_COUNTER:
-        mPendingMask |= 1<<CW_STEP_COUNTER;
-        mPendingEvents[CW_STEP_COUNTER].data[0] = value;
-        ALOGD("CW_STEP_COUNTER: value = %f\n", value);
-        break;
+    case CW_ABS_TIMEDIFF:;
+        mPendingEvents[sensorsid].timestamp = data;
+        return;
+    default:
+        ALOGW("%s: Unknown code = %d, index = %d\n", __func__, code, index);
+        return;
     }
 
+    switch (sensorsid) {
+    case CW_ORIENTATION:
+        mPendingMask |= 1<<sensorsid;
+        if ((sensorsid == CW_ORIENTATION) && (index == 3)) {
+            mPendingEvents[sensorsid].orientation.status = data;
+        } else {
+            mPendingEvents[sensorsid].data[index] = data * CONVERT_10;
+        }
+        break;
+    case CW_ACCELERATION:
+    case CW_MAGNETIC:
+    case CW_GYRO:
+    case CW_LINEARACCELERATION:
+    case CW_GRAVITY:
+        mPendingMask |= 1<<sensorsid;
+        if ((sensorsid == CW_MAGNETIC) && (index == 3)) {
+            mPendingEvents[sensorsid].magnetic.status = data;
+            ALOGD("CwMcuSensor::processEvent: magnetic accuracy = %d\n", mPendingEvents[sensorsid].magnetic.status);
+        } else {
+            mPendingEvents[sensorsid].data[index] = data * CONVERT_100;
+        }
+        break;
+    case CW_PRESSURE:
+        mPendingMask |= 1<<sensorsid;
+        mPendingEvents[sensorsid].data[index] = data;
+        break;
+    case CW_ROTATIONVECTOR:
+    case CW_GAME_ROTATION_VECTOR:
+    case CW_GEOMAGNETIC_ROTATION_VECTOR:
+        mPendingMask |= 1<<sensorsid;
+        mPendingEvents[sensorsid].data[index] = data * CONVERT_10000;
+        break;
+    case CW_MAGNETIC_UNCALIBRATED:
+    case CW_GYROSCOPE_UNCALIBRATED:
+        mPendingMask |= 1<<sensorsid;
+        mPendingEvents[sensorsid].data[index] = data * CONVERT_100;
+        break;
+    case CW_META_DATA:
+        if (value != -1) {
+            mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;
+            mPendingEventsFlush.meta_data.sensor = data;
+            flush_event = 1;
+            ALOGI("CW_META_DATA: meta_data.sensor = %d\n", mPendingEventsFlush.meta_data.sensor);
+        }
+        break;
+    case CW_SYNC_ACK:
+        if (data == SYNC_ACK_MAGIC) {
+            ALOGI("processEvent: g_timestamp = l_timestamp = %llu\n", l_timestamp);
+            g_timestamp = l_timestamp;
+        }
+        break;
+    case TIME_DIFF_EXHAUSTED:
+        ALOGI("processEvent: data = %d\n", data);
+        if (data == EXHAUSTED_MAGIC) {
+            ALOGI("processEvent: TIME_DIFF_EXHAUSTED\n");
+            sync_timestamp();
+        }
+        break;
+    default:
+        ALOGW("%s: Unknown sensorsid = %d\n", __func__, sensorsid);
+        break;
+    }
 }
 
 

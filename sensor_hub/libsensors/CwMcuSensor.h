@@ -47,7 +47,12 @@ typedef enum {
     CW_STEP_DETECTOR               = 21,
     CW_STEP_COUNTER                = 22,
     HTC_ANY_MOTION                 = 28,
-    CW_SENSORS_ID_END // Be careful, do not exceed 31
+    CW_SENSORS_ID_END, // Be careful, do not exceed 31
+    TIME_DIFF_EXHAUSTED            = 97,
+    CW_SYNC_ACK                    = 98,
+    CW_META_DATA                   = 99,
+    CW_MAGNETIC_UNCALIBRATED_BIAS  = 100,
+    CW_GYROSCOPE_UNCALIBRATED_BIAS = 101
 } CW_SENSORS_ID;
 
 #define        SAVE_PATH_ACC                                "/data/misc/AccOffset.txt"
@@ -58,6 +63,8 @@ typedef enum {
 
 #define        numSensors        CW_SENSORS_ID_END
 
+#define TIMESTAMP_SYNC_CODE		(98)
+
 struct input_event;
 
 class CwMcuSensor : public SensorBase {
@@ -65,17 +72,16 @@ class CwMcuSensor : public SensorBase {
         uint32_t mEnabled;
         InputEventCircularReader mInputReader;
         sensors_event_t mPendingEvents[numSensors];
-        bool mHasPendingEventPressure;
-        bool mHasPendingEventActivity;
-        bool mHasPendingEventLight;
-        bool mHasPendingEventMagnetic;
-        bool mHasPendingEventOrientation;
+        sensors_event_t mPendingEventsFlush;
+        uint32_t mFlushSensorEnabled;
         uint32_t mPendingMask;
         char input_sysfs_path[PATH_MAX];
         int input_sysfs_path_len;
 
-        int setInitialState(int what);
+        int flush_event;
         float indexToValue(size_t index) const;
+        int64_t l_timestamp;
+        int64_t g_timestamp;
 
 public:
         CwMcuSensor();
@@ -85,10 +91,14 @@ public:
         virtual int setDelay(int32_t handle, int64_t ns);
         virtual int setEnable(int32_t handle, int enabled);
         virtual int getEnable(int32_t handle);
+        virtual int batch(int handle, int flags, int64_t period_ns, int64_t timeout);
+        virtual int flush(int handle);
+        int sync_timestamp(void);
+        int sync_timestamp_locked(void);
         int find_sensor(int32_t handle);
         void cw_save_calibrator_file(int type, const char * path, int* str);
         int cw_read_calibrator_file(int type, const char * path, int* str);
-        void processEvent(int code, float value);
+        void processEvent(int code, int value);
         void calculate_rv_4th_element(int sensors_id);
 };
 
