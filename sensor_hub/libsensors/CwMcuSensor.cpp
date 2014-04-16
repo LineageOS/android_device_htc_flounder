@@ -265,7 +265,7 @@ int CwMcuSensor::getEnable(int32_t handle) {
     return  0;
 }
 
-int min(int a, int b) {
+static int min(int a, int b) {
     return (a < b) ? a : b;
 }
 

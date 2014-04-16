@@ -63,7 +63,7 @@ typedef enum {
 
 #define        numSensors        CW_SENSORS_ID_END
 
-#define TIMESTAMP_SYNC_CODE		(98)
+#define TIMESTAMP_SYNC_CODE        (98)
 
 struct input_event;
 
