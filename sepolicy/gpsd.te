@@ -1,0 +1,1 @@
+allow gpsd sysfs_wake_lock:file rw_file_perms;

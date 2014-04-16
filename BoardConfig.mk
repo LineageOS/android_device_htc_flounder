@@ -87,6 +87,7 @@ BOARD_SEPOLICY_UNION := \
 	file.te \
 	file_contexts \
 	genfs_contexts \
+	gpsd.te \
 	kernel.te \
 	kickstart.te \
 	netd.te \
