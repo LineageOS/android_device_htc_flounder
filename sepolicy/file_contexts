@@ -25,4 +25,6 @@
 
 /data/nfc(/.*)?			u:object_r:nfc_data_file:s0
 
+# gps
 /system/bin/glgps		u:object_r:gpsd_exec:s0
+/dev/ttyTHS1			u:object_r:gps_device:s0
