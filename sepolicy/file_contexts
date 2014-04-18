@@ -29,3 +29,6 @@
 # gps
 /system/bin/glgps		u:object_r:gpsd_exec:s0
 /dev/ttyTHS1			u:object_r:gps_device:s0
+
+# touch_fusion
+/system/vendor/bin/touch_fusion	u:object_r:touch_fusion_exec:s0
