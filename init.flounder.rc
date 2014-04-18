@@ -64,11 +64,6 @@ on fs
     chown gps system /data/gps
     chmod 0770 /data/gps
 
-    # Touch init
-    chmod 0770 /system/vendor/bin/touch_fusion
-    chmod 0660 /system/vendor/firmware/touch_fusion.cfg
-    chmod 0660 /system/vendor/firmware/maxim_fp35.bin
-
     # HACK: prevent suspend, pending fixes
     write /sys/power/wake_lock VolantisHackPreventSuspend
 
