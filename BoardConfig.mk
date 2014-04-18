@@ -84,7 +84,9 @@ BOARD_SEPOLICY_UNION := \
 	file_contexts \
 	genfs_contexts \
 	bluetooth.te \
-	system_server.te
+	kernel.te \
+	system_server.te \
+	touch_fusion.te
 
 TARGET_USES_64_BIT_BCMDHD := true
 TARGET_USES_64_BIT_BINDER := true
