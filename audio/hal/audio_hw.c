@@ -1965,7 +1965,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
                         bytes * pcm_device->pcm_profile->config.rate / out->sample_rate;
                     pcm_device->res_buffer =
                         realloc(pcm_device->res_buffer, pcm_device->res_byte_count);
-                    ALOGV("%s: resampler res_byte_count = %d", __func__,
+                    ALOGV("%s: resampler res_byte_count = %zu", __func__,
                         pcm_device->res_byte_count);
                 }
                 frames_rq = bytes / frame_size;
@@ -1999,7 +1999,7 @@ exit:
         list_for_each(node, &out->pcm_dev_list) {
             pcm_device = node_to_item(node, struct pcm_device, stream_list_node);
             if (pcm_device->pcm && pcm_device->status != 0)
-                ALOGE("%s: error %d - %s", __func__, ret, pcm_get_error(pcm_device->pcm));
+                ALOGE("%s: error %zd - %s", __func__, ret, pcm_get_error(pcm_device->pcm));
         }
         out_standby(&out->stream.common);
         usleep(bytes * 1000000 / audio_stream_frame_size(&out->stream.common) /
@@ -2072,7 +2072,7 @@ static int out_get_presentation_position(const struct audio_stream_out *stream,
     } else {
         /* FIXME: which device to read from? */
         if (!list_empty(&out->pcm_dev_list)) {
-            size_t avail;
+            unsigned int avail;
             struct pcm_device *pcm_device = node_to_item(list_head(&out->pcm_dev_list),
                                                    struct pcm_device, stream_list_node);
 
