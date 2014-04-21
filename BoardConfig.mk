@@ -85,6 +85,7 @@ BOARD_SEPOLICY_UNION := \
 	genfs_contexts \
 	bluetooth.te \
 	kernel.te \
+	netd.te \
 	system_server.te \
 	touch_fusion.te
 
