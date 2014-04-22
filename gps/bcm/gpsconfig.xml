@@ -9,13 +9,14 @@
     LogDirectory="/data/gps/gpslog/"
     NmeaOutName="/data/gps/nmea_out"
     CtrlPipe="/data/gps/glgpsctrl"
-    GpioNStdbyPath="/dev/gps_onoff"
+    GpioNStdbyPath="/sys/class/gps/bcm47521/gps_onoff/value"
     GpioDelayMs="130"
     NvStorageDir="/data/gps/"
     HttpSyncLto="true"
     LtoFileName="lto2.dat"
     LtoDir="/data/gps/"
     HulaEnable="false"
+    WakeLock="false"
   />
 
   <gll
