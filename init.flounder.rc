@@ -19,6 +19,7 @@ on init
 
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/nvcam 0700 media camera
 
     # NFC: create data/nfc for nv storage
     mkdir /data/nfc 0770 nfc nfc
