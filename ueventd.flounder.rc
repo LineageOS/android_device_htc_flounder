@@ -41,6 +41,7 @@
 /dev/timerinfo  0444    system  system
 /dev/bcm2079x   0660    nfc     nfc
 /dev/adf*       0660    media   graphics
+/dev/tlk_device 0660    system  drmrpc
 
 /sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  state  0660    bluetooth    net_bt_stack
 /sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  type   0660    bluetooth    net_bt_stack
