@@ -32,3 +32,6 @@
 
 # touch_fusion
 /system/vendor/bin/touch_fusion	u:object_r:touch_fusion_exec:s0
+
+# TEE
+/dev/tlk_device			u:object_r:tee_device:s0
