@@ -294,7 +294,9 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     what = find_sensor(handle);
 
-    ALOGD("CwMcuSensor::setEnable: [v01-initial version], handle = %d, en = %d, what = %d\n", handle, en, what);
+    //ALOGD("CwMcuSensor::setEnable: [v01-initial version], handle = %d, en = %d, what = %d\n", handle, en, what);
+    ALOGD("CwMcuSensor::setEnable: [v02-Add Step Detector and Step Counter], handle = %d, en = %d,"
+          " what = %d\n", handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
         pthread_mutex_unlock(&sys_fs_mutex);
@@ -665,8 +667,21 @@ void CwMcuSensor::processEvent(int code, int value){
     case CW_ABS_Z1:
         index = 5;
         break;
-    case CW_ABS_TIMEDIFF:;
+    case CW_ABS_TIMEDIFF:
         mPendingEvents[sensorsid].timestamp = data;
+        return;
+    case ABS_STEP_DETECTOR:
+        if (data != -1) {
+            mPendingMask |= 1<<CW_STEP_DETECTOR;
+            mPendingEvents[CW_STEP_COUNTER].data[0] = value;
+            mPendingEvents[CW_STEP_DETECTOR].timestamp = getTimestamp();
+        }
+        return;
+    case ABS_STEP_COUNTER:
+        if (data != -1) {
+            mPendingMask |= 1<<CW_STEP_COUNTER;
+            mPendingEvents[CW_STEP_COUNTER].u64.step_counter = value;
+        }
         return;
     default:
         ALOGW("%s: Unknown code = %d, index = %d\n", __func__, code, index);
