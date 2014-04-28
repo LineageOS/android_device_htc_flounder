@@ -294,7 +294,6 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     what = find_sensor(handle);
 
-    //ALOGD("CwMcuSensor::setEnable: [v01-initial version], handle = %d, en = %d, what = %d\n", handle, en, what);
     ALOGD("CwMcuSensor::setEnable: [v02-Add Step Detector and Step Counter], handle = %d, en = %d,"
           " what = %d\n", handle, en, what);
 
