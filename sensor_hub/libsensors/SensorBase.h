@@ -34,11 +34,9 @@ class SensorBase {
 protected:
     const char* dev_name;
     const char* data_name;
-    char        input_name[PATH_MAX];
     int         dev_fd;
     int         data_fd;
 
-    int openInput(const char* inputName);
     static int64_t getTimestamp();
 
 

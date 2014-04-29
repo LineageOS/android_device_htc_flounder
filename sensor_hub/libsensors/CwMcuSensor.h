@@ -65,8 +65,6 @@ typedef enum {
 
 #define TIMESTAMP_SYNC_CODE        (98)
 
-struct input_event;
-
 class CwMcuSensor : public SensorBase {
 
         uint32_t mEnabled;
@@ -75,14 +73,18 @@ class CwMcuSensor : public SensorBase {
         sensors_event_t mPendingEventsFlush;
         uint32_t mFlushSensorEnabled;
         uint32_t mPendingMask;
-        char input_sysfs_path[PATH_MAX];
-        int input_sysfs_path_len;
+        char fixed_sysfs_path[PATH_MAX];
+        int fixed_sysfs_path_len;
 
-        int flush_event;
         float indexToValue(size_t index) const;
+        char mDevPath[PATH_MAX];
+        char mTriggerName[PATH_MAX];
+
         int64_t l_timestamp;
         int64_t g_timestamp;
 
+        int sysfs_set_input_attr(const char *attr, char *value, size_t len);
+        int sysfs_set_input_attr_by_int(const char *attr, int value);
 public:
         CwMcuSensor();
         virtual ~CwMcuSensor();
@@ -96,9 +98,10 @@ public:
         int sync_timestamp(void);
         int sync_timestamp_locked(void);
         int find_sensor(int32_t handle);
+        int find_handle(int32_t sensors_id);
         void cw_save_calibrator_file(int type, const char * path, int* str);
         int cw_read_calibrator_file(int type, const char * path, int* str);
-        void processEvent(int code, int value);
+        int processEvent(uint8_t *event);
         void calculate_rv_4th_element(int sensors_id);
 };
 

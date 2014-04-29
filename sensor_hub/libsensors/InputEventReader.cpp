@@ -15,7 +15,6 @@
  */
 
 #include <errno.h>
-#include <linux/input.h>
 #include <poll.h>
 #include <stdint.h>
 #include <sys/cdefs.h>
@@ -28,10 +27,10 @@
 
 /*****************************************************************************/
 
-struct input_event;
+struct cw_event;
 
 InputEventCircularReader::InputEventCircularReader(size_t numEvents)
-    : mBuffer(new input_event[numEvents * 2])
+    : mBuffer(new cw_event[numEvents * 2])
     , mBufferEnd(mBuffer + numEvents)
     , mHead(mBuffer)
     , mCurr(mBuffer)
@@ -48,19 +47,19 @@ ssize_t InputEventCircularReader::fill(int fd)
 {
     size_t numEventsRead = 0;
     if (mFreeSpace) {
-        const ssize_t nread = read(fd, mHead, mFreeSpace * sizeof(input_event));
-        if (nread<0 || nread % sizeof(input_event)) {
+        const ssize_t nread = read(fd, mHead, mFreeSpace * sizeof(cw_event));
+        if (nread<0 || nread % sizeof(cw_event)) {
             // we got a partial event!!
             return nread<0 ? -errno : -EINVAL;
         }
 
-        numEventsRead = nread / sizeof(input_event);
+        numEventsRead = nread / sizeof(cw_event);
         if (numEventsRead) {
             mHead += numEventsRead;
             mFreeSpace -= numEventsRead;
             if (mHead > mBufferEnd) {
                 size_t s = mHead - mBufferEnd;
-                memcpy(mBuffer, mBufferEnd, s * sizeof(input_event));
+                memcpy(mBuffer, mBufferEnd, s * sizeof(cw_event));
                 mHead = mBuffer + s;
             }
         }
@@ -69,7 +68,7 @@ ssize_t InputEventCircularReader::fill(int fd)
     return numEventsRead;
 }
 
-ssize_t InputEventCircularReader::readEvent(input_event const** events)
+ssize_t InputEventCircularReader::readEvent(cw_event const** events)
 {
     *events = mCurr;
     ssize_t available = (mBufferEnd - mBuffer) - mFreeSpace;

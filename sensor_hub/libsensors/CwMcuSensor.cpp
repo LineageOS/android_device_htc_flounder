@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -36,11 +37,128 @@
 #define LIGHTSENSOR_LEVEL 10
 #define DEBUG_DATA 0
 #define COMPASS_CALIBRATION_DATA_SIZE 26
+#define G_SENSOR_CALIBRATION_DATA_SIZE 3
 #define NS_PER_MS 1000000LL
 #define SYNC_ACK_MAGIC  0x66
 #define EXHAUSTED_MAGIC 0x77
 
 /*****************************************************************************/
+#define IIO_MAX_BUFF_SIZE 10000
+#define IIO_MAX_DATA_SIZE 24
+#define IIO_MAX_NAME_LENGTH 30
+#define INT32_CHAR_LEN 12
+
+static const char iio_dir[] = "/sys/bus/iio/devices/";
+
+static int chomp(char *buf, size_t len) {
+    if (buf == NULL)
+        return -1;
+
+    while (len > 0 && isspace(buf[len-1])) {
+        buf[len - 1] = '\0';
+        len--;
+    }
+
+    return 0;
+}
+
+int CwMcuSensor::sysfs_set_input_attr(const char *attr, char *value, size_t len) {
+    char fname[PATH_MAX];
+    int fd;
+
+    snprintf(fname, sizeof(fname), "%s/%s", mDevPath, attr);
+    fname[sizeof(fname) - 1] = '\0';
+
+    fd = open(fname, O_WRONLY);
+    if (fd < 0) {
+        ALOGE("%s: fname = %s, fd = %d, failed: %s\n", __func__, fname, fd, strerror(errno));
+        return -EACCES;
+    }
+
+    if (write(fd, value, (size_t)len) < 0) {
+        close(fd);
+        return -EIO;
+    }
+
+    close(fd);
+
+    return 0;
+}
+
+int CwMcuSensor::sysfs_set_input_attr_by_int(const char *attr, int value) {
+    char buf[INT32_CHAR_LEN];
+
+    size_t n = snprintf(buf, sizeof(buf), "%d", value);
+    if (n > sizeof(buf)) {
+        return -1;
+    }
+
+    return sysfs_set_input_attr(attr, buf, n);
+}
+
+static inline int find_type_by_name(const char *name, const char *type) {
+    const struct dirent *ent;
+    int number, numstrlen;
+
+    DIR *dp;
+    char thisname[IIO_MAX_NAME_LENGTH];
+    char *filename;
+    size_t size;
+    size_t typeLen = strlen(type);
+    size_t nameLen = strlen(name);
+
+    if (nameLen >= sizeof(thisname) - 1) {
+        return -ERANGE;
+    }
+
+    dp = opendir(iio_dir);
+    if (dp == NULL) {
+        return -ENODEV;
+    }
+
+    while (ent = readdir(dp), ent != NULL) {
+        if (strcmp(ent->d_name, ".") != 0 &&
+                strcmp(ent->d_name, "..") != 0 &&
+                strlen(ent->d_name) > typeLen &&
+                strncmp(ent->d_name, type, typeLen) == 0) {
+            numstrlen = sscanf(ent->d_name + typeLen,
+                               "%d", &number);
+
+            /* verify the next character is not a colon */
+            if (ent->d_name[strlen(type) + numstrlen] != ':') {
+                size = sizeof(iio_dir) - 1 + typeLen + numstrlen + 6;
+                filename = (char *)malloc(size);
+
+                if (filename == NULL)
+                    return -ENOMEM;
+
+                snprintf(filename, size,
+                         "%s%s%d/name",
+                         iio_dir, type, number);
+
+                int fd = open(filename, O_RDONLY);
+                free(filename);
+                if (fd < 0) {
+                    continue;
+                }
+                size = read(fd, thisname, sizeof(thisname) - 1);
+                close(fd);
+                if (size < nameLen) {
+                    continue;
+                }
+                thisname[size] = '\0';
+                if (strncmp(name, thisname, nameLen)) {
+                    continue;
+                }
+                // check for termination or whitespace
+                if (!thisname[nameLen] || isspace(thisname[nameLen])) {
+                    return number;
+                }
+            }
+        }
+    }
+    return -ENODEV;
+}
 
 int fill_block_debug = 0;
 
@@ -49,7 +167,7 @@ pthread_mutex_t sys_fs_mutex = PTHREAD_MUTEX_INITIALIZER;
 CwMcuSensor::CwMcuSensor()
     : SensorBase(NULL, "CwMcuSensor")
     , mEnabled(0)
-    , mInputReader(4)
+    , mInputReader(IIO_MAX_BUFF_SIZE)
     , mFlushSensorEnabled(-1)
     , l_timestamp(0)
     , g_timestamp(0) {
@@ -136,21 +254,60 @@ CwMcuSensor::CwMcuSensor()
     mPendingEventsFlush.sensor = 0;
     mPendingEventsFlush.type = SENSOR_TYPE_META_DATA;
 
-    if (data_fd) {
+    char buffer_access[PATH_MAX];
+    const char *device_name = "CwMcuSensor";
+    int rate = 20, dev_num, enabled = 0, i;
+
+    dev_num = find_type_by_name(device_name, "iio:device");
+    if (dev_num < 0)
+        dev_num = 0;
+
+    snprintf(buffer_access, sizeof(buffer_access),
+            "/dev/iio:device%d", dev_num);
+
+    data_fd = open(buffer_access, O_RDWR);
+    if (data_fd < 0) {
+        ALOGE("CwMcuSensor::CwMcuSensor: open file '%s' failed: %s\n",
+              buffer_access, strerror(errno));
+    }
+
+    if (data_fd >= 0) {
         ALOGW("%s: 11 Before pthread_mutex_lock()\n", __func__);
         pthread_mutex_lock(&sys_fs_mutex);
         ALOGW("%s: 11 Acquired pthread_mutex_lock()\n", __func__);
 
-        strcpy(input_sysfs_path,"/sys/class/htc_sensorhub/sensor_hub/");
-        input_sysfs_path_len = strlen(input_sysfs_path);
+        strcpy(fixed_sysfs_path,"/sys/class/htc_sensorhub/sensor_hub/");
+        fixed_sysfs_path_len = strlen(fixed_sysfs_path);
+
+        snprintf(mDevPath, sizeof(mDevPath), "%s%s", fixed_sysfs_path, "iio");
+
+        snprintf(mTriggerName, sizeof(mTriggerName), "%s-dev%d",
+                 device_name, dev_num);
+
+        if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0)
+            ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer length failed: %s\n", strerror(errno));
+
+        if (sysfs_set_input_attr("trigger/current_trigger",
+                                 mTriggerName, strlen(mTriggerName)) < 0) {
+            ALOGE("CwMcuSensor::CwMcuSensor: set current trigger failed: %s\n", strerror(errno));
+        }
+        ALOGD("CwMcuSensor::CwMcuSensor: mTriggerName = %s\n", mTriggerName);
+
+        if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
+            ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed: %s\n", strerror(errno));
+        }
 
         pthread_mutex_unlock(&sys_fs_mutex);
+
+        ALOGD("%s: data_fd = %d", __func__, data_fd);
+        ALOGD("%s: iio_device_path = %s", __func__, buffer_access);
+        ALOGD("%s: ctrl sysfs_path = %s", __func__, fixed_sysfs_path);
 
         setEnable(0, 1); // Inside this function call, we use sys_fs_mutex
     }
 
-    int gs_temp_data[255] = {0};
-    int compass_temp_data[255] = {0};
+    int gs_temp_data[G_SENSOR_CALIBRATION_DATA_SIZE] = {0};
+    int compass_temp_data[COMPASS_CALIBRATION_DATA_SIZE] = {0};
 
 
     ALOGW("%s: 22 Before pthread_mutex_lock()\n", __func__);
@@ -162,8 +319,8 @@ CwMcuSensor::CwMcuSensor()
     if (rc == 0) {
         ALOGD("Get compass calibration data from data/misc/ x is %d ,y is %d ,z is %d\n",
               compass_temp_data[0], compass_temp_data[1], compass_temp_data[2]);
-        strcpy(&input_sysfs_path[input_sysfs_path_len], "calibrator_data_mag");
-        cw_save_calibrator_file(CW_MAGNETIC, input_sysfs_path, compass_temp_data);
+        strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "calibrator_data_mag");
+        cw_save_calibrator_file(CW_MAGNETIC, fixed_sysfs_path, compass_temp_data);
     } else {
         ALOGI("Compass calibration data does not exist\n");
     }
@@ -172,9 +329,9 @@ CwMcuSensor::CwMcuSensor()
     if (rc == 0) {
         ALOGD("Get g-sensor user calibration data from data/misc/ x is %d ,y is %d ,z is %d\n",
               gs_temp_data[0],gs_temp_data[1],gs_temp_data[2]);
-        strcpy(&input_sysfs_path[input_sysfs_path_len], "calibrator_data_acc");
+        strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "calibrator_data_acc");
         if(!(gs_temp_data[0] == 0 && gs_temp_data[1] == 0 && gs_temp_data[2] == 0 )) {
-            cw_save_calibrator_file(CW_ACCELERATION, input_sysfs_path, gs_temp_data);
+            cw_save_calibrator_file(CW_ACCELERATION, fixed_sysfs_path, gs_temp_data);
         }
     } else {
         ALOGI("G-Sensor user calibration data does not exist\n");
@@ -204,6 +361,61 @@ float CwMcuSensor::indexToValue(size_t index) const {
     return luxValues[index];
 }
 
+int CwMcuSensor::find_handle(int32_t sensors_id) {
+    switch (sensors_id) {
+    case CW_ACCELERATION:
+        return ID_A;
+        break;
+    case CW_MAGNETIC:
+        return ID_M;
+        break;
+    case CW_GYRO:
+        return ID_GY;
+        break;
+    case CW_PRESSURE:
+        return ID_PS;
+        break;
+    case CW_ORIENTATION:
+        return ID_O;
+        break;
+    case CW_ROTATIONVECTOR:
+        return ID_RV;
+        break;
+    case CW_LINEARACCELERATION:
+        return ID_LA;
+        break;
+    case CW_GRAVITY:
+        return ID_G;
+        break;
+    case CW_MAGNETIC_UNCALIBRATED:
+        return ID_CW_MAGNETIC_UNCALIBRATED;
+        break;
+    case CW_GYROSCOPE_UNCALIBRATED:
+        return ID_CW_GYROSCOPE_UNCALIBRATED;
+        break;
+    case CW_GAME_ROTATION_VECTOR:
+        return ID_CW_GAME_ROTATION_VECTOR;
+        break;
+    case CW_GEOMAGNETIC_ROTATION_VECTOR:
+        return ID_CW_GEOMAGNETIC_ROTATION_VECTOR;
+        break;
+    case CW_LIGHT:
+        return ID_L;
+        break;
+    case CW_STEP_DETECTOR:
+        return ID_CW_STEP_DETECTOR;
+        break;
+    case CW_STEP_COUNTER:
+        return ID_CW_STEP_COUNTER;
+        break;
+    case HTC_ANY_MOTION:
+        return ID_Any_Motion;
+        break;
+    default:
+        return 0xFF;
+        break;
+    }
+}
 
 int CwMcuSensor::find_sensor(int32_t handle) {
     int what = -1;
@@ -301,8 +513,8 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
         pthread_mutex_unlock(&sys_fs_mutex);
         return -EINVAL;
     }
-    strcpy(&input_sysfs_path[input_sysfs_path_len], "enable");
-    fd = open(input_sysfs_path, O_RDWR);
+    strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "enable");
+    fd = open(fixed_sysfs_path, O_RDWR);
     if (fd >= 0) {
         int n = snprintf(buf, sizeof(buf), "%d %d\n", what, flags);
         err = write(fd, buf, min(n, sizeof(buf)));
@@ -314,6 +526,14 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
         mEnabled &= ~(1<<what);
         mEnabled |= (uint32_t(flags)<<what);
+
+        if (!mEnabled) {
+            if (sysfs_set_input_attr_by_int("buffer/enable", 0) < 0) {
+                ALOGE("CwMcuSensor::setEnable: set buffer disable failed: %s\n", strerror(errno));
+            } else {
+                ALOGI("CwMcuSensor::setEnable: set IIO buffer enable = 0\n");
+            }
+        }
     } else {
         ALOGE("%s open failed: %s", __func__, strerror(errno));
     }
@@ -324,8 +544,8 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
             ((what == CW_ROTATIONVECTOR) && (flags == 0))
        ) {
         ALOGD("Save Compass calibration data");
-        strcpy(&input_sysfs_path[input_sysfs_path_len], "calibrator_data_mag");
-        rc = cw_read_calibrator_file(CW_MAGNETIC, input_sysfs_path, temp_data);
+        strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "calibrator_data_mag");
+        rc = cw_read_calibrator_file(CW_MAGNETIC, fixed_sysfs_path, temp_data);
         if (rc== 0) {
             cw_save_calibrator_file(CW_MAGNETIC, SAVE_PATH_MAG, temp_data);
         } else {
@@ -367,6 +587,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     }
 
     switch (what) {
+    case CW_LIGHT:
     case CW_SIGNIFICANT_MOTION:
         if (timeout > 0) {
             ALOGI("CwMcuSensor::batch: handle = %d, not support batch mode", handle);
@@ -386,11 +607,25 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     pthread_mutex_lock(&sys_fs_mutex);
     ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
 
+    if (!mEnabled) {
+        if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0) {
+            ALOGE("CwMcuSensor::batch: set IIO buffer length failed: %s\n", strerror(errno));
+        } else {
+            ALOGI("CwMcuSensor::batch: set IIO buffer length = %d\n", IIO_MAX_BUFF_SIZE);
+        }
+
+        if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
+            ALOGE("CwMcuSensor::batch: set IIO buffer enable failed: %s\n", strerror(errno));
+        } else {
+            ALOGI("CwMcuSensor::batch: set IIO buffer enable = 1\n");
+        }
+    }
+
     sync_timestamp_locked();
 
-    strcpy(&input_sysfs_path[input_sysfs_path_len], "batch_enable");
+    strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "batch_enable");
 
-    fd = open(input_sysfs_path, O_RDWR);
+    fd = open(fixed_sysfs_path, O_RDWR);
     if (fd < 0) {
         err = -errno;
     } else {
@@ -407,7 +642,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
 
     ALOGD("CwMcuSensor::batch: fd = %d, sensors_id = %d, flags = %d, delay_ms= %d,"
           " timeout_ms = %d, path = %s, err = %d\n",
-          fd , what, flags, delay_ms, timeout_ms, input_sysfs_path, err);
+          fd , what, flags, delay_ms, timeout_ms, fixed_sysfs_path, err);
 
     return err;
 }
@@ -420,7 +655,7 @@ int CwMcuSensor::flush(int handle)
     char buf[10] = {0};
     int err;
 
-    what = handle;
+    what = find_sensor(handle);
     mFlushSensorEnabled = handle;
 
     if (uint32_t(what) >= CW_SENSORS_ID_END) {
@@ -431,9 +666,9 @@ int CwMcuSensor::flush(int handle)
     pthread_mutex_lock(&sys_fs_mutex);
     ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
 
-    strcpy(&input_sysfs_path[input_sysfs_path_len], "flush");
+    strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "flush");
 
-    fd = open(input_sysfs_path, O_RDWR);
+    fd = open(fixed_sysfs_path, O_RDWR);
     if (fd >= 0) {
         int n = snprintf(buf, sizeof(buf), "%d\n", what);
         err = write(fd, buf, min(n, sizeof(buf)));
@@ -447,9 +682,10 @@ int CwMcuSensor::flush(int handle)
         ALOGI("CwMcuSensor::flush: flush not supported\n");
         err = -EINVAL;
     }
+
     pthread_mutex_unlock(&sys_fs_mutex);
     ALOGD("CwMcuSensor::flush: fd = %d, sensors_id = %d, path = %s, err = %d\n",
-          fd, what, input_sysfs_path, err);
+          fd, what, fixed_sysfs_path, err);
     return err;
 }
 
@@ -459,11 +695,11 @@ int CwMcuSensor::sync_timestamp_locked(void) {
     char buf[10] = {0};
     int err;
 
-    strcpy(&input_sysfs_path[input_sysfs_path_len], "flush");
+    strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "flush");
 
-    fd = open(input_sysfs_path, O_RDWR);
+    fd = open(fixed_sysfs_path, O_RDWR);
     if (fd >= 0) {
-        int n = snprintf(buf, sizeof(buf), "%d\n", TIMESTAMP_SYNC_CODE);
+        size_t n = snprintf(buf, sizeof(buf), "%d\n", TIMESTAMP_SYNC_CODE);
         err = write(fd, buf, min(n, sizeof(buf)));
         close(fd);
         if (err < 0) {
@@ -490,7 +726,7 @@ int CwMcuSensor::sync_timestamp(void)
 
     pthread_mutex_unlock(&sys_fs_mutex);
 
-    ALOGD("CwMcuSensor::sync_timestamp: path = %s, err = %d\n", input_sysfs_path, err);
+    ALOGD("CwMcuSensor::sync_timestamp: path = %s, err = %d\n", fixed_sysfs_path, err);
 
     return err;
 }
@@ -516,10 +752,10 @@ int CwMcuSensor::setDelay(int32_t handle, int64_t delay_ns) {
         pthread_mutex_unlock(&sys_fs_mutex);
         return -EINVAL;
     }
-    strcpy(&input_sysfs_path[input_sysfs_path_len], "delay_ms");
-    fd = open(input_sysfs_path, O_RDWR);
+    strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "delay_ms");
+    fd = open(fixed_sysfs_path, O_RDWR);
     if (fd >= 0) {
-        int n = snprintf(buf, sizeof(buf), "%d %lld\n", what, (delay_ns/NS_PER_MS));
+        size_t n = snprintf(buf, sizeof(buf), "%d %lld\n", what, (delay_ns/NS_PER_MS));
         write(fd, buf, min(n, sizeof(buf)));
         close(fd);
     }
@@ -564,140 +800,61 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
         return n;
     }
 
+    cw_event const* event;
+    uint8_t data_temp[24];
+    int id;
     int numEventReceived = 0;
-    input_event const* event;
+
     while (count && mInputReader.readEvent(&event)) {
 
-        if (event->type == EV_ABS) {
-            if(event->code == EVENT_TYPE_LIGHT) {
-                if (event->value != -1) {
-                    mPendingMask |= 1<<CW_LIGHT;
-                    mPendingEvents[CW_LIGHT].light = indexToValue(event->value);
-                    ALOGD("HUB LightSensor::readEvents: Reporting mPendingEvent.light = %f\n", mPendingEvents[CW_LIGHT].light);
-                }
-            } else {
-                processEvent(event->code, event->value);
-            }
+        memcpy(data_temp, event->data, sizeof(data_temp));
 
-        } else if (event->type == EV_REL) {
-            ALOGD("CwMcuSensor ==REL==: event (type=%d, code=%d, value=%d)\n",
-                  event->type, event->code, event->value);
-
-            if(event->code == REL_Significant_Motion) {
-                mPendingMask |= 1<<CW_SIGNIFICANT_MOTION;
-                mPendingEvents[CW_SIGNIFICANT_MOTION].data[0] = 1;
-                ALOGI("Significant Motion detected!\n");
-            }
-        } else if (event->type == EV_SYN) {
-
-            if (flush_event == 1) {
-                ALOGI("Send flush event, handle = %d\n", mPendingEventsFlush.meta_data.sensor);
-                flush_event = 0;
-                mPendingEventsFlush.timestamp = getTimestamp();
-                *data++ = mPendingEventsFlush;
+        id = processEvent(data_temp);
+        if (id == CW_META_DATA) {
+            *data++ = mPendingEventsFlush;
+            count--;
+            numEventReceived++;
+            ALOGI("CwMcuSensor::readEvents: metadata = %d\n", mPendingEventsFlush.meta_data.sensor);
+        } else {
+            mPendingEvents[id].timestamp = getTimestamp();
+            if (mEnabled & (1<<id)) {
+                if (id == CW_SIGNIFICANT_MOTION)
+                    setEnable(ID_CW_SIGNIFICANT_MOTION, 0);
+                calculate_rv_4th_element(id);
+                *data++ = mPendingEvents[id];
+                count--;
                 numEventReceived++;
             }
-
-            for (int j=0 ; count && mPendingMask && j<numSensors ; j++) {
-                if (mPendingMask & (1<<j)) {
-                    mPendingMask &= ~(1<<j);
-
-                    if (j == CW_SIGNIFICANT_MOTION) {
-                        setEnable(ID_CW_SIGNIFICANT_MOTION, 0);
-                    }
-
-                    mPendingEvents[j].timestamp = g_timestamp ?
-                                                      g_timestamp + (mPendingEvents[j].timestamp * NS_PER_MS) :
-                                                      getTimestamp();
-                    if ((mEnabled & (1<<j)) || (j == CW_META_DATA)) {
-
-                        calculate_rv_4th_element(j);
-
-                        if (j == CW_PRESSURE) {
-                            int32_t pressure_val;
-
-                            pressure_val = ((int32_t)mPendingEvents[j].data[1] << 16) |
-                                           ((int32_t)mPendingEvents[j].data[0] & 0xFFFF);
-                            mPendingEvents[j].pressure = (float)pressure_val * CONVERT_100;
-                        }
-
-                        *data++ = mPendingEvents[j];
-                        count--;
-                        numEventReceived++;
-                    }
-                }
-            }
-        } else {
-            ALOGE("CwMcuSensor: unknown event (type=%d, code=%d)",
-                  event->type, event->code);
         }
+
         mInputReader.next();
     }
     return numEventReceived;
 }
 
-void CwMcuSensor::processEvent(int code, int value){
-    int sensorsid;
-    int index = -1;
-    int16_t data = 0;
 
-    sensorsid = (int)((uint32_t)value >> 16);
-    data |= value;
+int CwMcuSensor::processEvent(uint8_t *event) {
+    int sensorsid = 0;
+    int16_t data[3];
+    int16_t bias[3];
+    int64_t time;
 
-    switch (code) {
-    case CW_ABS_X:
-        index = 0;
-        if (data == 1) {// Dummy event for flush input sub system
-            return;
-        }
-        break;
-    case CW_ABS_Y:
-        index = 1;
-        break;
-    case CW_ABS_Z:
-        if (value == -1) {
-            return;
-        }
-        index = 2;
-        break;
-    case CW_ABS_X1:
-        index = 3;
-        break;
-    case CW_ABS_Y1:
-        index = 4;
-        break;
-    case CW_ABS_Z1:
-        index = 5;
-        break;
-    case CW_ABS_TIMEDIFF:
-        mPendingEvents[sensorsid].timestamp = data;
-        return;
-    case ABS_STEP_DETECTOR:
-        if (data != -1) {
-            mPendingMask |= 1<<CW_STEP_DETECTOR;
-            mPendingEvents[CW_STEP_COUNTER].data[0] = value;
-            mPendingEvents[CW_STEP_DETECTOR].timestamp = getTimestamp();
-        }
-        return;
-    case ABS_STEP_COUNTER:
-        if (data != -1) {
-            mPendingMask |= 1<<CW_STEP_COUNTER;
-            mPendingEvents[CW_STEP_COUNTER].u64.step_counter = value;
-        }
-        return;
-    default:
-        ALOGW("%s: Unknown code = %d, index = %d\n", __func__, code, index);
-        return;
-    }
+    sensorsid = (int)event[0];
+    memcpy(data, &event[1], 6);
+    memcpy(bias, &event[7], 6);
+    memcpy(&time, &event[13], 8);
+
+    mPendingEvents[sensorsid].timestamp = time;
 
     switch (sensorsid) {
     case CW_ORIENTATION:
         mPendingMask |= 1<<sensorsid;
-        if ((sensorsid == CW_ORIENTATION) && (index == 3)) {
-            mPendingEvents[sensorsid].orientation.status = data;
-        } else {
-            mPendingEvents[sensorsid].data[index] = data * CONVERT_10;
+        if (sensorsid == CW_ORIENTATION) {
+            mPendingEvents[sensorsid].orientation.status = bias[0];
         }
+        mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_10;
+        mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_10;
+        mPendingEvents[sensorsid].data[2] = (float)data[2] * CONVERT_10;
         break;
     case CW_ACCELERATION:
     case CW_MAGNETIC:
@@ -705,45 +862,72 @@ void CwMcuSensor::processEvent(int code, int value){
     case CW_LINEARACCELERATION:
     case CW_GRAVITY:
         mPendingMask |= 1<<sensorsid;
-        if ((sensorsid == CW_MAGNETIC) && (index == 3)) {
-            mPendingEvents[sensorsid].magnetic.status = data;
+        if (sensorsid == CW_MAGNETIC) {
+            mPendingEvents[sensorsid].magnetic.status = bias[0];
             ALOGD("CwMcuSensor::processEvent: magnetic accuracy = %d\n", mPendingEvents[sensorsid].magnetic.status);
-        } else {
-            mPendingEvents[sensorsid].data[index] = data * CONVERT_100;
         }
+        mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_100;
+        mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_100;
+        mPendingEvents[sensorsid].data[2] = (float)data[2] * CONVERT_100;
         break;
     case CW_PRESSURE:
         mPendingMask |= 1<<sensorsid;
-        mPendingEvents[sensorsid].data[index] = data;
+        mPendingEvents[sensorsid].pressure = ((float)*(int32_t *)(&data[0])) * CONVERT_100;
         break;
     case CW_ROTATIONVECTOR:
     case CW_GAME_ROTATION_VECTOR:
     case CW_GEOMAGNETIC_ROTATION_VECTOR:
         mPendingMask |= 1<<sensorsid;
-        mPendingEvents[sensorsid].data[index] = data * CONVERT_10000;
+        mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_10000;
+        mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_10000;
+        mPendingEvents[sensorsid].data[2] = (float)data[2] * CONVERT_10000;
         break;
     case CW_MAGNETIC_UNCALIBRATED:
     case CW_GYROSCOPE_UNCALIBRATED:
         mPendingMask |= 1<<sensorsid;
-        mPendingEvents[sensorsid].data[index] = data * CONVERT_100;
+        mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_100;
+        mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_100;
+        mPendingEvents[sensorsid].data[2] = (float)data[2] * CONVERT_100;
+        mPendingEvents[sensorsid].data[3] = (float)bias[0] * CONVERT_100;
+        mPendingEvents[sensorsid].data[4] = (float)bias[1] * CONVERT_100;
+        mPendingEvents[sensorsid].data[5] = (float)bias[2] * CONVERT_100;
+        break;
+    case CW_SIGNIFICANT_MOTION:
+        mPendingMask |= 1<<(sensorsid);
+        mPendingEvents[sensorsid].data[0] = (float)data[0];
+        mPendingEvents[sensorsid].data[1] = (float)data[1];
+        mPendingEvents[sensorsid].data[2] = (float)data[2];
+        ALOGI("sensors_id = %d, data = %d", sensorsid, data);
+        break;
+    case CW_LIGHT:
+        mPendingMask |= 1<<(sensorsid);
+        mPendingEvents[sensorsid].light = indexToValue(data[0]);
+        break;
+    // TESTME:
+    case CW_STEP_DETECTOR:
+        mPendingMask |= 1<<(sensorsid);
+        mPendingEvents[CW_STEP_COUNTER].data[0] = data[0];
+        mPendingEvents[CW_STEP_DETECTOR].timestamp = getTimestamp();
+        break;
+    // TESTME:
+    case CW_STEP_COUNTER:
+        mPendingMask |= 1<<(sensorsid);
+        mPendingEvents[CW_STEP_COUNTER].u64.step_counter = data[0];
         break;
     case CW_META_DATA:
-        if (value != -1) {
-            mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;
-            mPendingEventsFlush.meta_data.sensor = data;
-            flush_event = 1;
-            ALOGI("CW_META_DATA: meta_data.sensor = %d\n", mPendingEventsFlush.meta_data.sensor);
-        }
+        mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;
+        mPendingEventsFlush.meta_data.sensor = find_handle(data[0]);
+        ALOGI("CW_META_DATA: meta_data.sensor = %d\n", mPendingEventsFlush.meta_data.sensor);
         break;
     case CW_SYNC_ACK:
-        if (data == SYNC_ACK_MAGIC) {
+        if (data[0] == SYNC_ACK_MAGIC) {
             ALOGI("processEvent: g_timestamp = l_timestamp = %llu\n", l_timestamp);
             g_timestamp = l_timestamp;
         }
         break;
     case TIME_DIFF_EXHAUSTED:
-        ALOGI("processEvent: data = %d\n", data);
-        if (data == EXHAUSTED_MAGIC) {
+        ALOGI("processEvent: data[0] = 0x%x\n", data[0]);
+        if (data[0] == EXHAUSTED_MAGIC) {
             ALOGI("processEvent: TIME_DIFF_EXHAUSTED\n");
             sync_timestamp();
         }
@@ -752,14 +936,14 @@ void CwMcuSensor::processEvent(int code, int value){
         ALOGW("%s: Unknown sensorsid = %d\n", __func__, sensorsid);
         break;
     }
+
+    return sensorsid;
 }
 
 
 void CwMcuSensor::cw_save_calibrator_file(int type, const char * path, int* str) {
     FILE *fp_file;
     int i;
-    char buf[256] = {0};
-    char *pbuf = &buf[0];
     int rc;
 
     ALOGD("CwMcuSensor::cw_save_calibrator_file: path = %s\n", path);
@@ -774,17 +958,13 @@ void CwMcuSensor::cw_save_calibrator_file(int type, const char * path, int* str)
     if ((type == CW_GYRO) || (type == CW_ACCELERATION)) {
         fprintf(fp_file, "%d %d %d\n", str[0], str[1], str[2]);
     } else if(type == CW_MAGNETIC) {
-        for (i = 0; (pbuf < (buf + sizeof(buf))) && (i < COMPASS_CALIBRATION_DATA_SIZE); i++) {
+        for (i = 0; i < COMPASS_CALIBRATION_DATA_SIZE; i++) {
             ALOGD("CwMcuSensor::cw_save_calibrator_file: str[%d] = %d\n", i, str[i]);
-            rc = snprintf(pbuf, (buf + sizeof(buf) - pbuf), "%d ", str[i]);
+            rc = fprintf(fp_file, "%d%c", str[i], (i == (COMPASS_CALIBRATION_DATA_SIZE-1)) ? '\n' : ' ');
             if (rc < 0) {
-                ALOGE("CwMcuSensor::cw_save_calibrator_file: snprintf fails, i = %d, "
-                      "pbuf = 0x%x, buf = 0x%x, rc = %d\n", i, pbuf, buf, rc);
-                return;
+                ALOGE("CwMcuSensor::cw_save_calibrator_file: fprintf fails, rc = %d\n", rc);
             }
-            pbuf += rc;
         }
-        fprintf(fp_file, "%s\n", buf);
     }
 
     fclose(fp_file);

@@ -24,21 +24,23 @@
 
 /*****************************************************************************/
 
-struct input_event;
+struct cw_event {
+	__u8 data[24];
+};
 
 class InputEventCircularReader
 {
-    struct input_event* const mBuffer;
-    struct input_event* const mBufferEnd;
-    struct input_event* mHead;
-    struct input_event* mCurr;
+    struct cw_event* const mBuffer;
+    struct cw_event* const mBufferEnd;
+    struct cw_event* mHead;
+    struct cw_event* mCurr;
     ssize_t mFreeSpace;
 
 public:
     InputEventCircularReader(size_t numEvents);
     ~InputEventCircularReader();
     ssize_t fill(int fd);
-    ssize_t readEvent(input_event const** events);
+    ssize_t readEvent(cw_event const** events);
     void next();
 };
 
