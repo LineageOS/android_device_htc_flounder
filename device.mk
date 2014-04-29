@@ -30,14 +30,16 @@ PRODUCT_COPY_FILES := \
     $(LOCAL_KERNEL):kernel \
     $(LOCAL_PATH)/init.flounder.rc:root/init.flounder.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder.usb.rc \
+    $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder.rc \
     $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder \
     $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder.rc
 
-# Copy flounder files as flounder64
+# Copy flounder files as flounder64 so that ${ro.hardware} can find them
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.flounder.rc:root/init.flounder64.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder64.usb.rc \
     $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder64 \
+    $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder64.rc \
     $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder64.rc
 
 PRODUCT_COPY_FILES += \
