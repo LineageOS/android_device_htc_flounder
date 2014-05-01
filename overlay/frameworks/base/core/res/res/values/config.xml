@@ -157,6 +157,11 @@
          autodetected from the Configuration. -->
     <bool name="config_showNavigationBar">true</bool>
 
+    <!--  Maximum number of supported users -->
+    <integer name="config_multiuserMaximumUsers">8</integer>
+    <!-- Whether UI for multi user should be shown -->
+    <bool name="config_enableMultiUserUI">true</bool>
+
     <!-- This device does not allow sms service. -->
     <bool name="config_sms_capable">false</bool>
 
