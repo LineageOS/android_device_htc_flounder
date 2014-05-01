@@ -655,6 +655,9 @@ void CwMcuSensor::processEvent(int code, int value){
         index = 1;
         break;
     case CW_ABS_Z:
+        if (value == -1) {
+            return;
+        }
         index = 2;
         break;
     case CW_ABS_X1:
