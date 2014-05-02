@@ -1,2 +1,2 @@
 board=flounder
-require version-bootloader=3.21.0.2100
+require version-bootloader=3.22.0.2100
