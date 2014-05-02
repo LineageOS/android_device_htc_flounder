@@ -1959,10 +1959,10 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
         list_for_each(node, &out->pcm_dev_list) {
             pcm_device = node_to_item(node, struct pcm_device, stream_list_node);
             if (pcm_device->resampler) {
-                if (bytes * pcm_device->pcm_profile->config.rate / out->sample_rate
+                if (bytes * pcm_device->pcm_profile->config.rate / out->sample_rate + frame_size
                         > pcm_device->res_byte_count) {
                     pcm_device->res_byte_count =
-                        bytes * pcm_device->pcm_profile->config.rate / out->sample_rate;
+                        bytes * pcm_device->pcm_profile->config.rate / out->sample_rate + frame_size;
                     pcm_device->res_buffer =
                         realloc(pcm_device->res_buffer, pcm_device->res_byte_count);
                     ALOGV("%s: resampler res_byte_count = %zu", __func__,
@@ -1972,7 +1972,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
                 frames_wr = pcm_device->res_byte_count / frame_size;
                 ALOGVV("%s: resampler request frames = %d frame_size = %d",
                     __func__, frames_rq, frame_size);
-                resampler_resample_from_input(pcm_device->resampler,
+                pcm_device->resampler->resample_from_input(pcm_device->resampler,
                     (int16_t *)buffer, &frames_rq, (int16_t *)pcm_device->res_buffer, &frames_wr);
                 ALOGVV("%s: resampler output frames_= %d", __func__, frames_wr);
             }
