@@ -18,9 +18,6 @@
 # 32-bit app support)
 #
 
-# Build apps as 64b
-TARGET_SUPPORTS_64_BIT_APPS := true
-
 # Make sure we have the 64b zygote service
 PRODUCT_COPY_FILES += system/core/rootdir/init.zygote64.rc:root/init.zygote64.rc
 
