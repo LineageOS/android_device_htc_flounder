@@ -61,6 +61,9 @@ on boot
 
     chmod 0444 /sys/kernel/debug/bq2419x-regs
 
+    write /proc/sys/net/core/rmem_max 1048576
+    write /proc/sys/net/core/wmem_max 1048576
+
 on fs
     mount_all /fstab.flounder
     setprop ro.crypto.fuse_sdcard true
