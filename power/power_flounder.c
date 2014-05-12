@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <linux/time.h>
 #include <stdbool.h>
 //#define LOG_NDEBUG 0
@@ -33,12 +34,15 @@
 
 #define BOOSTPULSE_PATH "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
 #define BOOST_PATH "/sys/devices/system/cpu/cpufreq/interactive/boost"
+#define CPU_MAX_FREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 //BOOST_PULSE_DURATION and BOOT_PULSE_DURATION_STR should always be in sync
 #define BOOST_PULSE_DURATION 1000000
 #define BOOST_PULSE_DURATION_STR "1000000"
 #define NSEC_PER_SEC 1000000000
 #define USEC_PER_SEC 1000000
 #define NSEC_PER_USEC 100
+#define LOW_POWER_MAX_FREQ "1020000"
+#define NORMAL_MAX_FREQ "2901000"
 
 struct flounder_power_module {
     struct power_module base;
@@ -50,6 +54,7 @@ struct flounder_power_module {
 static unsigned int vsync_count;
 static struct timespec last_touch_boost;
 static bool touch_boost;
+static bool low_power_mode = false;
 
 static void sysfs_write(const char *path, char *s)
 {
@@ -99,8 +104,8 @@ static void power_set_interactive(struct power_module *module, int on)
     /*
      * Lower maximum frequency when screen is off.
      */
-    sysfs_write("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq",
-                on ? "2901000" : "1020000");
+    sysfs_write(CPU_MAX_FREQ_PATH,
+                (!on || low_power_mode) ? LOW_POWER_MAX_FREQ : NORMAL_MAX_FREQ);
     ALOGV("power_set_interactive: %d done\n", on);
 }
 
@@ -193,6 +198,21 @@ static void flounder_power_hint(struct power_module *module, power_hint_t hint,
                 }
             }
         }
+        pthread_mutex_unlock(&flounder->lock);
+        break;
+
+    case POWER_HINT_LOW_POWER:
+        pthread_mutex_lock(&flounder->lock);
+        if (data) {
+            sysfs_write(CPU_MAX_FREQ_PATH, LOW_POWER_MAX_FREQ);
+            // reduces the refresh rate
+            system("service call SurfaceFlinger 1016");
+        } else {
+            sysfs_write(CPU_MAX_FREQ_PATH, NORMAL_MAX_FREQ);
+            // restores the refresh rate
+            system("service call SurfaceFlinger 1017");
+        }
+        low_power_mode = data;
         pthread_mutex_unlock(&flounder->lock);
         break;
 
