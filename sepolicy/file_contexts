@@ -20,6 +20,7 @@
 /dev/focuser			u:object_r:camera_device:s0
 /dev/ov9760			u:object_r:camera_device:s0
 /dev/torch.*			u:object_r:camera_device:s0
+/dev/mipi-cal			u:object_r:camera_device:s0
 
 # rt5506 Audio device
 /dev/rt5506                     u:object_r:audio_device:s0
