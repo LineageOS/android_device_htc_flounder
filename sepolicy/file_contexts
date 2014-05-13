@@ -26,6 +26,7 @@
 /dev/rt5506                     u:object_r:audio_device:s0
 
 /data/nfc(/.*)?			u:object_r:nfc_data_file:s0
+/data/nvcam(/.*)?		u:object_r:media_data_file:s0
 
 # gps
 /system/bin/glgps		u:object_r:gpsd_exec:s0
