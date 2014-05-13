@@ -879,7 +879,10 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         break;
     case CW_PRESSURE:
         mPendingMask |= 1<<sensorsid;
+        // .pressure is data[0] and the unit is hectopascal (hPa)
         mPendingEvents[sensorsid].pressure = ((float)*(int32_t *)(&data[0])) * CONVERT_100;
+        // data[1] is not used, and data[2] is the temperature
+        mPendingEvents[sensorsid].data[2] = ((float)data[2]) * CONVERT_100;
         break;
     case CW_ROTATIONVECTOR:
     case CW_GAME_ROTATION_VECTOR:
