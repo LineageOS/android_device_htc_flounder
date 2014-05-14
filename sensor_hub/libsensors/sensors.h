@@ -50,7 +50,7 @@ __BEGIN_DECLS
 #define ID_CW_SIGNIFICANT_MOTION                   13//CW_SIGNIFICANT_MOTION
 #define ID_CW_STEP_DETECTOR                        14//CW_STEP_DETECTOR
 #define ID_CW_STEP_COUNTER                         15//CW_STEP_COUNTER
-#define ID_Any_Motion                              16//HTC_ANY_MOTION
+#define ID_WAKE_UP_GESTURE                         16//HTC_WAKE_UP_GESTURE
 
 /*****************************************************************************/
 

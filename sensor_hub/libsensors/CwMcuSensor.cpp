@@ -43,7 +43,7 @@
 #define EXHAUSTED_MAGIC 0x77
 
 /*****************************************************************************/
-#define IIO_MAX_BUFF_SIZE 10000
+#define IIO_MAX_BUFF_SIZE 1024
 #define IIO_MAX_DATA_SIZE 24
 #define IIO_MAX_NAME_LENGTH 30
 #define INT32_CHAR_LEN 12
@@ -250,6 +250,10 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_STEP_COUNTER].sensor = ID_CW_STEP_COUNTER;
     mPendingEvents[CW_STEP_COUNTER].type = SENSOR_TYPE_STEP_COUNTER;
 
+    mPendingEvents[HTC_WAKE_UP_GESTURE].version = sizeof(sensors_event_t);
+    mPendingEvents[HTC_WAKE_UP_GESTURE].sensor = ID_WAKE_UP_GESTURE;
+    mPendingEvents[HTC_WAKE_UP_GESTURE].type = SENSOR_TYPE_WAKE_GESTURE;
+
     mPendingEventsFlush.version = META_DATA_VERSION;
     mPendingEventsFlush.sensor = 0;
     mPendingEventsFlush.type = SENSOR_TYPE_META_DATA;
@@ -408,8 +412,8 @@ int CwMcuSensor::find_handle(int32_t sensors_id) {
     case CW_STEP_COUNTER:
         return ID_CW_STEP_COUNTER;
         break;
-    case HTC_ANY_MOTION:
-        return ID_Any_Motion;
+    case HTC_WAKE_UP_GESTURE:
+        return ID_WAKE_UP_GESTURE;
         break;
     default:
         return 0xFF;
@@ -467,6 +471,9 @@ int CwMcuSensor::find_sensor(int32_t handle) {
         break;
     case ID_L:
         what = CW_LIGHT;
+        break;
+    case ID_WAKE_UP_GESTURE:
+        what = HTC_WAKE_UP_GESTURE;
         break;
     }
     return what;
@@ -903,16 +910,19 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         mPendingMask |= 1<<(sensorsid);
         mPendingEvents[sensorsid].light = indexToValue(data[0]);
         break;
-    // TESTME:
     case CW_STEP_DETECTOR:
         mPendingMask |= 1<<(sensorsid);
         mPendingEvents[CW_STEP_COUNTER].data[0] = data[0];
         mPendingEvents[CW_STEP_DETECTOR].timestamp = getTimestamp();
         break;
-    // TESTME:
     case CW_STEP_COUNTER:
         mPendingMask |= 1<<(sensorsid);
-        mPendingEvents[CW_STEP_COUNTER].u64.step_counter = data[0];
+        mPendingEvents[CW_STEP_COUNTER].u64.step_counter = *(uint32_t *)&data[0]; // We use 4 bytes in SensorHUB
+        break;
+    case HTC_WAKE_UP_GESTURE:
+        mPendingMask |= 1<<(sensorsid);
+        mPendingEvents[HTC_WAKE_UP_GESTURE].data[0] = 1;
+        ALOGI("HTC_WAKE_UP_GESTURE occurs\n");
         break;
     case CW_META_DATA:
         mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;

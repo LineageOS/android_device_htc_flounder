@@ -119,6 +119,23 @@ static const struct sensor_t sSensorList[] = {
                 "hTC Corp.",
                 1, ID_CW_STEP_COUNTER,
                 SENSOR_TYPE_STEP_COUNTER, 200.0f, 1.0f, 0.17f, 0, 0, 0, 0, 0, 0, 0, {}},
+        {.name =       "HTC Wake Gesture",
+         .vendor =     "hTC Corp",
+         .version =    1,
+         .handle =     ID_WAKE_UP_GESTURE,
+         .type =       SENSOR_TYPE_WAKE_GESTURE,
+         .maxRange =   10240.0f,
+         .resolution = 1.0f,
+         .power =      0.17f,
+         .minDelay =   0,
+         .fifoReservedEventCount =  0,
+         .fifoMaxEventCount =       0,
+         .stringType = NULL,
+         .requiredPermission = NULL,
+         .maxDelay = 0,
+         .flags = 0,
+         .reserved = {}
+        },
 };
 
 static int open_sensors(const struct hw_module_t* module, const char* id,
@@ -192,7 +209,7 @@ int handleToDriver(int handle) const {
                 case ID_CW_SIGNIFICANT_MOTION:
                 case ID_CW_STEP_DETECTOR:
                 case ID_CW_STEP_COUNTER:
-                case ID_Any_Motion:
+                case ID_WAKE_UP_GESTURE:
                         return cwmcu;
         }
         return -EINVAL;
