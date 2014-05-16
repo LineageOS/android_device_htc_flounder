@@ -1,0 +1,5 @@
+# Kickstart device used by QC qcks
+type kickstart_device, dev_type;
+
+# Radio related block device
+type efs_block_device, dev_type;

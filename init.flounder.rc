@@ -40,8 +40,6 @@ on boot
 
     mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
 
-    setprop ro.radio.noril true
-
     # Set up kernel tracing, but disable it by default
     chmod 0222 /sys/kernel/debug/tracing/trace_marker
     write /sys/kernel/debug/tracing/tracing_on 0
@@ -67,6 +65,10 @@ on boot
 on fs
     mount_all /fstab.flounder
     setprop ro.crypto.fuse_sdcard true
+
+    # modem init
+    mkdir /data/qcks 0770 system system
+    mkdir /data/efs 0771 system system
 
     # HACK: prevent suspend, pending fixes
     write /sys/power/wake_lock VolantisHackPreventSuspend
@@ -98,6 +100,24 @@ on property:ro.boot.baseband=N/A
 on property:ro.baseband=unknown
     setprop ro.hardware.gps bcm47521
     enable gpsd
+
+# for telephony function
+on property:ro.boot.baseband=N/A
+    setprop ro.radio.noril true
+    stop ril-daemon
+
+on property:ro.hw.ril.baseband=2
+    stop ril-daemon
+    mkdir /data/tombstones 0771 system system
+    mkdir /data/tombstones/mdm 0775 system system
+    mkdir /dev/socket/qmux_radio 0770 radio radio
+    chmod 2770 /dev/socket/qmux_radio
+    setprop ro.baseband.arch mdm
+    start qmuxd
+    start netmgrd
+    setprop rild.libpath /system/vendor/lib64/libril-qc-qmi-1.so
+    setprop rild.libargs "-e wwan0"
+    start ril-daemon
 
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B \
@@ -158,3 +178,20 @@ service iprenew_p2p /system/bin/dhcpcd -n
     class main
     disabled
     oneshot
+
+service kickstart /system/vendor/bin/qcks -i /vendor/firmware/mdm/image/
+    class main
+    user system
+    group system
+    oneshot
+
+service qmuxd /system/vendor/bin/qmuxd
+    class main
+    disabled
+    user system
+    group system radio
+
+service netmgrd /system/vendor/bin/netmgrd
+    class main
+    disabled
+    group system radio

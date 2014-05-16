@@ -42,6 +42,20 @@
 /dev/bcm2079x   0660    nfc     nfc
 /dev/adf*       0660    media   graphics
 /dev/tlk_device 0660    system  drmrpc
+#for mdm9x25
+/dev/mdm        0660    system  system
+/dev/ks_hsic_bridge       0660   system     system
+/dev/efs_hsic_bridge      0660   system     system
+/dev/block/mmcblk0p8     0660   system     system
+/dev/block/mmcblk0p15     0660   system     system
+/dev/block/mmcblk0p20     0660   system     system
+/dev/block/mmcblk0p21     0660   system     system
+/dev/block/mmcblk0p22     0660   system     system
+/dev/hsicctl0             0660   system     system
+/dev/hsicctl1             0660   system     system
+/dev/hsicctl2             0660   system     system
+/dev/hsicctl3             0660   system     system
+/dev/diag_mdm             0660   radio      radio
 
 /sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  state  0660    bluetooth    net_bt_stack
 /sys/devices/platform/bluedroid_pm.0/rfkill/rfkill0  type   0660    bluetooth    net_bt_stack

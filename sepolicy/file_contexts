@@ -37,3 +37,32 @@
 
 # TEE
 /dev/tlk_device			u:object_r:tee_device:s0
+
+# Qualcomm MDM9K modem device
+# modem driver
+/dev/mdm                               u:object_r:radio_device:s0
+# high speed inter-chip controls
+/dev/hsicctl[0-3]                      u:object_r:radio_device:s0
+/dev/ks_hsic_bridge                    u:object_r:kickstart_device:s0
+/dev/efs_hsic_bridge                   u:object_r:kickstart_device:s0
+# RCA, EF1, EF2, CDR labeling
+/dev/block/mmcblk0p8                   u:object_r:efs_block_device:s0
+/dev/block/mmcblk0p20                  u:object_r:efs_block_device:s0
+/dev/block/mmcblk0p21                  u:object_r:efs_block_device:s0
+/dev/block/mmcblk0p22                  u:object_r:efs_block_device:s0
+# Qualcomm MSM Interface (QMI) devices
+/dev/socket/qmux_radio(/.*)?           u:object_r:qmuxd_socket:s0
+# service
+/system/vendor/bin/qcks                u:object_r:kickstart_exec:s0
+/system/vendor/bin/efsks               u:object_r:kickstart_exec:s0
+/system/vendor/bin/ks                  u:object_r:kickstart_exec:s0
+/system/vendor/bin/qmuxd               u:object_r:qmuxd_exec:s0
+/system/vendor/bin/netmgrd             u:object_r:netmgrd_exec:s0
+# mdm ramdump folder
+/data/tombstones/mdm/ramdump(/.*)?     u:object_r:ramdump_data_file:s0
+# database used by vendor RIL
+/data/misc/radio(/.*)?     u:object_r:ril_db_file:s0
+# Kickstart prepend used
+/data/qcks(/.*)?                       u:object_r:kickstart_data_file:s0
+# temporary EFS file stored
+/data/efs(/.*)?                        u:object_r:efs_data_file:s0
