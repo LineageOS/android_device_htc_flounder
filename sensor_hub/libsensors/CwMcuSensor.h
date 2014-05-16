@@ -84,6 +84,8 @@ class CwMcuSensor : public SensorBase {
         int64_t l_timestamp;
         int64_t g_timestamp;
 
+        bool init_trigger_done;
+
         int sysfs_set_input_attr(const char *attr, char *value, size_t len);
         int sysfs_set_input_attr_by_int(const char *attr, int value);
 public:

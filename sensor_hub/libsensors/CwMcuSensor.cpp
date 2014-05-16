@@ -65,6 +65,7 @@ static int chomp(char *buf, size_t len) {
 int CwMcuSensor::sysfs_set_input_attr(const char *attr, char *value, size_t len) {
     char fname[PATH_MAX];
     int fd;
+    int rc;
 
     snprintf(fname, sizeof(fname), "%s/%s", mDevPath, attr);
     fname[sizeof(fname) - 1] = '\0';
@@ -75,7 +76,9 @@ int CwMcuSensor::sysfs_set_input_attr(const char *attr, char *value, size_t len)
         return -EACCES;
     }
 
-    if (write(fd, value, (size_t)len) < 0) {
+    rc = write(fd, value, (size_t)len);
+    if (rc < 0) {
+        ALOGE("%s: write failed: fd = %d, rc = %d, strerr = %s\n", __func__, fd, rc, strerror(errno));
         close(fd);
         return -EIO;
     }
@@ -170,7 +173,8 @@ CwMcuSensor::CwMcuSensor()
     , mInputReader(IIO_MAX_BUFF_SIZE)
     , mFlushSensorEnabled(-1)
     , l_timestamp(0)
-    , g_timestamp(0) {
+    , g_timestamp(0)
+    , init_trigger_done(false) {
 
     int rc;
 
@@ -287,15 +291,19 @@ CwMcuSensor::CwMcuSensor()
 
         snprintf(mTriggerName, sizeof(mTriggerName), "%s-dev%d",
                  device_name, dev_num);
+        ALOGD("CwMcuSensor::CwMcuSensor: mTriggerName = %s\n", mTriggerName);
 
         if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0)
             ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer length failed: %s\n", strerror(errno));
 
-        if (sysfs_set_input_attr("trigger/current_trigger",
-                                 mTriggerName, strlen(mTriggerName)) < 0) {
-            ALOGE("CwMcuSensor::CwMcuSensor: set current trigger failed: %s\n", strerror(errno));
+        rc = sysfs_set_input_attr("trigger/current_trigger",
+                                  mTriggerName, strlen(mTriggerName));
+        if (rc < 0) {
+            ALOGE("CwMcuSensor::CwMcuSensor: set current trigger failed: rc = %d, strerr() = %s\n",
+                  rc, strerror(errno));
+        } else {
+            init_trigger_done = true;
         }
-        ALOGD("CwMcuSensor::CwMcuSensor: mTriggerName = %s\n", mTriggerName);
 
         if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
             ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed: %s\n", strerror(errno));
@@ -619,6 +627,17 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
             ALOGE("CwMcuSensor::batch: set IIO buffer length failed: %s\n", strerror(errno));
         } else {
             ALOGI("CwMcuSensor::batch: set IIO buffer length = %d\n", IIO_MAX_BUFF_SIZE);
+        }
+
+        if (!init_trigger_done) {
+            err = sysfs_set_input_attr("trigger/current_trigger",
+                                      mTriggerName, strlen(mTriggerName));
+            if (err < 0) {
+                ALOGE("CwMcuSensor::batch: set current trigger failed: err = %d, strerr() = %s\n",
+                      err, strerror(errno));
+            } else {
+                init_trigger_done = true;
+            }
         }
 
         if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
