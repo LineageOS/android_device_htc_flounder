@@ -281,9 +281,9 @@ CwMcuSensor::CwMcuSensor()
     }
 
     if (data_fd >= 0) {
-        ALOGW("%s: 11 Before pthread_mutex_lock()\n", __func__);
+        ALOGV("%s: 11 Before pthread_mutex_lock()\n", __func__);
         pthread_mutex_lock(&sys_fs_mutex);
-        ALOGW("%s: 11 Acquired pthread_mutex_lock()\n", __func__);
+        ALOGV("%s: 11 Acquired pthread_mutex_lock()\n", __func__);
 
         strcpy(fixed_sysfs_path,"/sys/class/htc_sensorhub/sensor_hub/");
         fixed_sysfs_path_len = strlen(fixed_sysfs_path);
@@ -292,7 +292,7 @@ CwMcuSensor::CwMcuSensor()
 
         snprintf(mTriggerName, sizeof(mTriggerName), "%s-dev%d",
                  device_name, dev_num);
-        ALOGD("CwMcuSensor::CwMcuSensor: mTriggerName = %s\n", mTriggerName);
+        ALOGV("CwMcuSensor::CwMcuSensor: mTriggerName = %s\n", mTriggerName);
 
         if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0)
             ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer length failed: %s\n", strerror(errno));
@@ -312,9 +312,9 @@ CwMcuSensor::CwMcuSensor()
 
         pthread_mutex_unlock(&sys_fs_mutex);
 
-        ALOGD("%s: data_fd = %d", __func__, data_fd);
-        ALOGD("%s: iio_device_path = %s", __func__, buffer_access);
-        ALOGD("%s: ctrl sysfs_path = %s", __func__, fixed_sysfs_path);
+        ALOGV("%s: data_fd = %d", __func__, data_fd);
+        ALOGV("%s: iio_device_path = %s", __func__, buffer_access);
+        ALOGV("%s: ctrl sysfs_path = %s", __func__, fixed_sysfs_path);
 
         setEnable(0, 1); // Inside this function call, we use sys_fs_mutex
     }
@@ -323,9 +323,9 @@ CwMcuSensor::CwMcuSensor()
     int compass_temp_data[COMPASS_CALIBRATION_DATA_SIZE] = {0};
 
 
-    ALOGW("%s: 22 Before pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: 22 Before pthread_mutex_lock()\n", __func__);
     pthread_mutex_lock(&sys_fs_mutex);
-    ALOGW("%s: 22 Acquired pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: 22 Acquired pthread_mutex_lock()\n", __func__);
 
     //Sensor Calibration init . Waiting for firmware ready
     rc = cw_read_calibrator_file(CW_MAGNETIC, SAVE_PATH_MAG, compass_temp_data);
@@ -489,7 +489,7 @@ int CwMcuSensor::find_sensor(int32_t handle) {
 }
 
 int CwMcuSensor::getEnable(int32_t handle) {
-    ALOGD("CwMcuSensor::getEnable: handle = %d\n", handle);
+    ALOGV("CwMcuSensor::getEnable: handle = %d\n", handle);
     return  0;
 }
 
@@ -508,12 +508,12 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     char value[PROPERTY_VALUE_MAX] = {0};
     int rc;
 
-    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Before pthread_mutex_lock()\n", __func__);
     pthread_mutex_lock(&sys_fs_mutex);
-    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
     property_get("debug.sensorhal.fill.block", value, "0");
-    ALOGD("CwMcuSensor::setEnable: debug.sensorhal.fill.block= %s", value);
+    ALOGV("CwMcuSensor::setEnable: debug.sensorhal.fill.block= %s", value);
     if (atoi(value) == 1) {
         fill_block_debug = 1;
     } else {
@@ -547,7 +547,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
             if (sysfs_set_input_attr_by_int("buffer/enable", 0) < 0) {
                 ALOGE("CwMcuSensor::setEnable: set buffer disable failed: %s\n", strerror(errno));
             } else {
-                ALOGI("CwMcuSensor::setEnable: set IIO buffer enable = 0\n");
+                ALOGV("CwMcuSensor::setEnable: set IIO buffer enable = 0\n");
             }
         }
     } else {
@@ -559,7 +559,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
             ((what == CW_ORIENTATION) && (flags == 0)) ||
             ((what == CW_ROTATIONVECTOR) && (flags == 0))
        ) {
-        ALOGD("Save Compass calibration data");
+        ALOGV("Save Compass calibration data");
         strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "calibrator_data_mag");
         rc = cw_read_calibrator_file(CW_MAGNETIC, fixed_sysfs_path, temp_data);
         if (rc== 0) {
@@ -583,7 +583,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     int timeout_ms;
     bool dryRun = false;
 
-    ALOGD("CwMcuSensor::batch++: handle = %d, flags = %d, period_ns = %"PRId64", timeout = %"PRId64"\n",
+    ALOGV("CwMcuSensor::batch++: handle = %d, flags = %d, period_ns = %"PRId64", timeout = %"PRId64"\n",
         handle, flags, period_ns, timeout);
 
     what = find_sensor(handle);
@@ -599,7 +599,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     }
 
     if (flags == SENSORS_BATCH_WAKE_UPON_FIFO_FULL) {
-        ALOGD("CwMcuSensor::batch: SENSORS_BATCH_WAKE_UPON_FIFO_FULL~!!\n");
+        ALOGV("CwMcuSensor::batch: SENSORS_BATCH_WAKE_UPON_FIFO_FULL~!!\n");
     }
 
     switch (what) {
@@ -615,19 +615,19 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     }
 
     if (dryRun == true) {
-        ALOGI("CwMcuSensor::batch: SENSORS_BATCH_DRY_RUN is set\n");
+        ALOGV("CwMcuSensor::batch: SENSORS_BATCH_DRY_RUN is set\n");
         return 0;
     }
 
-    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Before pthread_mutex_lock()\n", __func__);
     pthread_mutex_lock(&sys_fs_mutex);
-    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
     if (!mEnabled) {
         if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0) {
             ALOGE("CwMcuSensor::batch: set IIO buffer length failed: %s\n", strerror(errno));
         } else {
-            ALOGI("CwMcuSensor::batch: set IIO buffer length = %d\n", IIO_MAX_BUFF_SIZE);
+            ALOGV("CwMcuSensor::batch: set IIO buffer length = %d\n", IIO_MAX_BUFF_SIZE);
         }
 
         if (!init_trigger_done) {
@@ -644,7 +644,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
         if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
             ALOGE("CwMcuSensor::batch: set IIO buffer enable failed: %s\n", strerror(errno));
         } else {
-            ALOGI("CwMcuSensor::batch: set IIO buffer enable = 1\n");
+            ALOGV("CwMcuSensor::batch: set IIO buffer enable = 1\n");
         }
     }
 
@@ -689,9 +689,9 @@ int CwMcuSensor::flush(int handle)
         return -EINVAL;
     }
 
-    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Before pthread_mutex_lock()\n", __func__);
     pthread_mutex_lock(&sys_fs_mutex);
-    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
     strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "flush");
 
@@ -711,7 +711,7 @@ int CwMcuSensor::flush(int handle)
     }
 
     pthread_mutex_unlock(&sys_fs_mutex);
-    ALOGD("CwMcuSensor::flush: fd = %d, sensors_id = %d, path = %s, err = %d\n",
+    ALOGV("CwMcuSensor::flush: fd = %d, sensors_id = %d, path = %s, err = %d\n",
           fd, what, fixed_sysfs_path, err);
     return err;
 }
@@ -745,15 +745,15 @@ int CwMcuSensor::sync_timestamp(void)
 {
     int err;
 
-    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Before pthread_mutex_lock()\n", __func__);
     pthread_mutex_lock(&sys_fs_mutex);
-    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
     err = sync_timestamp_locked();
 
     pthread_mutex_unlock(&sys_fs_mutex);
 
-    ALOGD("CwMcuSensor::sync_timestamp: path = %s, err = %d\n", fixed_sysfs_path, err);
+    ALOGV("CwMcuSensor::sync_timestamp: path = %s, err = %d\n", fixed_sysfs_path, err);
 
     return err;
 }
@@ -768,11 +768,11 @@ int CwMcuSensor::setDelay(int32_t handle, int64_t delay_ns) {
     int what;
     int rc;
 
-    ALOGW("%s: Before pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Before pthread_mutex_lock()\n", __func__);
     pthread_mutex_lock(&sys_fs_mutex);
-    ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
+    ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
-    ALOGD("CwMcuSensor::setDelay: handle = %"PRId32", delay_ns = %"PRId64"\n",
+    ALOGV("CwMcuSensor::setDelay: handle = %"PRId32", delay_ns = %"PRId64"\n",
             handle, delay_ns);
 
     what = find_sensor(handle);
@@ -842,7 +842,7 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
             *data++ = mPendingEventsFlush;
             count--;
             numEventReceived++;
-            ALOGI("CwMcuSensor::readEvents: metadata = %d\n", mPendingEventsFlush.meta_data.sensor);
+            ALOGD("CwMcuSensor::readEvents: metadata = %d\n", mPendingEventsFlush.meta_data.sensor);
         } else {
             mPendingEvents[id].timestamp = getTimestamp();
             if (mEnabled & (1<<id)) {
@@ -892,7 +892,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         mPendingMask |= 1<<sensorsid;
         if (sensorsid == CW_MAGNETIC) {
             mPendingEvents[sensorsid].magnetic.status = bias[0];
-            ALOGD("CwMcuSensor::processEvent: magnetic accuracy = %d\n", mPendingEvents[sensorsid].magnetic.status);
+            ALOGV("CwMcuSensor::processEvent: magnetic accuracy = %d\n", mPendingEvents[sensorsid].magnetic.status);
         }
         mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_100;
         mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_100;
@@ -928,7 +928,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         mPendingEvents[sensorsid].data[0] = (float)data[0];
         mPendingEvents[sensorsid].data[1] = (float)data[1];
         mPendingEvents[sensorsid].data[2] = (float)data[2];
-        ALOGI("sensors_id = %d, data = %p", sensorsid, data);
+        ALOGV("sensors_id = %d, data = %p", sensorsid, data);
         break;
     case CW_LIGHT:
         mPendingMask |= 1<<(sensorsid);
@@ -946,23 +946,23 @@ int CwMcuSensor::processEvent(uint8_t *event) {
     case HTC_WAKE_UP_GESTURE:
         mPendingMask |= 1<<(sensorsid);
         mPendingEvents[HTC_WAKE_UP_GESTURE].data[0] = 1;
-        ALOGI("HTC_WAKE_UP_GESTURE occurs\n");
+        ALOGV("HTC_WAKE_UP_GESTURE occurs\n");
         break;
     case CW_META_DATA:
         mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;
         mPendingEventsFlush.meta_data.sensor = find_handle(data[0]);
-        ALOGI("CW_META_DATA: meta_data.sensor = %d\n", mPendingEventsFlush.meta_data.sensor);
+        ALOGV("CW_META_DATA: meta_data.sensor = %d\n", mPendingEventsFlush.meta_data.sensor);
         break;
     case CW_SYNC_ACK:
         if (data[0] == SYNC_ACK_MAGIC) {
-            ALOGI("processEvent: g_timestamp = l_timestamp = %"PRId64"\n", l_timestamp);
+            ALOGV("processEvent: g_timestamp = l_timestamp = %"PRId64"\n", l_timestamp);
             g_timestamp = l_timestamp;
         }
         break;
     case TIME_DIFF_EXHAUSTED:
-        ALOGI("processEvent: data[0] = 0x%x\n", data[0]);
+        ALOGV("processEvent: data[0] = 0x%x\n", data[0]);
         if (data[0] == EXHAUSTED_MAGIC) {
-            ALOGI("processEvent: TIME_DIFF_EXHAUSTED\n");
+            ALOGV("processEvent: TIME_DIFF_EXHAUSTED\n");
             sync_timestamp();
         }
         break;
@@ -980,7 +980,7 @@ void CwMcuSensor::cw_save_calibrator_file(int type, const char * path, int* str)
     int i;
     int rc;
 
-    ALOGD("CwMcuSensor::cw_save_calibrator_file: path = %s\n", path);
+    ALOGV("CwMcuSensor::cw_save_calibrator_file: path = %s\n", path);
 
     fp_file = fopen(path, "w+");
     if (!fp_file) {
@@ -993,7 +993,7 @@ void CwMcuSensor::cw_save_calibrator_file(int type, const char * path, int* str)
         fprintf(fp_file, "%d %d %d\n", str[0], str[1], str[2]);
     } else if(type == CW_MAGNETIC) {
         for (i = 0; i < COMPASS_CALIBRATION_DATA_SIZE; i++) {
-            ALOGD("CwMcuSensor::cw_save_calibrator_file: str[%d] = %d\n", i, str[i]);
+            ALOGV("CwMcuSensor::cw_save_calibrator_file: str[%d] = %d\n", i, str[i]);
             rc = fprintf(fp_file, "%d%c", str[i], (i == (COMPASS_CALIBRATION_DATA_SIZE-1)) ? '\n' : ' ');
             if (rc < 0) {
                 ALOGE("CwMcuSensor::cw_save_calibrator_file: fprintf fails, rc = %d\n", rc);
@@ -1012,7 +1012,7 @@ int CwMcuSensor::cw_read_calibrator_file(int type, const char * path, int* str) 
     unsigned int i;
     int my_errno;
 
-    ALOGD("CwMcuSensor::cw_read_calibrator_file: path = %s\n", path);
+    ALOGV("CwMcuSensor::cw_read_calibrator_file: path = %s\n", path);
 
     fp = fopen(path, "r");
     if (!fp) {
@@ -1030,12 +1030,12 @@ int CwMcuSensor::cw_read_calibrator_file(int type, const char * path, int* str) 
         }
 
     } else if (type == CW_MAGNETIC) {
-        ALOGD("CwMcuSensor::cw_read_calibrator_file: COMPASS_CALIBRATION_DATA_SIZE = %d\n", COMPASS_CALIBRATION_DATA_SIZE);
+        ALOGV("CwMcuSensor::cw_read_calibrator_file: COMPASS_CALIBRATION_DATA_SIZE = %d\n", COMPASS_CALIBRATION_DATA_SIZE);
         // COMPASS_CALIBRATION_DATA_SIZE is 26
         for (i = 0; i < COMPASS_CALIBRATION_DATA_SIZE; i++) {
             readBytes = fscanf(fp, "%d ", &str[i]);
             my_errno = errno;
-            ALOGD("CwMcuSensor::cw_read_calibrator_file: str[%d] = %d\n", i, str[i]);
+            ALOGV("CwMcuSensor::cw_read_calibrator_file: str[%d] = %d\n", i, str[i]);
             if (readBytes < 1) {
                 ALOGE("CwMcuSensor::cw_read_calibrator_file: fscanf26, readBytes = %d, strerror = %s\n", readBytes, strerror(my_errno));
                 fclose(fp);
