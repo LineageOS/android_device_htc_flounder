@@ -18,6 +18,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <math.h>
 #include <poll.h>
 #include <pthread.h>
@@ -582,7 +583,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     int timeout_ms;
     bool dryRun = false;
 
-    ALOGD("CwMcuSensor::batch++: handle = %d, flags = %d, period_ns = %lld, timeout = %lld\n",
+    ALOGD("CwMcuSensor::batch++: handle = %d, flags = %d, period_ns = %"PRId64", timeout = %"PRId64"\n",
         handle, flags, period_ns, timeout);
 
     what = find_sensor(handle);
@@ -771,7 +772,8 @@ int CwMcuSensor::setDelay(int32_t handle, int64_t delay_ns) {
     pthread_mutex_lock(&sys_fs_mutex);
     ALOGW("%s: Acquired pthread_mutex_lock()\n", __func__);
 
-    ALOGD("CwMcuSensor::setDelay: handle = %d, delay_ns = %lld\n", handle, delay_ns);
+    ALOGD("CwMcuSensor::setDelay: handle = %"PRId32", delay_ns = %"PRId64"\n",
+            handle, delay_ns);
 
     what = find_sensor(handle);
     if (uint32_t(what) >= numSensors) {
@@ -821,7 +823,7 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
 
     ALOGD_IF(fill_block_debug == 1, "CwMcuSensor::readEvents: Before fill\n");
     ssize_t n = mInputReader.fill(data_fd);
-    ALOGD_IF(fill_block_debug == 1, "CwMcuSensor::readEvents: After fill, n = %d\n", n);
+    ALOGD_IF(fill_block_debug == 1, "CwMcuSensor::readEvents: After fill, n = %zd\n", n);
     if (n < 0) {
         return n;
     }
@@ -926,7 +928,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         mPendingEvents[sensorsid].data[0] = (float)data[0];
         mPendingEvents[sensorsid].data[1] = (float)data[1];
         mPendingEvents[sensorsid].data[2] = (float)data[2];
-        ALOGI("sensors_id = %d, data = %d", sensorsid, data);
+        ALOGI("sensors_id = %d, data = %p", sensorsid, data);
         break;
     case CW_LIGHT:
         mPendingMask |= 1<<(sensorsid);
@@ -953,7 +955,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         break;
     case CW_SYNC_ACK:
         if (data[0] == SYNC_ACK_MAGIC) {
-            ALOGI("processEvent: g_timestamp = l_timestamp = %llu\n", l_timestamp);
+            ALOGI("processEvent: g_timestamp = l_timestamp = %"PRId64"\n", l_timestamp);
             g_timestamp = l_timestamp;
         }
         break;
