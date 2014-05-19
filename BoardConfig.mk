@@ -84,6 +84,7 @@ BOARD_SEPOLICY_DIRS := device/htc/flounder/sepolicy
 BOARD_SEPOLICY_UNION := \
 	bluetooth.te \
 	device.te \
+	drmserver.te \
 	file.te \
 	file_contexts \
 	genfs_contexts \
