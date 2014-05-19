@@ -145,3 +145,5 @@ btc_mode=1
 cckdigfilttype=2
 # HW OOB
 muxenab=0x11
+dynamicsarctrl_2g=0xc4
+dynamicsarctrl_5g=0xac
