@@ -1,2 +1,5 @@
 # allow power hal to adjust max frequency
 allow system_server sysfs_devices_system_cpu:file w_file_perms;
+
+allow system_server gps_data_file:fifo_file { setattr rw_file_perms };
+allow system_server gps_data_file:dir rw_dir_perms;
