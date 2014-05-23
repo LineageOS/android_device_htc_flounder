@@ -58,8 +58,6 @@
 /system/vendor/bin/ks                  u:object_r:kickstart_exec:s0
 /system/vendor/bin/qmuxd               u:object_r:qmuxd_exec:s0
 /system/vendor/bin/netmgrd             u:object_r:netmgrd_exec:s0
-# mdm ramdump folder
-/data/tombstones/mdm/ramdump(/.*)?     u:object_r:ramdump_data_file:s0
 # database used by vendor RIL
 /data/misc/radio(/.*)?     u:object_r:ril_db_file:s0
 # Kickstart prepend used

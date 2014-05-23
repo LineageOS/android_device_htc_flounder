@@ -108,8 +108,7 @@ on property:ro.boot.baseband=N/A
 
 on property:ro.hw.ril.baseband=2
     stop ril-daemon
-    mkdir /data/tombstones 0771 system system
-    mkdir /data/tombstones/mdm 0775 system system
+    mkdir /data/qcks/mdm 0770 system system
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
     setprop ro.baseband.arch mdm
@@ -179,7 +178,7 @@ service iprenew_p2p /system/bin/dhcpcd -n
     disabled
     oneshot
 
-service kickstart /system/vendor/bin/qcks -i /vendor/firmware/mdm/image/
+service kickstart /system/vendor/bin/qcks -i /vendor/firmware/mdm/image/ -r /data/qcks/mdm/
     class main
     user system
     group system

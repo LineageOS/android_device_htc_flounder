@@ -19,13 +19,9 @@ allow kickstart block_device:dir { getattr write search };
 
 # Write contents of block device to kickstart data dir
 allow kickstart kickstart_data_file:file create_file_perms;
-allow kickstart kickstart_data_file:dir rw_dir_perms;
+allow kickstart kickstart_data_file:dir create_dir_perms;
 allow kickstart efs_data_file:file create_file_perms;
 allow kickstart efs_data_file:dir rw_dir_perms;
-userdebug_or_eng(`
-  allow kickstart ramdump_data_file:file create_file_perms;
-  allow kickstart ramdump_data_file:dir rw_dir_perms;
-')
 
 # Run dd from toolbox on firmware files
 allow kickstart shell_exec:file rx_file_perms;
