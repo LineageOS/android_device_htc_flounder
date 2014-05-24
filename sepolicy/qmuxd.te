@@ -13,4 +13,4 @@ allow qmuxd qmuxd_socket:sock_file { create setattr getattr unlink };
 allow qmuxd radio_device:chr_file rw_file_perms;
 
 # wake lock access
-allow qmuxd sysfs_wake_lock:file { open append };
+wakelock_use(qmuxd)
