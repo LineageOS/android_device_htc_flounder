@@ -46,7 +46,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/touch/touch_fusion.cfg:system/vendor/firmware/touch_fusion.cfg \
     $(LOCAL_PATH)/touch/maxim_fp35.bin:system/vendor/firmware/maxim_fp35.bin \
     $(LOCAL_PATH)/touch/touch_fusion.idc:system/usr/idc/touch_fusion.idc \
-    $(LOCAL_PATH)/touch/touch_fusion:system/vendor/bin/touch_fusion
+    $(LOCAL_PATH)/touch/touch_fusion:system/vendor/bin/touch_fusion \
+    $(LOCAL_PATH)/touch/synaptics-dsx.idc:system/usr/idc/synaptics-dsx.idc
 
 PRODUCT_PACKAGES += \
     libwpa_client \
