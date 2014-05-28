@@ -25,6 +25,10 @@
 # rt5506 Audio device
 /dev/rt5506                     u:object_r:audio_device:s0
 
+# Speakers
+/dev/tfa9895                    u:object_r:audio_device:s0
+/dev/tfa9895l                   u:object_r:audio_device:s0
+
 /data/nfc(/.*)?			u:object_r:nfc_data_file:s0
 /data/nvcam(/.*)?		u:object_r:media_data_file:s0
 
