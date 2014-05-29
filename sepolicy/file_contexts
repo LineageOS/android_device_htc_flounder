@@ -16,6 +16,7 @@
 /dev/nvhost-vi.*		u:object_r:camera_device:s0
 /dev/nvhost-ctrl-isp.*		u:object_r:camera_device:s0
 /dev/nvhost-isp.*		u:object_r:camera_device:s0
+/dev/nvhost-msenc		u:object_r:camera_device:s0
 /dev/imx219			u:object_r:camera_device:s0
 /dev/focuser			u:object_r:camera_device:s0
 /dev/ov9760			u:object_r:camera_device:s0
