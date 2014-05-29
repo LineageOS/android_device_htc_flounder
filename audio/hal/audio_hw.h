@@ -347,11 +347,12 @@ struct audio_device {
     int                     (*htc_acoustic_set_amp_mode)(int, int, int, int, bool);
 
     int                     tfa9895_init;
-    int                     deepbuf_thread_timeout;
-    int                     deepbuf_thread_cancel;
-    int                     deepbuf_thread_active;
-    pthread_mutex_t         deepbuf_thread_lock;
-    pthread_t               deepbuf_thread;
+    int                     dummybuf_thread_timeout;
+    int                     dummybuf_thread_cancel;
+    int                     dummybuf_thread_active;
+    audio_devices_t         dummybuf_thread_devices;
+    pthread_mutex_t         dummybuf_thread_lock;
+    pthread_t               dummybuf_thread;
 };
 
 /*

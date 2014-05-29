@@ -2945,73 +2945,114 @@ static int adev_close(hw_device_t *device)
     return 0;
 }
 
-static void *deepbuf_thread(void *context)
+static void *dummybuf_thread(void *context)
 {
 	ALOGD("%s: enter", __func__);
+	pthread_detach(pthread_self());
 	struct audio_device *adev = (struct audio_device *)context;
 	struct audio_config config;
-	struct audio_stream_out *out = NULL;
+	const char *mixer_ctl_name = "Headphone Jack Switch";
+	struct mixer *mixer = NULL;
+	struct mixer_ctl *ctl;
 	unsigned char data[DEEP_BUFFER_OUTPUT_PERIOD_SIZE*2] = {0};
 	memset(&config, 0 , sizeof(struct audio_config));
+	struct pcm *pcm = NULL;
+	struct pcm_device_profile *profile = NULL;
 
+	if (adev->dummybuf_thread_devices == AUDIO_DEVICE_OUT_WIRED_HEADPHONE) {
+		profile = &pcm_device_playback_hs;
+		mixer = mixer_open(profile->card);
+	}
+	else
+		profile = &pcm_device_playback_spk;
+
+	pthread_mutex_lock(&adev->dummybuf_thread_lock);
+	pcm = pcm_open(profile->card, profile->id,
+				   (PCM_OUT | PCM_MONOTONIC), &profile->config);
+	ALOGD("pcm_open: card=%d, id=%d", profile->card, profile->id);
+	if (mixer) {
+		ctl = mixer_get_ctl_by_name(mixer, mixer_ctl_name);
+		if (ctl != NULL)
+			mixer_ctl_set_value(ctl, 0, 1);
+		else {
+			ALOGE("Invalid mixer control: name(%s): skip dummy thread", mixer_ctl_name);
+			adev->dummybuf_thread_active = 1;
+			mixer_close(mixer);
+			if (pcm) {
+				pcm_close(pcm);
+				pcm = NULL;
+			}
+			pthread_mutex_unlock(&adev->dummybuf_thread_lock);
+			return NULL;
+		}
+	}
+
+	pthread_mutex_unlock(&adev->dummybuf_thread_lock);
 	while (1) {
-		pthread_mutex_lock(&adev->deepbuf_thread_lock);
+		pthread_mutex_lock(&adev->dummybuf_thread_lock);
+		if (pcm) {
+			pcm_write(pcm, (void *)data, DEEP_BUFFER_OUTPUT_PERIOD_SIZE*2);
+			adev->dummybuf_thread_active = 1;
+		} else {
+			ALOGD("%s: cant open a output deep stream, retry to open it", __func__);
+			pcm = pcm_open(profile->card, profile->id,
+				   (PCM_OUT | PCM_MONOTONIC), &profile->config);
+		}
 
-		if (out == NULL)
-			adev->device.open_output_stream(&adev->device, 0, AUDIO_DEVICE_OUT_SPEAKER,
-			    AUDIO_OUTPUT_FLAG_DEEP_BUFFER, &config, &out);
-		if (out) {
-			out->write(out, data, DEEP_BUFFER_OUTPUT_PERIOD_SIZE*2);
-			adev->deepbuf_thread_active = 1;
-		} else
-			ALOGD("%s: cant open a output deep stream", __func__);
-
-		if (adev->deepbuf_thread_cancel || adev->deepbuf_thread_timeout-- <= 0) {
-			adev->deepbuf_thread_active = 0;
-			adev->deepbuf_thread_cancel = 0;
-			if (out)
-				adev->device.close_output_stream(&adev->device, out);
-			pthread_mutex_unlock(&adev->deepbuf_thread_lock);
+		if (adev->dummybuf_thread_cancel || adev->dummybuf_thread_timeout-- <= 0) {
+			adev->dummybuf_thread_active = 0;
+			adev->dummybuf_thread_cancel = 0;
+			if (pcm) {
+				ALOGD("pcm_close ++ card=%d, id=%d", profile->card, profile->id);
+				pcm_close(pcm);
+				if (mixer) {
+					mixer_ctl_set_value(ctl, 0, 0);
+					mixer_close(mixer);
+				}
+				ALOGD("pcm_close -- card=%d, id=%d", profile->card, profile->id);
+				pcm = NULL;
+			}
+			pthread_mutex_unlock(&adev->dummybuf_thread_lock);
 
 			break;
 		}
 
-		pthread_mutex_unlock(&adev->deepbuf_thread_lock);
+		pthread_mutex_unlock(&adev->dummybuf_thread_lock);
 		usleep(1000);
 	}
 
 	return NULL;
 }
 
-static void deepbuf_thread_open(struct audio_device *adev)
+static void dummybuf_thread_open(struct audio_device *adev)
 {
-	adev->deepbuf_thread_timeout = 6000;
-	adev->deepbuf_thread_cancel = 0;
-	adev->deepbuf_thread_active = 0;
-	pthread_mutex_init(&adev->deepbuf_thread_lock, (const pthread_mutexattr_t *) NULL);
-	if (!adev->deepbuf_thread)
-		pthread_create(&adev->deepbuf_thread, (const pthread_attr_t *) NULL, deepbuf_thread, adev);
+	adev->dummybuf_thread_timeout = 500;
+	adev->dummybuf_thread_cancel = 0;
+	adev->dummybuf_thread_active = 0;
+	pthread_mutex_init(&adev->dummybuf_thread_lock, (const pthread_mutexattr_t *) NULL);
+	if (!adev->dummybuf_thread)
+		pthread_create(&adev->dummybuf_thread, (const pthread_attr_t *) NULL, dummybuf_thread, adev);
 }
 
-static void deepbuf_thread_close(struct audio_device *adev)
+static void dummybuf_thread_close(struct audio_device *adev)
 {
+	ALOGD("%s: enter", __func__);
 	int retry_cnt = 20;
-	pthread_mutex_lock(&adev->deepbuf_thread_lock);
-	adev->deepbuf_thread_cancel = 1;
-	pthread_mutex_unlock(&adev->deepbuf_thread_lock);
+	pthread_mutex_lock(&adev->dummybuf_thread_lock);
+	adev->dummybuf_thread_cancel = 1;
+	pthread_mutex_unlock(&adev->dummybuf_thread_lock);
 
 	while (retry_cnt > 0) {
-		if (adev->deepbuf_thread_active == 0)
+		if (adev->dummybuf_thread_active == 0)
 			break;
 
 		retry_cnt--;
 		usleep(1000);
 	}
 
-	if (adev->deepbuf_thread_active)
-		ALOGD("audio path may out of order");
-	else
-		pthread_mutex_destroy(&adev->deepbuf_thread_lock);
+	pthread_join(adev->dummybuf_thread, (void **) NULL);
+	pthread_mutex_destroy(&adev->dummybuf_thread_lock);
+	adev->dummybuf_thread = 0;
 }
 
 static int adev_open(const hw_module_t *module, const char *name,
@@ -3111,16 +3152,27 @@ static int adev_open(const hw_module_t *module, const char *name,
     if (adev->htc_acoustic_init_rt5506 != NULL)
         adev->htc_acoustic_init_rt5506();
 
-    if (adev->htc_acoustic_set_amp_mode && audio_device_ref_count == 0) {
-        deepbuf_thread_open(adev);
-        retry_count = RETRY_NUMBER;
-        while (!adev->deepbuf_thread_active && retry_count-- > 0)
-            usleep(10000);
-        if(adev->deepbuf_thread_active)
-            adev->tfa9895_init = adev->htc_acoustic_set_amp_mode(0, AUDIO_DEVICE_OUT_SPEAKER, 0, 0, false);
-        deepbuf_thread_close(adev);
-    }
+    if (audio_device_ref_count == 0) {
+        /* For NXP DSP config */
+        if (adev->htc_acoustic_set_amp_mode) {
+            adev->dummybuf_thread_devices = AUDIO_DEVICE_OUT_SPEAKER;
+            dummybuf_thread_open(adev);
+            retry_count = RETRY_NUMBER;
+            while (!adev->dummybuf_thread_active && retry_count-- > 0)
+                usleep(10000);
+            if(adev->dummybuf_thread_active)
+                adev->tfa9895_init = adev->htc_acoustic_set_amp_mode(0, AUDIO_DEVICE_OUT_SPEAKER, 0, 0, false);
+            dummybuf_thread_close(adev);
+        }
 
+        /* For HS GPIO initial config */
+        adev->dummybuf_thread_devices = AUDIO_DEVICE_OUT_WIRED_HEADPHONE;
+        dummybuf_thread_open(adev);
+        retry_count = RETRY_NUMBER;
+        while (!adev->dummybuf_thread_active && retry_count-- > 0)
+            usleep(10000);
+        dummybuf_thread_close(adev);
+    }
     audio_device_ref_count++;
 
     ALOGV("%s: exit", __func__);
