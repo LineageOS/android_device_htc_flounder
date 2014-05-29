@@ -91,6 +91,7 @@ BOARD_SEPOLICY_UNION := \
 	gpsd.te \
 	kernel.te \
 	kickstart.te \
+	mediaserver.te \
 	netd.te \
 	netmgrd.te \
 	qmuxd.te \
