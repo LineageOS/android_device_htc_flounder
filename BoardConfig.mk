@@ -97,6 +97,7 @@ BOARD_SEPOLICY_UNION := \
 	qmuxd.te \
 	radio.te \
 	rild.te \
+	surfaceflinger.te \
 	system_server.te \
 	te_macros \
 	touch_fusion.te
