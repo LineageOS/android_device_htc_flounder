@@ -38,7 +38,7 @@
 /dev/ttyTHS1			u:object_r:gps_device:s0
 
 # touch_fusion
-/system/vendor/bin/touch_fusion	u:object_r:touch_fusion_exec:s0
+/vendor/bin/touch_fusion	u:object_r:touch_fusion_exec:s0
 
 # TEE
 /dev/tlk_device			u:object_r:tee_device:s0
@@ -58,11 +58,11 @@
 # Qualcomm MSM Interface (QMI) devices
 /dev/socket/qmux_radio(/.*)?           u:object_r:qmuxd_socket:s0
 # service
-/system/vendor/bin/qcks                u:object_r:kickstart_exec:s0
-/system/vendor/bin/efsks               u:object_r:kickstart_exec:s0
-/system/vendor/bin/ks                  u:object_r:kickstart_exec:s0
-/system/vendor/bin/qmuxd               u:object_r:qmuxd_exec:s0
-/system/vendor/bin/netmgrd             u:object_r:netmgrd_exec:s0
+/vendor/bin/qcks                u:object_r:kickstart_exec:s0
+/vendor/bin/efsks               u:object_r:kickstart_exec:s0
+/vendor/bin/ks                  u:object_r:kickstart_exec:s0
+/vendor/bin/qmuxd               u:object_r:qmuxd_exec:s0
+/vendor/bin/netmgrd             u:object_r:netmgrd_exec:s0
 # database used by vendor RIL
 /data/misc/radio(/.*)?     u:object_r:ril_db_file:s0
 # Kickstart prepend used

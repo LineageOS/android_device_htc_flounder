@@ -124,7 +124,7 @@ on property:ro.hw.ril.baseband=2
     setprop ro.baseband.arch mdm
     start qmuxd
     start netmgrd
-    setprop rild.libpath /system/vendor/lib64/libril-qc-qmi-1.so
+    setprop rild.libpath /vendor/lib64/libril-qc-qmi-1.so
     setprop rild.libargs "-e wwan0"
     start ril-daemon
 
@@ -188,19 +188,19 @@ service iprenew_p2p /system/bin/dhcpcd -n
     disabled
     oneshot
 
-service kickstart /system/vendor/bin/qcks -i /vendor/firmware/mdm/image/ -r /data/qcks/mdm/
+service kickstart /vendor/bin/qcks -i /vendor/firmware/mdm/image/ -r /data/qcks/mdm/
     class main
     user system
     group system
     oneshot
 
-service qmuxd /system/vendor/bin/qmuxd
+service qmuxd /vendor/bin/qmuxd
     class main
     disabled
     user system
     group system radio
 
-service netmgrd /system/vendor/bin/netmgrd
+service netmgrd /vendor/bin/netmgrd
     class main
     disabled
     group system radio
