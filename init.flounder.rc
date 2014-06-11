@@ -28,6 +28,10 @@ on post-fs-data
     # for GPS files
     mkdir /data/gps 0770 gps system
 
+    # modem init
+    mkdir /data/qcks 0770 system system
+    mkdir /data/efs 0771 system system
+
     setprop vold.post_fs_data_done 1
 
 on boot
@@ -69,10 +73,6 @@ on boot
 on fs
     mount_all /fstab.flounder
     setprop ro.crypto.fuse_sdcard true
-
-    # modem init
-    mkdir /data/qcks 0770 system system
-    mkdir /data/efs 0771 system system
 
     # HACK: prevent suspend, pending fixes
     write /sys/power/wake_lock VolantisHackPreventSuspend
