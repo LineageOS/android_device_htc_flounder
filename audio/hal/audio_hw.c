@@ -61,7 +61,7 @@ struct pcm_device_profile pcm_device_playback_hs = {
         .avail_min = PLAYBACK_AVAILABLE_MIN,
     },
     .card = 1,
-    .id = 4,
+    .id = 0,
     .type = PCM_PLAYBACK,
     .devices = AUDIO_DEVICE_OUT_WIRED_HEADSET|AUDIO_DEVICE_OUT_WIRED_HEADPHONE,
 };
