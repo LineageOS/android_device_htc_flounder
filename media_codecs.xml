@@ -85,13 +85,14 @@ Only the three quirks included above are recognized at this point:
         <MediaCodec name="OMX.Nvidia.h264.decode" type="video/avc" />
         <MediaCodec name="OMX.Nvidia.mpeg2v.decode" type="video/mpeg2" />
         <MediaCodec name="OMX.Nvidia.mp2.decoder" type="audio/mpeg-L2" />
-        <MediaCodec name="OMX.Nvidia.vpx.decode" type="video/x-vnd.on2.vp8" />
+        <MediaCodec name="OMX.Nvidia.vp8.decode" type="video/x-vnd.on2.vp8" />
     </Decoders>
 
     <Encoders>
         <MediaCodec name="OMX.Nvidia.mp4.encoder" type="video/mp4v-es" />
         <MediaCodec name="OMX.Nvidia.h263.encoder" type="video/3gpp" />
         <MediaCodec name="OMX.Nvidia.h264.encoder" type="video/avc" />
+        <MediaCodec name="OMX.Nvidia.vp8.encoder" type="video/x-vnd.on2.vp8" />
     </Encoders>
     <Include href="media_codecs_google_video.xml" />
 </MediaCodecs>
