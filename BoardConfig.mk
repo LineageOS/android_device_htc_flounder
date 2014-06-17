@@ -58,6 +58,9 @@ BOARD_USES_GENERIC_INVENSENSE := false
 
 USE_E2FSPROGS := true
 
+# RenderScript
+OVERRIDE_RS_DRIVER := libnvRSDriver.so
+
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := vendor/htc/flounder
 BOARD_HAVE_BLUETOOTH_BCM := true
