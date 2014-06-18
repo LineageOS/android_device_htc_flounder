@@ -26,19 +26,30 @@ else
 LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
 
+BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := f2fs
+$(warning "USING F2FS for userdata")
+
+
+# This ensures the needed build tools are available.
+TARGET_USERIMAGES_USE_F2FS := true
+LOCAL_FSTAB := $(LOCAL_PATH)/fstab.flounder
+
+
+TARGET_RECOVERY_FSTAB = $(LOCAL_FSTAB)
+
 PRODUCT_COPY_FILES := \
     $(LOCAL_KERNEL):kernel \
     $(LOCAL_PATH)/init.flounder.rc:root/init.flounder.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder.usb.rc \
     $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder.rc \
-    $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder \
+    $(LOCAL_FSTAB):root/fstab.flounder \
     $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder.rc
 
 # Copy flounder files as flounder64 so that ${ro.hardware} can find them
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.flounder.rc:root/init.flounder64.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:root/init.flounder64.usb.rc \
-    $(LOCAL_PATH)/fstab.flounder:root/fstab.flounder64 \
+    $(LOCAL_FSTAB):root/fstab.flounder64 \
     $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder64.rc \
     $(LOCAL_PATH)/ueventd.flounder.rc:root/ueventd.flounder64.rc
 
@@ -150,7 +161,7 @@ PRODUCT_PACKAGES += \
 
 # Filesystem management tools
 PRODUCT_PACKAGES += \
-    e2fsck
+    e2fsck fsck.f2fs mkfs.f2fs
 
 PRODUCT_PROPERTY_OVERRIDES := \
     wifi.interface=wlan0 \
