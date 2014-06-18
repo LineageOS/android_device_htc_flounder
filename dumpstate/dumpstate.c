@@ -21,5 +21,6 @@ void dumpstate_board()
     dump_file("soc revision", "/sys/devices/soc0/revision");
     dump_file("soc die_id", "/sys/devices/soc0/soc_id");
     dump_file("bq2419x charger regs", "/d/bq2419x-regs");
+    dump_file("max17050 fuel gauge regs", "/d/max17050-regs");
     dump_file("shrinkers", "/d/shrinker");
 };
