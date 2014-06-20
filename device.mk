@@ -27,8 +27,6 @@ LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
 
 BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := f2fs
-$(info "USING F2FS for userdata")
-
 
 # This ensures the needed build tools are available.
 TARGET_USERIMAGES_USE_F2FS := true
