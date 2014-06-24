@@ -35,6 +35,7 @@
 #define BOOSTPULSE_PATH "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
 #define BOOST_PATH "/sys/devices/system/cpu/cpufreq/interactive/boost"
 #define CPU_MAX_FREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
+#define FACEDOWN_PATH "/sys/class/htc_sensorhub/sensor_hub/facedown_enabled"
 //BOOST_PULSE_DURATION and BOOT_PULSE_DURATION_STR should always be in sync
 #define BOOST_PULSE_DURATION 1000000
 #define BOOST_PULSE_DURATION_STR "1000000"
@@ -106,6 +107,7 @@ static void power_set_interactive(struct power_module *module, int on)
      */
     sysfs_write(CPU_MAX_FREQ_PATH,
                 (!on || low_power_mode) ? LOW_POWER_MAX_FREQ : NORMAL_MAX_FREQ);
+    sysfs_write(FACEDOWN_PATH, on ? "0" : "1");
     ALOGV("power_set_interactive: %d done\n", on);
 }
 
