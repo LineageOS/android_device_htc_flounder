@@ -1,5 +1,5 @@
 ifneq ($(filter tegra132,$(TARGET_BOARD_PLATFORM)),)
-ifneq ($(filter flounder flounder64,$(TARGET_DEVICE)),)
+ifneq ($(filter flounder flounder64 flounder_lte,$(TARGET_DEVICE)),)
 
 MY_LOCAL_PATH := $(call my-dir)
 
