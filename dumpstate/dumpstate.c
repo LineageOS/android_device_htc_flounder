@@ -24,4 +24,5 @@ void dumpstate_board()
     dump_file("max17050 fuel gauge regs", "/d/max17050-regs");
     dump_file("shrinkers", "/d/shrinker");
     dump_file("wlan", "/sys/module/bcmdhd/parameters/info_string");
+    dump_file("display controller", "/d/tegradc.0/stats");
 };
