@@ -67,7 +67,7 @@ BOARD_HAVE_BLUETOOTH_BCM := true
 BOARD_USES_GENERIC_AUDIO := false
 BOARD_USES_ALSA_AUDIO := true
 
-BOARD_HAL_STATIC_LIBRARIES := libdumpstate.flounder
+BOARD_HAL_STATIC_LIBRARIES := libdumpstate.flounder libhealthd.flounder
 
 BOARD_VENDOR_USE_SENSOR_HAL := sensor_hub
 
@@ -81,8 +81,6 @@ BOARD_WLAN_DEVICE           := bcmdhd
 WIFI_DRIVER_FW_PATH_PARAM   := "/sys/module/bcmdhd/parameters/firmware_path"
 WIFI_DRIVER_FW_PATH_STA     := "/vendor/firmware/fw_bcmdhd.bin"
 WIFI_DRIVER_FW_PATH_AP      := "/vendor/firmware/fw_bcmdhd_apsta.bin"
-
-BOARD_HAL_STATIC_LIBRARIES := libhealthd.flounder
 
 BOARD_SEPOLICY_DIRS := device/htc/flounder/sepolicy
 BOARD_SEPOLICY_UNION := \
