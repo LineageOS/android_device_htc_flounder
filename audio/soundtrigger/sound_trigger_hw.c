@@ -18,8 +18,10 @@
 /*#define LOG_NDEBUG 0*/
 
 #include <errno.h>
+#include <fcntl.h>
 #include <poll.h>
 #include <pthread.h>
+#include <sys/ioctl.h>
 #include <sys/prctl.h>
 #include <cutils/log.h>
 #include <cutils/uevent.h>
@@ -34,19 +36,22 @@
 #define FLOUNDER_CTRL_MIC	198
 #define UEVENT_MSG_LEN		1024
 
+#define FLOUNDER_VAD_DEV	"/dev/snd/hwC1D0"
+#define FLOUNDER_MIC_BUF_SIZE	(132 * 1024)
+
 static const struct sound_trigger_properties hw_properties = {
-        "The Android Open Source Project", // implementor
-        "Sound Trigger stub HAL", // description
-        1, // version
-        { 0xe780f240, 0xf034, 0x11e3, 0xb79a, { 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b } }, // uuid
-        1, // max_sound_models
-        1, // max_key_phrases
-        1, // max_users
-        RECOGNITION_MODE_VOICE_TRIGGER, // recognition_modes
-        false, // capture_transition
-        0, // max_capture_ms
-        false, // concurrent_capture
-        0 // power_consumption_mw
+    "The Android Open Source Project", // implementor
+    "Sound Trigger stub HAL", // description
+    1, // version
+    { 0xe780f240, 0xf034, 0x11e3, 0xb79a, { 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b } }, // uuid
+    1, // max_sound_models
+    1, // max_key_phrases
+    1, // max_users
+    RECOGNITION_MODE_VOICE_TRIGGER, // recognition_modes
+    false, // capture_transition
+    0, // max_capture_ms
+    false, // concurrent_capture
+    0 // power_consumption_mw
 };
 
 struct flounder_sound_trigger_device {
@@ -60,39 +65,59 @@ struct flounder_sound_trigger_device {
     pthread_mutex_t lock;
     int send_sock;
     int term_sock;
+    int vad_fd;
     struct mixer *mixer;
     struct mixer_ctl *ctl_dsp;
     struct mixer_ctl *ctl_mic;
+};
+
+struct rt_codec_cmd {
+    size_t number;
+    int *buf;
+};
+
+enum {
+    RT_READ_CODEC_DSP_IOCTL = _IOR('R', 0x04, struct rt_codec_cmd),
+    RT_WRITE_CODEC_DSP_IOCTL = _IOW('R', 0x04, struct rt_codec_cmd),
 };
 
 
 static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
 {
     int exit_sockets[2];
+    int ret = -1;
+
+    stdev->vad_fd = open(FLOUNDER_VAD_DEV, O_RDWR);
+    if (stdev->vad_fd < 0) {
+        ALOGE("Error opening vad device");
+        return ret;
+    }
 
     stdev->mixer = mixer_open(FLOUNDER_MIXER_VAD);
     if (!stdev->mixer)
-        return -1;
+        goto err;
 
     stdev->ctl_mic = mixer_get_ctl(stdev->mixer, FLOUNDER_CTRL_MIC);
-    if (!stdev->ctl_mic) {
-        mixer_close(stdev->mixer);
-        return -1;
-    }
-    stdev->ctl_dsp = mixer_get_ctl(stdev->mixer, FLOUNDER_CTRL_DSP);
-    if (!stdev->ctl_dsp) {
-        mixer_close(stdev->mixer);
-        return -1;
-    }
+    if (!stdev->ctl_mic)
+        goto err;
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, exit_sockets) == -1) {
-        mixer_close(stdev->mixer);
-        return -1;
-    }
+    stdev->ctl_dsp = mixer_get_ctl(stdev->mixer, FLOUNDER_CTRL_DSP);
+    if (!stdev->ctl_dsp)
+        goto err;
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, exit_sockets) == -1)
+        goto err;
 
     stdev->send_sock = exit_sockets[0];
     stdev->term_sock = exit_sockets[1];
+
     return 0;
+
+err:
+    close(stdev->vad_fd);
+    if (stdev->mixer)
+        mixer_close(stdev->mixer);
+    return ret;
 }
 
 static void stdev_close_mixer(struct flounder_sound_trigger_device *stdev)
@@ -101,14 +126,47 @@ static void stdev_close_mixer(struct flounder_sound_trigger_device *stdev)
         mixer_close(stdev->mixer);
         close(stdev->send_sock);
         close(stdev->term_sock);
+        close(stdev->vad_fd);
     }
+}
+
+static int vad_load_sound_model(struct flounder_sound_trigger_device *stdev,
+                                char *buf, size_t len)
+{
+    struct rt_codec_cmd cmd;
+    int ret;
+
+    cmd.number = len;
+    cmd.buf = (int *)buf;
+
+    ret = ioctl(stdev->vad_fd, RT_WRITE_CODEC_DSP_IOCTL, &cmd);
+    if (ret)
+        ALOGE("Error VAD write ioctl");
+    return ret;
+}
+
+static int vad_get_phrase(struct flounder_sound_trigger_device *stdev,
+                          char *buf, unsigned int *len)
+{
+    struct rt_codec_cmd cmd;
+    int ret;
+
+    cmd.number = *len;
+    cmd.buf = (int *)buf;
+
+    ret = ioctl(stdev->vad_fd, RT_READ_CODEC_DSP_IOCTL, &cmd);
+    *len = (unsigned int)cmd.number;
+    if (ret)
+        ALOGE("Error VAD read ioctl");
+    return ret;
 }
 
 static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
                                        stdev)
 {
     char *data = (char *)calloc(1,
-                    sizeof(struct sound_trigger_phrase_recognition_event));
+                    sizeof(struct sound_trigger_phrase_recognition_event) +
+                    FLOUNDER_MIC_BUF_SIZE);
     struct sound_trigger_phrase_recognition_event *event =
                     (struct sound_trigger_phrase_recognition_event *)data;
 
@@ -124,7 +182,9 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
     event->phrase_extras[0].confidence_levels[0] = 100;
     event->common.data_offset =
                     sizeof(struct sound_trigger_phrase_recognition_event);
-    event->common.data_size = 0;
+    event->common.data_size = FLOUNDER_MIC_BUF_SIZE;
+    vad_get_phrase(stdev, data + event->common.data_offset,
+                   &event->common.data_size);
     return data;
 }
 
@@ -229,24 +289,28 @@ static int stdev_load_sound_model(const struct sound_trigger_hw_device *dev,
 {
     struct flounder_sound_trigger_device *stdev =
                                  (struct flounder_sound_trigger_device *)dev;
-    int status = 0;
+    int ret = 0;
 
     ALOGI("%s", __func__);
     pthread_mutex_lock(&stdev->lock);
     if (handle == NULL || sound_model == NULL) {
-        status = -EINVAL;
+        ret = -EINVAL;
         goto exit;
     }
     if (sound_model->data_size == 0 ||
             sound_model->data_offset < sizeof(struct sound_trigger_sound_model)) {
-        status = -EINVAL;
+        ret = -EINVAL;
         goto exit;
     }
 
     if (stdev->model_handle == 1) {
-        status = -ENOSYS;
+        ret = -ENOSYS;
         goto exit;
     }
+
+    ret = vad_load_sound_model(stdev,
+                               (char *)sound_model + sound_model->data_offset,
+                               sound_model->data_size);
     stdev->model_handle = 1;
     stdev->sound_model_callback = callback;
     stdev->sound_model_cookie = cookie;
@@ -254,7 +318,7 @@ static int stdev_load_sound_model(const struct sound_trigger_hw_device *dev,
 
 exit:
     pthread_mutex_unlock(&stdev->lock);
-    return status;
+    return ret;
 }
 
 static int stdev_unload_sound_model(const struct sound_trigger_hw_device *dev,
@@ -393,11 +457,14 @@ static int stdev_open(const hw_module_t *module, const char *name,
 
     pthread_mutex_init(&stdev->lock, (const pthread_mutexattr_t *)NULL);
 
-    stdev_init_mixer(stdev);
-
-    *device = &stdev->device.common; /* same address as stdev */
-
-    return 0;
+    ret = stdev_init_mixer(stdev);
+    if (ret) {
+        ALOGE("Error mixer init");
+        free(stdev);
+    } else {
+        *device = &stdev->device.common; /* same address as stdev */
+    }
+    return ret;
 }
 
 static struct hw_module_methods_t hal_module_methods = {
