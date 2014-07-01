@@ -37,7 +37,7 @@
 #define UEVENT_MSG_LEN		1024
 
 #define FLOUNDER_VAD_DEV	"/dev/snd/hwC1D0"
-#define FLOUNDER_MIC_BUF_SIZE	(132 * 1024)
+#define FLOUNDER_MIC_BUF_SIZE	(64 * 1024)
 
 static const struct sound_trigger_properties hw_properties = {
     "The Android Open Source Project", // implementor
