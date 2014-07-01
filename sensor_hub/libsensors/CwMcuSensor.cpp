@@ -378,55 +378,40 @@ int CwMcuSensor::find_handle(int32_t sensors_id) {
     switch (sensors_id) {
     case CW_ACCELERATION:
         return ID_A;
-        break;
     case CW_MAGNETIC:
         return ID_M;
-        break;
     case CW_GYRO:
         return ID_GY;
-        break;
     case CW_PRESSURE:
         return ID_PS;
-        break;
     case CW_ORIENTATION:
         return ID_O;
-        break;
     case CW_ROTATIONVECTOR:
         return ID_RV;
-        break;
     case CW_LINEARACCELERATION:
         return ID_LA;
-        break;
     case CW_GRAVITY:
         return ID_G;
-        break;
     case CW_MAGNETIC_UNCALIBRATED:
         return ID_CW_MAGNETIC_UNCALIBRATED;
-        break;
     case CW_GYROSCOPE_UNCALIBRATED:
         return ID_CW_GYROSCOPE_UNCALIBRATED;
-        break;
     case CW_GAME_ROTATION_VECTOR:
         return ID_CW_GAME_ROTATION_VECTOR;
-        break;
     case CW_GEOMAGNETIC_ROTATION_VECTOR:
         return ID_CW_GEOMAGNETIC_ROTATION_VECTOR;
-        break;
     case CW_LIGHT:
         return ID_L;
-        break;
+    case CW_SIGNIFICANT_MOTION:
+        return ID_CW_SIGNIFICANT_MOTION;
     case CW_STEP_DETECTOR:
         return ID_CW_STEP_DETECTOR;
-        break;
     case CW_STEP_COUNTER:
         return ID_CW_STEP_COUNTER;
-        break;
     case HTC_WAKE_UP_GESTURE:
         return ID_WAKE_UP_GESTURE;
-        break;
     default:
         return 0xFF;
-        break;
     }
 }
 
@@ -522,7 +507,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     what = find_sensor(handle);
 
-    ALOGD("CwMcuSensor::setEnable: [v02-Add Step Detector and Step Counter], handle = %d, en = %d,"
+    ALOGD("CwMcuSensor::setEnable: [v03-Format Sensor List structure], handle = %d, en = %d,"
           " what = %d\n", handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -846,8 +831,11 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
         } else {
             mPendingEvents[id].timestamp = getTimestamp();
             if (mEnabled & (1<<id)) {
-                if (id == CW_SIGNIFICANT_MOTION)
+                if (id == CW_SIGNIFICANT_MOTION) {
                     setEnable(ID_CW_SIGNIFICANT_MOTION, 0);
+                } else if (id == HTC_WAKE_UP_GESTURE) {
+                    setEnable(ID_WAKE_UP_GESTURE, 0);
+                }
                 calculate_rv_4th_element(id);
                 *data++ = mPendingEvents[id];
                 count--;
@@ -925,9 +913,8 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         break;
     case CW_SIGNIFICANT_MOTION:
         mPendingMask |= 1<<(sensorsid);
-        mPendingEvents[sensorsid].data[0] = (float)data[0];
-        mPendingEvents[sensorsid].data[1] = (float)data[1];
-        mPendingEvents[sensorsid].data[2] = (float)data[2];
+        mPendingEvents[sensorsid].data[0] = 1.0;
+        mPendingEvents[sensorsid].timestamp = getTimestamp();
         ALOGV("sensors_id = %d, data = %p", sensorsid, data);
         break;
     case CW_LIGHT:
