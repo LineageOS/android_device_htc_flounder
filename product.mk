@@ -23,9 +23,5 @@ TARGET_COPY_OUT_VENDOR := vendor
 
 PRODUCT_RUNTIMES := runtime_libart_default
 
-# HACK: force volantis back to 32-bit system server for now
-PRODUCT_COPY_FILES += system/core/rootdir/init.zygote32_64.rc:root/init.zygote32_64.rc
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.zygote=zygote32_64
-
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 $(call inherit-product, device/htc/flounder/device.mk)
