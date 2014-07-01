@@ -31,6 +31,7 @@ on post-fs-data
     # modem init
     mkdir /data/qcks 0770 system system
     mkdir /data/efs 0771 system system
+    mkdir /data/qcks/mdm 0770 system system
 
     setprop vold.post_fs_data_done 1
 
@@ -119,17 +120,30 @@ on property:ro.boot.baseband=N/A
     setprop ro.radio.noril true
     stop ril-daemon
 
-on property:ro.hw.ril.baseband=2
+on property:ro.hw.ks.ready=1
+    start ril-daemon
+
+on property:ro.boot.baseband=ROW
     stop ril-daemon
-    mkdir /data/qcks/mdm 0770 system system
+    enable kickstart
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
     setprop ro.baseband.arch mdm
-    start qmuxd
-    start netmgrd
+    enable qmuxd
+    enable netmgrd
     setprop rild.libpath /vendor/lib64/libril-qc-qmi-1.so
     setprop rild.libargs "-e wwan0"
-    start ril-daemon
+
+on property:ro.boot.baseband=US
+    stop ril-daemon
+    enable kickstart
+    mkdir /dev/socket/qmux_radio 0770 radio radio
+    chmod 2770 /dev/socket/qmux_radio
+    setprop ro.baseband.arch mdm
+    enable qmuxd
+    enable netmgrd
+    setprop rild.libpath /vendor/lib64/libril-qc-qmi-1.so
+    setprop rild.libargs "-e wwan0"
 
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B \
@@ -192,18 +206,19 @@ service iprenew_p2p /system/bin/dhcpcd -n
     oneshot
 
 service kickstart /vendor/bin/qcks -i /vendor/firmware/mdm/image/ -r /data/qcks/mdm/
-    class main
+    class late_start
+    disabled
     user system
     group system
     oneshot
 
 service qmuxd /vendor/bin/qmuxd
-    class main
+    class late_start
     disabled
     user system
     group system radio
 
 service netmgrd /vendor/bin/netmgrd
-    class main
+    class late_start
     disabled
     group system radio
