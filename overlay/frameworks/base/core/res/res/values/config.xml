@@ -211,4 +211,8 @@
     <!-- Boolean indicating whether the wifi chipset has background scan support -->
     <bool translatable="false" name="config_wifi_background_scan_support">true</bool>
 
+    <!-- Indicate whether closing the lid causes the device to go to sleep
+         and opening it causes the device to wake up. The default is false. -->
+    <bool name="config_lidControlsSleep">true</bool>
+
 </resources>
