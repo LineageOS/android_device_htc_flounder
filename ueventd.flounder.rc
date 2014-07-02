@@ -92,3 +92,5 @@
 /sys/devices/platform/tegra12-i2c.0/i2c-0/0-0072/iio:device0  trigger/current_trigger 0660 system system
 
 /sys/devices/virtual/gps/bcm47521 gps_onoff/value 0660  gps  system
+
+/dev/block/platform/sdhci-tegra.3/by-name/PST 0600 system system
