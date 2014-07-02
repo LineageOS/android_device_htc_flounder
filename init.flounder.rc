@@ -98,9 +98,6 @@ on property:ro.boot.baseband=N/A
     setprop ro.hardware.gps bcm47521
     enable gpsd
 
-on property:ro.boot.baseband=T1.0.40.30.20140424\r
-    write /sys/module/bcmdhd/parameters/nvram_path /system/etc/wifi/bcmdhd_lte.cal
-
 on property:ro.boot.baseband=US
     write /sys/module/bcmdhd/parameters/nvram_path /system/etc/wifi/bcmdhd_lte.cal
 
