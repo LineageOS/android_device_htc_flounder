@@ -136,7 +136,7 @@ static int vad_load_sound_model(struct flounder_sound_trigger_device *stdev,
     struct rt_codec_cmd cmd;
     int ret;
 
-    cmd.number = len;
+    cmd.number = len / sizeof(int);
     cmd.buf = (int *)buf;
 
     ret = ioctl(stdev->vad_fd, RT_WRITE_CODEC_DSP_IOCTL, &cmd);
@@ -151,11 +151,11 @@ static int vad_get_phrase(struct flounder_sound_trigger_device *stdev,
     struct rt_codec_cmd cmd;
     int ret;
 
-    cmd.number = *len;
+    cmd.number = (*len) / sizeof(int);
     cmd.buf = (int *)buf;
 
     ret = ioctl(stdev->vad_fd, RT_READ_CODEC_DSP_IOCTL, &cmd);
-    *len = (unsigned int)cmd.number;
+    *len = (unsigned int)cmd.number * sizeof(int);
     if (ret)
         ALOGE("Error VAD read ioctl");
     return ret;
