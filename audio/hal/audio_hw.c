@@ -931,7 +931,7 @@ static int get_next_buffer(struct resampler_buffer_provider *buffer_provider,
             return in->read_status;
         }
         in->frames_in = in->config.period_size;
-        if (popcount(in->channel_mask) == 1) {
+        if (audio_channel_count_from_in_mask(in->channel_mask) == 1) {
             unsigned int i;
 
             /* Discard right channel */
@@ -944,7 +944,7 @@ static int get_next_buffer(struct resampler_buffer_provider *buffer_provider,
                                 in->frames_in : buffer->frame_count;
     buffer->i16 = in->buffer + (in->config.period_size - in->frames_in);
     buffer->i16 = in->buffer + (in->config.period_size- in->frames_in) *
-            popcount(in->channel_mask);
+            audio_channel_count_from_in_mask(in->channel_mask);
 
     return in->read_status;
 
@@ -1102,7 +1102,7 @@ int start_input_stream(struct stream_in *in)
 
         ret = create_resampler(pcm_device->pcm_profile->config.rate,
                                in->requested_rate,
-                               popcount(in->channel_mask),
+                               audio_channel_count_from_in_mask(in->channel_mask),
                                RESAMPLER_QUALITY_DEFAULT,
                                &in->buf_provider,
                                &in->resampler);
@@ -1411,7 +1411,7 @@ static int out_open_pcm_devices(struct stream_out *out)
                     out->sample_rate, pcm_device->pcm_profile->config.rate);
             ret = create_resampler(out->sample_rate,
                     pcm_device->pcm_profile->config.rate,
-                    popcount(out->channel_mask),
+                    audio_channel_count_from_out_mask(out->channel_mask),
                     RESAMPLER_QUALITY_DEFAULT,
                     NULL,
                     &pcm_device->resampler);
@@ -1621,8 +1621,7 @@ static size_t get_input_buffer_size(uint32_t sample_rate,
     size = (pcm_profile->config.period_size * sample_rate) / pcm_profile->config.rate;
     size = ((size + 15) / 16) * 16;
 
-    return (size * popcount(channel_count) *
-                audio_bytes_per_sample(format));
+    return (size * channel_count * audio_bytes_per_sample(format));
 
 }
 
@@ -2215,7 +2214,7 @@ static size_t in_get_buffer_size(const struct audio_stream *stream)
 
     return get_input_buffer_size(in->requested_rate,
                                  in_get_format(stream),
-                                 popcount(in->channel_mask),
+                                 audio_channel_count_from_in_mask(in->channel_mask),
                                  in->devices);
 }
 
@@ -2510,7 +2509,7 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
         out->sample_rate = config->sample_rate;
         out->usecase = USECASE_AUDIO_PLAYBACK_MULTI_CH;
         out->config.rate = config->sample_rate;
-        out->config.channels = popcount(out->channel_mask);
+        out->config.channels = audio_channel_count_from_out_mask(out->channel_mask);
     } else if (out->flags & AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD) {
         if (config->offload_info.version != AUDIO_INFO_INITIALIZER.version ||
             config->offload_info.size != AUDIO_INFO_INITIALIZER.size) {
@@ -2550,7 +2549,7 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
         out->compr_config.codec->bit_rate =
                     config->offload_info.bit_rate;
         out->compr_config.codec->ch_in =
-                    popcount(config->channel_mask);
+                audio_channel_count_from_out_mask(config->channel_mask);
         out->compr_config.codec->ch_out = out->compr_config.codec->ch_in;
 
         if (flags & AUDIO_OUTPUT_FLAG_NON_BLOCKING)
@@ -2855,7 +2854,7 @@ static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
      */
     return get_input_buffer_size(config->sample_rate,
                                  config->format,
-                                 popcount(config->channel_mask),
+                                 audio_channel_count_from_in_mask(config->channel_mask),
                                  AUDIO_DEVICE_IN_BUILTIN_MIC);
 }
 
@@ -2873,7 +2872,7 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
     ALOGV("%s: enter", __func__);
     *stream_in = NULL;
     if (check_input_parameters(config->sample_rate, config->format,
-                               popcount(config->channel_mask)) != 0)
+                               audio_channel_count_from_in_mask(config->channel_mask)) != 0)
         return -EINVAL;
 
     pcm_profile = get_pcm_device(PCM_CAPTURE, devices);
