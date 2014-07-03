@@ -975,7 +975,7 @@ static ssize_t read_frames(struct stream_in *in, void *buffer, ssize_t frames)
         if (in->resampler != NULL) {
             in->resampler->resample_from_provider(in->resampler,
                     (int16_t *)((char *)buffer +
-                            frames_wr * audio_stream_frame_size(&in->stream.common)),
+                            frames_wr * audio_stream_in_frame_size(&in->stream)),
                     &frames_rd);
         } else {
             struct resampler_buffer buf = {
@@ -985,9 +985,9 @@ static ssize_t read_frames(struct stream_in *in, void *buffer, ssize_t frames)
             get_next_buffer(&in->buf_provider, &buf);
             if (buf.raw != NULL) {
                 memcpy((char *)buffer +
-                           frames_wr * audio_stream_frame_size(&in->stream.common),
+                           frames_wr * audio_stream_in_frame_size(&in->stream),
                         buf.raw,
-                        buf.frame_count * audio_stream_frame_size(&in->stream.common));
+                        buf.frame_count * audio_stream_in_frame_size(&in->stream));
                 frames_rd = buf.frame_count;
             }
             release_buffer(&in->buf_provider, &buf);
@@ -1647,7 +1647,8 @@ static size_t out_get_buffer_size(const struct audio_stream *stream)
         return out->compr_config.fragment_size;
     }
 
-    return out->config.period_size * audio_stream_frame_size(stream);
+    return out->config.period_size *
+               audio_stream_out_frame_size((const struct audio_stream_out *)stream);
 }
 
 static uint32_t out_get_channels(const struct audio_stream *stream)
@@ -1916,7 +1917,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
     ssize_t ret = 0;
     struct pcm_device *pcm_device;
     struct listnode *node;
-    size_t frame_size = audio_stream_frame_size(&out->stream.common);
+    size_t frame_size = audio_stream_out_frame_size(stream);
     size_t frames_wr = 0, frames_rq = 0;
 
     pthread_mutex_lock(&out->lock);
@@ -2001,7 +2002,7 @@ exit:
                 ALOGE("%s: error %zd - %s", __func__, ret, pcm_get_error(pcm_device->pcm));
         }
         out_standby(&out->stream.common);
-        usleep(bytes * 1000000 / audio_stream_frame_size(&out->stream.common) /
+        usleep(bytes * 1000000 / audio_stream_out_frame_size(stream) /
                out_get_sample_rate(&out->stream.common));
     }
     return bytes;
@@ -2362,7 +2363,7 @@ static ssize_t in_read(struct audio_stream_in *stream, void *buffer,
     struct stream_in *in = (struct stream_in *)stream;
     struct audio_device *adev = in->dev;
     int i, ret = -1;
-    size_t frames_rq = bytes / audio_stream_frame_size(&stream->common);
+    size_t frames_rq = bytes / audio_stream_in_frame_size(stream);
 
     pthread_mutex_lock(&in->lock);
     if (in->standby) {
@@ -2400,7 +2401,7 @@ exit:
     if (ret != 0) {
         in_standby(&in->stream.common);
         ALOGV("%s: read failed - sleeping for buffer duration", __func__);
-        usleep(bytes * 1000000 / audio_stream_frame_size(&in->stream.common) /
+        usleep(bytes * 1000000 / audio_stream_in_frame_size(stream) /
                in->requested_rate);
     }
     return bytes;
