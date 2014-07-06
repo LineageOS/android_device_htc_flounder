@@ -178,8 +178,9 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
     event->key_phrase_in_capture = false;
     event->num_phrases = 1;
     event->phrase_extras[0].recognition_modes = RECOGNITION_MODE_VOICE_TRIGGER;
-    event->phrase_extras[0].num_users = 1;
-    event->phrase_extras[0].confidence_levels[0] = 100;
+    event->phrase_extras[0].num_levels = 1;
+    event->phrase_extras[0].levels[0].level = 100;
+    event->phrase_extras[0].levels[0].user_id = 0;
     event->common.data_offset =
                     sizeof(struct sound_trigger_phrase_recognition_event);
     event->common.data_size = FLOUNDER_MIC_BUF_SIZE;
@@ -356,12 +357,9 @@ exit:
 
 static int stdev_start_recognition(const struct sound_trigger_hw_device *dev,
                                    sound_model_handle_t sound_model_handle,
-                                   audio_io_handle_t capture_handle __unused,
-                                   audio_devices_t capture_device __unused,
+                                   const struct sound_trigger_recognition_config *config __unused,
                                    recognition_callback_t callback,
-                                   void *cookie,
-                                   unsigned int data_size,
-                                   char *data)
+                                   void *cookie)
 {
     struct flounder_sound_trigger_device *stdev =
                                   (struct flounder_sound_trigger_device *)dev;
@@ -375,10 +373,6 @@ static int stdev_start_recognition(const struct sound_trigger_hw_device *dev,
     }
     if (stdev->recognition_callback != NULL) {
         status = -ENOSYS;
-        goto exit;
-    }
-    if (data_size != 0 && data == NULL) {
-        status = -EINVAL;
         goto exit;
     }
 
