@@ -167,7 +167,7 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PROPERTY_OVERRIDES := \
     wifi.interface=wlan0 \
-    ro.opengles.version=196608 \
+    ro.opengles.version=196609 \
     ro.sf.lcd_density=320 \
     ro.zygote.disable_gl_preload=true \
     ro.hwui.texture_cache_size=72 \
