@@ -887,7 +887,7 @@ static int select_devices(struct audio_device *adev,
         return 0;
     }
 
-    ALOGD("%s: out_snd_device(%d: %s) in_snd_device(%d: %s)", __func__,
+    ALOGV("%s: out_snd_device(%d: %s) in_snd_device(%d: %s)", __func__,
           out_snd_device, get_snd_device_display_name(out_snd_device),
           in_snd_device,  get_snd_device_display_name(in_snd_device));
 
