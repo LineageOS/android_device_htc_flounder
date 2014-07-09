@@ -33,7 +33,7 @@ PRODUCT_PROPERTY_OVERRIDES := \
 # Inherit from those products. Most specific first.
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
 $(call inherit-product, device/htc/flounder/product.mk)
-$(call inherit-product, vendor/htc/flounder_lte/device-vendor.mk)
+$(call inherit-product-if-exists, vendor/htc/flounder_lte/device-vendor.mk)
 
 PRODUCT_NAME := aosp_flounder
 PRODUCT_DEVICE := flounder
