@@ -66,7 +66,7 @@ static int set_light_battery(struct light_device_t* dev,
 {
 	int err;
 	pthread_mutex_lock(&g_lock);
-	ALOGE("set_light_battery, flashMode:%x, color:%x", state->flashMode, state->color);
+	ALOGV("set_light_battery, flashMode:%x, color:%x", state->flashMode, state->color);
 	if(state->color)
 		err = write_int(MODE_RGB_FILE, 0x1ffffff);
 	else
@@ -80,7 +80,7 @@ static int set_light_notifications(struct light_device_t* dev,
 {
 	int err;
 	pthread_mutex_lock(&g_lock);
-	ALOGE("set_light_notifications, flashMode:%x, color:%x", state->flashMode, state->color);
+	ALOGV("set_light_notifications, flashMode:%x, color:%x", state->flashMode, state->color);
 	if(state->flashMode)
 		err = write_int(MODE_RGB_FILE, 0x6ffffff);
 	else
@@ -118,7 +118,7 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 	int (*set_light) (struct light_device_t *dev,
 			struct light_state_t const *state);
 	pthread_t lighting_poll_thread;
-	ALOGE("open lights");
+	ALOGV("open lights");
 	if (dev == NULL) {
 		ALOGE("failed to allocate memory");
 		return -1;
