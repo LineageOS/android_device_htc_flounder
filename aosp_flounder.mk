@@ -23,11 +23,6 @@
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \
-        LiveWallpapers \
-        LiveWallpapersPicker \
-        MagicSmokeWallpapers \
-        VisualizationWallpapers \
-        librs_jni \
         rild \
         Launcher3
 
@@ -36,8 +31,9 @@ PRODUCT_PROPERTY_OVERRIDES := \
         net.dns2=8.8.4.4
 
 # Inherit from those products. Most specific first.
-$(call inherit-product, device/htc/flounder/product.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
+$(call inherit-product, device/htc/flounder/product.mk)
+$(call inherit-product, vendor/htc/flounder_lte/device-vendor.mk)
 
 PRODUCT_NAME := aosp_flounder
 PRODUCT_DEVICE := flounder
