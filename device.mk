@@ -205,6 +205,10 @@ PRODUCT_PACKAGES += \
     audio.usb.default \
     audio.r_submix.default \
 
+# Allows healthd to boot directly from charger mode rather than initiating a reboot.
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    ro.enable_boot_charger_mode=1
+
 # add verity dependencies
 $(call inherit-product, build/target/product/verity.mk)
 PRODUCT_VERITY_PARTITION := /dev/block/platform/sdhci-tegra.3/by-name/APP
