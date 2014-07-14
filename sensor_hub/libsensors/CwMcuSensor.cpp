@@ -40,7 +40,6 @@
 #define COMPASS_CALIBRATION_DATA_SIZE 26
 #define G_SENSOR_CALIBRATION_DATA_SIZE 3
 #define NS_PER_MS 1000000LL
-#define SYNC_ACK_MAGIC  0x66
 #define EXHAUSTED_MAGIC 0x77
 
 /*****************************************************************************/
@@ -167,14 +166,96 @@ static inline int find_type_by_name(const char *name, const char *type) {
 int fill_block_debug = 0;
 
 pthread_mutex_t sys_fs_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t sync_timestamp_algo_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t last_timestamp_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void CwMcuSensor::sync_time_thread_in_class(void) {
+    int fd;
+    char buf[24];
+    int err;
+    int64_t mcu_current_time;
+    int64_t cpu_current_time;
+    int open_errno;
+
+    ALOGV("sync_time_thread_in_class++:\n");
+
+    pthread_mutex_lock(&sys_fs_mutex);
+
+    strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "batch_enable");
+
+    fd = open(fixed_sysfs_path, O_RDWR);
+    open_errno = errno;
+    pthread_mutex_unlock(&sys_fs_mutex);
+    if (fd >= 0) {
+        err = read(fd, buf, sizeof(buf) - 1);
+        cpu_current_time = getTimestamp();
+        if (err < 0) {
+            ALOGE("sync_time_thread_in_class: read fail, err = %d\n", err);
+        } else {
+            buf[err] = '\0';
+            mcu_current_time = strtoll(buf, NULL, 10) * NS_PER_US;
+            if (errno == ERANGE) {
+                ALOGE("sync_time_thread_in_class: strtoll fails, strerr = %s, buf = %s\n",
+                      strerror(errno), buf);
+            } else {
+                pthread_mutex_lock(&sync_timestamp_algo_mutex);
+
+                cpu_to_mcu_time_offset = cpu_current_time - mcu_current_time;
+                ALOGV("Syncronization: cpu_to_mcu_time_offset = %" PRId64 " us\n", cpu_to_mcu_time_offset / NS_PER_US);
+
+                if (mcu_current_time != last_mcu_sync_time) {
+                    cpu_divided_by_mcu = (float)(cpu_current_time - last_cpu_sync_time) /
+                                         (float)(mcu_current_time - last_mcu_sync_time);
+                } else {
+                    ALOGE("mcu_current_time == last_mcu_sync_time, unexpected\n");
+                }
+                last_mcu_sync_time = mcu_current_time;
+                last_cpu_sync_time = cpu_current_time;
+                ALOGV("Syncronization: cpu_divided_by_mcu = %f\n", cpu_divided_by_mcu);
+
+                /*** weighted cpu_divided_by_mcu estimated algorithm ***/
+                if (last_cpu_divided_by_mcu == 0) {
+                    last_cpu_divided_by_mcu = cpu_divided_by_mcu;
+                }
+                cpu_divided_by_mcu = (cpu_divided_by_mcu + last_cpu_divided_by_mcu) * 0.5;
+                ALOGV("Syncronization: weighted cpu_divided_by_mcu = %f\n", cpu_divided_by_mcu);
+                last_cpu_divided_by_mcu = cpu_divided_by_mcu;
+                /*** weighted cpu_divided_by_mcu estimated algorithm ***/
+
+                pthread_mutex_unlock(&sync_timestamp_algo_mutex);
+
+                offset_changed = true;
+            }
+        }
+        close(fd);
+    } else {
+        ALOGE("sync_time_thread_in_class: open failed, path = .../batch_enable, fd = %d,"
+              " strerr = %s\n", fd, strerror(open_errno));
+    }
+
+    ALOGV("sync_time_thread_in_class--:\n");
+}
+
+void *sync_time_thread_run(void *context) {
+    CwMcuSensor *myClass = (CwMcuSensor *)context;
+
+    while (1) {
+        ALOGV("sync_time_thread_run++:\n");
+        myClass->sync_time_thread_in_class();
+        sleep(PERIODIC_SYNC_TIME_SEC);
+        ALOGV("sync_time_thread_run--:\n");
+    }
+    return NULL;
+}
 
 CwMcuSensor::CwMcuSensor()
     : SensorBase(NULL, "CwMcuSensor")
     , mEnabled(0)
     , mInputReader(IIO_MAX_BUFF_SIZE)
     , mFlushSensorEnabled(-1)
-    , l_timestamp(0)
-    , g_timestamp(0)
+    , offset_changed(true)
+    , cpu_divided_by_mcu(0)
+    , cpu_to_mcu_time_offset(0)
     , init_trigger_done(false) {
 
     int rc;
@@ -352,6 +433,9 @@ CwMcuSensor::CwMcuSensor()
 
     pthread_mutex_unlock(&sys_fs_mutex);
 
+    pthread_create(&sync_time_thread, (const pthread_attr_t *) NULL,
+                    sync_time_thread_run, (void *)this);
+
 }
 
 CwMcuSensor::~CwMcuSensor() {
@@ -507,7 +591,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     what = find_sensor(handle);
 
-    ALOGD("CwMcuSensor::setEnable: [v03-Format Sensor List structure], handle = %d, en = %d,"
+    ALOGD("CwMcuSensor::setEnable: [v04-Enhance timestamp accuracy], handle = %d, en = %d,"
           " what = %d\n", handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -568,12 +652,12 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     int timeout_ms;
     bool dryRun = false;
 
-    ALOGV("CwMcuSensor::batch++: handle = %d, flags = %d, period_ns = %"PRId64", timeout = %"PRId64"\n",
+    ALOGV("CwMcuSensor::batch++: handle = %d, flags = %d, period_ns = %" PRId64 ", timeout = %" PRId64 "\n",
         handle, flags, period_ns, timeout);
 
     what = find_sensor(handle);
-    delay_ms = period_ns/NS_PER_MS;
-    timeout_ms = timeout/NS_PER_MS;
+    delay_ms = period_ns/NS_PER_MS; // int64_t is being dropped to an int type
+    timeout_ms = timeout/NS_PER_MS; // int64_t is being dropped to an int type
 
     if(flags & SENSORS_BATCH_DRY_RUN) {
         dryRun = true;
@@ -632,8 +716,6 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
             ALOGV("CwMcuSensor::batch: set IIO buffer enable = 1\n");
         }
     }
-
-    sync_timestamp_locked();
 
     strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "batch_enable");
 
@@ -702,47 +784,6 @@ int CwMcuSensor::flush(int handle)
 }
 
 
-int CwMcuSensor::sync_timestamp_locked(void) {
-    int fd;
-    char buf[10] = {0};
-    int err;
-
-    strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "flush");
-
-    fd = open(fixed_sysfs_path, O_RDWR);
-    if (fd >= 0) {
-        size_t n = snprintf(buf, sizeof(buf), "%d\n", TIMESTAMP_SYNC_CODE);
-        err = write(fd, buf, min(n, sizeof(buf)));
-        close(fd);
-        if (err < 0) {
-            err = -EIO;
-        } else {
-            l_timestamp = getTimestamp();
-            err = 0;
-        }
-    } else {
-        err = -ENOENT;
-    }
-    return err;
-}
-
-int CwMcuSensor::sync_timestamp(void)
-{
-    int err;
-
-    ALOGV("%s: Before pthread_mutex_lock()\n", __func__);
-    pthread_mutex_lock(&sys_fs_mutex);
-    ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
-
-    err = sync_timestamp_locked();
-
-    pthread_mutex_unlock(&sys_fs_mutex);
-
-    ALOGV("CwMcuSensor::sync_timestamp: path = %s, err = %d\n", fixed_sysfs_path, err);
-
-    return err;
-}
-
 bool CwMcuSensor::hasPendingEvents() const {
     return mPendingMask;
 }
@@ -757,7 +798,7 @@ int CwMcuSensor::setDelay(int32_t handle, int64_t delay_ns) {
     pthread_mutex_lock(&sys_fs_mutex);
     ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
-    ALOGV("CwMcuSensor::setDelay: handle = %"PRId32", delay_ns = %"PRId64"\n",
+    ALOGV("CwMcuSensor::setDelay: handle = %" PRId32 ", delay_ns = %" PRId64 "\n",
             handle, delay_ns);
 
     what = find_sensor(handle);
@@ -828,8 +869,67 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
             count--;
             numEventReceived++;
             ALOGD("CwMcuSensor::readEvents: metadata = %d\n", mPendingEventsFlush.meta_data.sensor);
+        } else if ((id == TIME_DIFF_EXHAUSTED) || (id == CW_TIME_BASE)) {
+            ALOGV("readEvents: id = %d\n", id);
         } else {
-            mPendingEvents[id].timestamp = getTimestamp();
+            /*** The algorithm which parsed mcu_time into cpu_time for each event ***/
+            uint64_t event_mcu_time = mPendingEvents[id].timestamp;
+            uint64_t event_cpu_time;
+            if (offset_changed) {
+                pthread_mutex_lock(&sync_timestamp_algo_mutex);
+                if (cpu_to_mcu_time_offset == 0) {
+                    pthread_mutex_unlock(&sync_timestamp_algo_mutex);
+                    ALOGI("Not syncronized, cpu_to_mcu_time_offset == 0\n");
+                    sync_time_thread_in_class();
+                    pthread_mutex_lock(&sync_timestamp_algo_mutex);
+                }
+                algo_mcu_base = event_mcu_time;
+                algo_cpu_base = algo_mcu_base + cpu_to_mcu_time_offset;
+
+                pthread_mutex_unlock(&sync_timestamp_algo_mutex);
+
+                event_cpu_time = algo_cpu_base;
+                offset_changed = false;
+            } else {
+                pthread_mutex_lock(&sync_timestamp_algo_mutex);
+                if (cpu_divided_by_mcu == 0) {
+                    pthread_mutex_unlock(&sync_timestamp_algo_mutex);
+                    ALOGV("Not syncronized, cpu_divided_by_mcu == 0\n");
+                    sync_time_thread_in_class();
+                    pthread_mutex_lock(&sync_timestamp_algo_mutex);
+                }
+
+                uint64_t algo_mcu_diff = event_mcu_time - algo_mcu_base;
+                uint64_t algo_cpu_diff = algo_mcu_diff * cpu_divided_by_mcu;
+
+                pthread_mutex_unlock(&sync_timestamp_algo_mutex);
+
+                event_cpu_time = algo_cpu_base + algo_cpu_diff;
+            }
+
+            pthread_mutex_lock(&last_timestamp_mutex);
+
+            if ((event_cpu_time - last_timestamp[id]) <= 0) {
+                ALOGV("Filter event which delta_timestamp <= 0, delta = %" PRId64 " us\n",
+                      (event_cpu_time - last_timestamp[id]) / NS_PER_US);
+                event_cpu_time = last_timestamp[id];
+            }
+            ALOGV("readEvents: id = %d,"
+                  " mcu_time = %" PRId64 " ms,"
+                  " cpu_time = %" PRId64 " ns,"
+                  " delta = %" PRId64 " us,"
+                  " HALtime = %" PRId64 " ns\n",
+                  id,
+                  event_mcu_time / NS_PER_MS,
+                  event_cpu_time,
+                  (event_cpu_time - last_timestamp[id]) / NS_PER_US,
+                  getTimestamp());
+            last_timestamp[id] = event_cpu_time;
+            pthread_mutex_unlock(&last_timestamp_mutex);
+            /*** The algorithm which parsed mcu_time into cpu_time for each event ***/
+
+            mPendingEvents[id].timestamp = event_cpu_time;
+
             if (mEnabled & (1<<id)) {
                 if (id == CW_SIGNIFICANT_MOTION) {
                     setEnable(ID_CW_SIGNIFICANT_MOTION, 0);
@@ -860,7 +960,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
     memcpy(bias, &event[7], 6);
     memcpy(&time, &event[13], 8);
 
-    mPendingEvents[sensorsid].timestamp = time;
+    mPendingEvents[sensorsid].timestamp = time * NS_PER_MS;
 
     switch (sensorsid) {
     case CW_ORIENTATION:
@@ -939,19 +1039,6 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;
         mPendingEventsFlush.meta_data.sensor = find_handle(data[0]);
         ALOGV("CW_META_DATA: meta_data.sensor = %d\n", mPendingEventsFlush.meta_data.sensor);
-        break;
-    case CW_SYNC_ACK:
-        if (data[0] == SYNC_ACK_MAGIC) {
-            ALOGV("processEvent: g_timestamp = l_timestamp = %"PRId64"\n", l_timestamp);
-            g_timestamp = l_timestamp;
-        }
-        break;
-    case TIME_DIFF_EXHAUSTED:
-        ALOGV("processEvent: data[0] = 0x%x\n", data[0]);
-        if (data[0] == EXHAUSTED_MAGIC) {
-            ALOGV("processEvent: TIME_DIFF_EXHAUSTED\n");
-            sync_timestamp();
-        }
         break;
     default:
         ALOGW("%s: Unknown sensorsid = %d\n", __func__, sensorsid);
