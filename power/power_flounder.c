@@ -209,12 +209,8 @@ static void flounder_power_hint(struct power_module *module, power_hint_t hint,
         pthread_mutex_lock(&flounder->lock);
         if (data) {
             sysfs_write(CPU_MAX_FREQ_PATH, LOW_POWER_MAX_FREQ);
-            // reduces the refresh rate
-            system("service call SurfaceFlinger 1016 i32 1");
         } else {
             sysfs_write(CPU_MAX_FREQ_PATH, NORMAL_MAX_FREQ);
-            // restores the refresh rate
-            system("service call SurfaceFlinger 1016 i32 0");
         }
         low_power_mode = data;
         pthread_mutex_unlock(&flounder->lock);
