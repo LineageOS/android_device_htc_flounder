@@ -16,8 +16,16 @@
 
 #include <dumpstate.h>
 
+#ifdef HAS_DENVER_UID_CHECK
+extern int denver_uid_check(void);
+#endif
+
 void dumpstate_board()
 {
+#ifdef HAS_DENVER_UID_CHECK
+    denver_uid_check();
+#endif
+
     dump_file("soc revision", "/sys/devices/soc0/revision");
     dump_file("soc die_id", "/sys/devices/soc0/soc_id");
     dump_file("bq2419x charger regs", "/d/bq2419x-regs");
