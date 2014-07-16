@@ -25,6 +25,9 @@ LOCAL_C_INCLUDES += \
 	$(call include-path-for, audio-route) \
 	$(call include-path-for, audio-effects)
 
+LOCAL_CFLAGS += -DPREPROCESSING_ENABLED
+LOCAL_CFLAGS += -DHW_AEC_LOOPBACK
+
 LOCAL_MODULE := audio.primary.flounder
 
 LOCAL_MODULE_RELATIVE_PATH := hw
