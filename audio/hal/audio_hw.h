@@ -32,7 +32,16 @@
 
 
 #define OFFLOAD_FX_LIBRARY_PATH "/system/lib/soundfx/libnvidiaoffloadfx.so"
-#define HTC_ACOUSTIC_LIBRARY_PATH "/system/lib/libhtcacoustic.so"
+#define HTC_ACOUSTIC_LIBRARY_PATH "/vendor/lib/libhtcacoustic.so"
+#ifdef PREPROCESSING_ENABLED
+#include <audio_utils/echo_reference.h>
+#define MAX_PREPROCESSORS 3
+struct effect_info_s {
+    effect_handle_t effect_itfe;
+    size_t num_channel_configs;
+    channel_config_t *channel_configs;
+};
+#endif
 
 #define TTY_MODE_OFF    1
 #define TTY_MODE_FULL   2
@@ -93,6 +102,7 @@ enum {
     SND_DEVICE_IN_VOICE_REC_MIC,
     SND_DEVICE_IN_VOICE_REC_DMIC_1,
     SND_DEVICE_IN_VOICE_REC_DMIC_NS_1,
+    SND_DEVICE_IN_LOOPBACK_AEC,
     SND_DEVICE_IN_END,
 
     SND_DEVICE_MAX = SND_DEVICE_IN_END,
@@ -144,7 +154,6 @@ enum {
 #define CAPTURE_PERIOD_COUNT 2
 #define CAPTURE_DEFAULT_CHANNEL_COUNT 2
 #define CAPTURE_DEFAULT_SAMPLING_RATE 48000
-#define CAPTURE_DEFAULT_CHANNEL_COUNT 2
 #define CAPTURE_START_THRESHOLD 1
 
 #define COMPRESS_CARD       2
@@ -273,6 +282,10 @@ struct stream_out {
     int                         send_new_metadata;
 
     struct audio_device*        dev;
+
+#ifdef PREPROCESSING_ENABLED
+    struct echo_reference_itfe *echo_reference;
+#endif
 };
 
 struct stream_in {
@@ -283,7 +296,7 @@ struct stream_in {
     int                                 standby;
     audio_source_t                      source;
     audio_devices_t                     devices;
-    audio_channel_mask_t                channel_mask;
+    uint32_t                            main_channels;
     audio_usecase_t                     usecase;
     bool                                enable_aec;
 
@@ -291,10 +304,34 @@ struct stream_in {
     unsigned int                        requested_rate;
     struct resampler_itfe*              resampler;
     struct resampler_buffer_provider    buf_provider;
-    int16_t*                            buffer;
-    size_t                              buffer_size;
-    size_t                              frames_in;
     int                                 read_status;
+    int16_t*                            read_buf;
+    size_t                              read_buf_size;
+    size_t                              read_buf_frames;
+
+    int16_t *proc_buf_in;
+    int16_t *proc_buf_out;
+    size_t proc_buf_size;
+    size_t proc_buf_frames;
+
+#ifdef PREPROCESSING_ENABLED
+    struct echo_reference_itfe *echo_reference;
+    int16_t *ref_buf;
+    size_t ref_buf_size;
+    size_t ref_buf_frames;
+
+#ifdef HW_AEC_LOOPBACK
+    bool hw_echo_reference;
+    int16_t* hw_ref_buf;
+    size_t hw_ref_buf_size;
+#endif
+
+    int num_preprocessors;
+    struct effect_info_s preprocessors[MAX_PREPROCESSORS];
+
+    bool aux_channels_changed;
+    uint32_t aux_channels;
+#endif
 
     struct audio_device*                dev;
 };
@@ -324,6 +361,7 @@ struct audio_device {
     pthread_mutex_t         lock; /* see note below on mutex acquisition order */
     struct listnode         mixer_list;
     audio_mode_t            mode;
+    struct stream_in*       active_input;
     struct stream_out*      primary_output;
     int                     in_call;
     float                   voice_volume;
@@ -342,12 +380,19 @@ struct audio_device {
     int                     (*offload_fx_start_output)(audio_io_handle_t);
     int                     (*offload_fx_stop_output)(audio_io_handle_t);
 
+#ifdef PREPROCESSING_ENABLED
+    struct echo_reference_itfe* echo_reference;
+#endif
+
     void*                   htc_acoustic_lib;
     int                     (*htc_acoustic_init_rt5506)();
     int                     (*htc_acoustic_set_rt5506_amp)(int, int);
     int                     (*htc_acoustic_set_amp_mode)(int, int, int, int, bool);
 
     int                     tfa9895_init;
+    int                     tfa9895_mode_change;
+    pthread_mutex_t         tfa9895_lock;
+
     int                     dummybuf_thread_timeout;
     int                     dummybuf_thread_cancel;
     int                     dummybuf_thread_active;
