@@ -206,6 +206,10 @@ PRODUCT_PACKAGES += \
     audio.r_submix.default \
     libhtcacoustic
 
+# for sound trigger on DSP
+PRODUCT_PACKAGES += \
+    sound_trigger.primary.flounder
+
 # Allows healthd to boot directly from charger mode rather than initiating a reboot.
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.enable_boot_charger_mode=1
