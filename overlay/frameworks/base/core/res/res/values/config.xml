@@ -215,4 +215,6 @@
          and opening it causes the device to wake up. The default is false. -->
     <bool name="config_lidControlsSleep">true</bool>
 
+    <!-- Is the device capable of hot swapping an UICC Card -->
+    <bool name="config_hotswapCapable">true</bool>
 </resources>
