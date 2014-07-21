@@ -134,7 +134,10 @@ static int vad_load_sound_model(struct flounder_sound_trigger_device *stdev,
                                 char *buf, size_t len)
 {
     struct rt_codec_cmd cmd;
-    int ret;
+    int ret = 0;
+
+    if (!buf || (len == 0))
+        return ret;
 
     cmd.number = len / sizeof(int);
     cmd.buf = (int *)buf;
@@ -295,11 +298,6 @@ static int stdev_load_sound_model(const struct sound_trigger_hw_device *dev,
     ALOGI("%s", __func__);
     pthread_mutex_lock(&stdev->lock);
     if (handle == NULL || sound_model == NULL) {
-        ret = -EINVAL;
-        goto exit;
-    }
-    if (sound_model->data_size == 0 ||
-            sound_model->data_offset < sizeof(struct sound_trigger_sound_model)) {
         ret = -EINVAL;
         goto exit;
     }
