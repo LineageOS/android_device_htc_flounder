@@ -16,7 +16,7 @@
     LtoFileName="lto2.dat"
     LtoDir="/data/gps/"
     HulaEnable="false"
-    WakeLock="false"
+    WakeLock="geo"
   />
 
   <gll
