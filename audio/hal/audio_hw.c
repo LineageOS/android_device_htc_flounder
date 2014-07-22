@@ -287,6 +287,7 @@ static const char * const device_table[SND_DEVICE_MAX] = {
     [SND_DEVICE_IN_VOICE_TTY_FULL_HEADSET_MIC] = "voice-tty-full-headset-mic",
     [SND_DEVICE_IN_VOICE_TTY_VCO_HANDSET_MIC] = "voice-tty-vco-handset-mic",
     [SND_DEVICE_IN_VOICE_TTY_HCO_HEADSET_MIC] = "voice-tty-hco-headset-mic",
+    [SND_DEVICE_IN_VOICE_REC_HEADSET_MIC] = "voice-rec-headset-mic",
     [SND_DEVICE_IN_VOICE_REC_MIC] = "voice-rec-mic",
     [SND_DEVICE_IN_VOICE_REC_DMIC_1] = "voice-rec-dmic-1",
     [SND_DEVICE_IN_VOICE_REC_DMIC_NS_1] = "voice-rec-dmic-ns-1",
@@ -618,6 +619,8 @@ snd_device_t get_input_snd_device(struct audio_device *adev, audio_devices_t out
             if (snd_device == SND_DEVICE_NONE) {
                 snd_device = SND_DEVICE_IN_VOICE_REC_MIC;
             }
+        } else if (in_device & AUDIO_DEVICE_IN_WIRED_HEADSET) {
+            snd_device = SND_DEVICE_IN_VOICE_REC_HEADSET_MIC;
         }
     } else if (source == AUDIO_SOURCE_VOICE_COMMUNICATION || source == AUDIO_SOURCE_MIC) {
         if (out_device & AUDIO_DEVICE_OUT_SPEAKER)
