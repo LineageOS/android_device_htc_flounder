@@ -27,16 +27,23 @@
 #define POWER_SUPPLY_SUBSYSTEM "power_supply"
 #define POWER_SUPPLY_SYSFS_PATH "/sys/class/" POWER_SUPPLY_SUBSYSTEM
 
-#define MAX17050_PATH POWER_SUPPLY_SYSFS_PATH "/battery"
+#define MAX17050_PATH POWER_SUPPLY_SYSFS_PATH "/max17050"
 #define CHARGE_COUNTER_EXT_PATH MAX17050_PATH "/charge_counter_ext"
 
-using namespace android;
+#define PALMAS_VOLTAGE_MONITOR_PATH POWER_SUPPLY_SYSFS_PATH "/palmas_voltage_monitor"
+#define VOLTAGE_MONITOR_PATH PALMAS_VOLTAGE_MONITOR_PATH "/device/voltage_monitor"
 
-int healthd_board_battery_update(struct BatteryProperties *props)
-{
-    // return 0 to log periodic polled battery status to kernel log
-    return 0;
-}
+#define BATTERY_FULL 100
+#define BATTERY_LOW 15
+#define BATTERY_CRITICAL_LOW_MV (3450)
+#define BATTERY_DEAD_MV (3400)
+#define NORMAL_MAX_SOC_DEC (2)
+#define CRITICAL_LOW_FORCE_SOC_DROP (6)
+
+using namespace android;
+static bool first_update_done;
+static int lasttime_soc;
+static unsigned int flounder_monitor_voltage;
 
 static int read_sysfs(const char *path, char *buf, size_t size) {
     char *cp = NULL;
@@ -60,6 +67,27 @@ static int read_sysfs(const char *path, char *buf, size_t size) {
     return count;
 }
 
+static void write_sysfs(const char *path, char *s)
+{
+    char buf[80];
+    int len;
+    int fd = open(path, O_WRONLY);
+
+    if (fd < 0) {
+        strerror_r(errno, buf, sizeof(buf));
+        KLOG_ERROR(LOG_TAG, "Error opening %s: %s\n", path, buf);
+        return;
+    }
+
+    len = write(fd, s, strlen(s));
+    if (len < 0) {
+        strerror_r(errno, buf, sizeof(buf));
+        KLOG_ERROR(LOG_TAG, "Error writing to %s: %s\n", path, buf);
+    }
+
+    close(fd);
+}
+
 static int64_t get_int64_field(const char *path) {
     const int SIZE = 21;
     char buf[SIZE];
@@ -69,6 +97,122 @@ static int64_t get_int64_field(const char *path) {
         value = strtoll(buf, NULL, 0);
     }
     return value;
+}
+
+static void flounder_status_check(struct BatteryProperties *props)
+{
+    if (props->batteryStatus == BATTERY_STATUS_UNKNOWN)
+        props->batteryStatus = BATTERY_STATUS_DISCHARGING;
+}
+
+static void flounder_health_check(struct BatteryProperties *props)
+{
+    if (props->batteryLevel >= BATTERY_FULL)
+        props->batteryHealth = BATTERY_HEALTH_GOOD;
+    else if (props->batteryLevel < BATTERY_LOW)
+        props->batteryHealth = BATTERY_HEALTH_DEAD;
+    else
+        props->batteryHealth = BATTERY_HEALTH_GOOD;
+}
+
+static void flounder_voltage_monitor_check(struct BatteryProperties *props)
+{
+    unsigned int monitor_voltage = 0;
+    int vcell_mv;
+    char voltage[10];
+
+    if (props->batteryStatus != BATTERY_STATUS_CHARGING &&
+        props->batteryStatus != BATTERY_STATUS_FULL && props->batteryLevel > 0) {
+        vcell_mv = props->batteryVoltage / 1000;
+        if (vcell_mv > BATTERY_CRITICAL_LOW_MV)
+            monitor_voltage = BATTERY_CRITICAL_LOW_MV;
+        else if (vcell_mv > BATTERY_DEAD_MV)
+            monitor_voltage = BATTERY_DEAD_MV;
+    }
+
+    if (monitor_voltage != flounder_monitor_voltage) {
+        snprintf(voltage, sizeof(voltage), "%d", monitor_voltage);
+        write_sysfs(VOLTAGE_MONITOR_PATH, voltage);
+        flounder_monitor_voltage = monitor_voltage;
+    }
+}
+
+static void flounder_soc_adjust(struct BatteryProperties *props)
+{
+    int soc_decrease;
+    int soc, vcell_mv;
+
+    if (!first_update_done) {
+        if (props->batteryLevel >= BATTERY_FULL) {
+            props->batteryLevel = BATTERY_FULL - 1;
+            lasttime_soc = BATTERY_FULL - 1;
+        } else {
+            lasttime_soc = props->batteryLevel;
+        }
+        first_update_done = true;
+    }
+
+    if (props->batteryLevel == BATTERY_STATUS_FULL)
+        soc = BATTERY_FULL;
+    else if (props->batteryLevel >= BATTERY_FULL &&
+             lasttime_soc < BATTERY_FULL &&
+             props->batteryStatus != BATTERY_STATUS_FULL)
+        soc = BATTERY_FULL - 1;
+    else
+        soc = props->batteryLevel;
+
+    if (props->batteryLevel > BATTERY_FULL)
+        props->batteryLevel = BATTERY_FULL;
+    else if (props->batteryLevel < 0)
+        props->batteryLevel = 0;
+
+    vcell_mv = props->batteryVoltage / 1000;
+    if (props->batteryStatus == BATTERY_STATUS_DISCHARGING ||
+        props->batteryStatus == BATTERY_STATUS_UNKNOWN) {
+        if (vcell_mv >= BATTERY_CRITICAL_LOW_MV) {
+            soc_decrease = lasttime_soc - soc;
+            if (soc_decrease < 0) {
+                soc = lasttime_soc;
+                goto done;
+            }
+
+            if (soc_decrease < 0)
+                soc_decrease = 0;
+            else if (soc_decrease > NORMAL_MAX_SOC_DEC)
+                soc_decrease = NORMAL_MAX_SOC_DEC;
+
+            soc = lasttime_soc - soc_decrease;
+        } else if (vcell_mv < BATTERY_DEAD_MV) {
+            soc = 0;
+        } else {
+            soc_decrease = CRITICAL_LOW_FORCE_SOC_DROP;
+            if (lasttime_soc <= soc_decrease)
+               soc = 0;
+            else
+                soc = lasttime_soc - soc_decrease;
+        }
+    } else if (soc > lasttime_soc) {
+        soc = lasttime_soc + 1;
+    }
+done:
+    props->batteryLevel = soc;
+}
+
+static void flounder_bat_monitor(struct BatteryProperties *props)
+{
+    flounder_soc_adjust(props);
+    flounder_health_check(props);
+    flounder_status_check(props);
+    flounder_voltage_monitor_check(props);
+}
+
+int healthd_board_battery_update(struct BatteryProperties *props)
+{
+
+    flounder_bat_monitor(props);
+
+    // return 0 to log periodic polled battery status to kernel log
+    return 0;
 }
 
 static int flounder_energy_counter(int64_t *energy)
