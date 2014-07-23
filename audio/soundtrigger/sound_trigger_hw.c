@@ -233,8 +233,10 @@ static void *callback_thread_loop(void *context)
 
         if (fds[0].revents & POLLIN) {
             n = uevent_kernel_multicast_recv(fds[0].fd, msg, UEVENT_MSG_LEN);
-            if (n <= 0)
+            if (n <= 0) {
+                pthread_mutex_unlock(&stdev->lock);
                 continue;
+            }
             for (i=0; i < n;) {
                 if (strstr(msg + i, "HOTWORD")) {
                     struct sound_trigger_phrase_recognition_event *event;
@@ -252,9 +254,11 @@ static void *callback_thread_loop(void *context)
                 }
                 i += strlen(msg + i) + 1;
             }
-        } else {
+        } else if (fds[1].revents & POLLIN) {
             ALOGI("%s: Termination message", __func__);
             break;
+        } else {
+            ALOGI("%s: Message to ignore", __func__);
         }
         pthread_mutex_unlock(&stdev->lock);
     }
