@@ -16,6 +16,8 @@
 
 # Use the non-open-source parts, if they're present
 -include vendor/htc/flounder/BoardConfigVendor.mk
+# Build a separate vendor.img
+TARGET_COPY_OUT_VENDOR := vendor
 
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
