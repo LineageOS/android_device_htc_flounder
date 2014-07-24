@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <cutils/klog.h>
 #include <sys/types.h>
+#include <sys/sysinfo.h>
 
 /* Nominal voltage for ENERGY_COUNTER computation */
 #define VOLTAGE_NOMINAL 3.7
@@ -39,11 +40,14 @@
 #define BATTERY_DEAD_MV (3400)
 #define NORMAL_MAX_SOC_DEC (2)
 #define CRITICAL_LOW_FORCE_SOC_DROP (6)
+#define UPDATE_PERIOD_MINIMUM_S (55)
 
 using namespace android;
 static bool first_update_done;
 static int lasttime_soc;
 static unsigned int flounder_monitor_voltage;
+static long last_update_time;
+static bool force_decrease;
 
 static int read_sysfs(const char *path, char *buf, size_t size) {
     char *cp = NULL;
@@ -103,6 +107,9 @@ static void flounder_status_check(struct BatteryProperties *props)
 {
     if (props->batteryStatus == BATTERY_STATUS_UNKNOWN)
         props->batteryStatus = BATTERY_STATUS_DISCHARGING;
+    else if (props->batteryStatus == BATTERY_STATUS_FULL &&
+        props->batteryLevel < BATTERY_FULL)
+        props->batteryStatus = BATTERY_STATUS_CHARGING;
 }
 
 static void flounder_health_check(struct BatteryProperties *props)
@@ -123,7 +130,7 @@ static void flounder_voltage_monitor_check(struct BatteryProperties *props)
 
     if (props->batteryStatus != BATTERY_STATUS_CHARGING &&
         props->batteryStatus != BATTERY_STATUS_FULL && props->batteryLevel > 0) {
-        vcell_mv = props->batteryVoltage / 1000;
+        vcell_mv = props->batteryVoltage;
         if (vcell_mv > BATTERY_CRITICAL_LOW_MV)
             monitor_voltage = BATTERY_CRITICAL_LOW_MV;
         else if (vcell_mv > BATTERY_DEAD_MV)
@@ -141,6 +148,16 @@ static void flounder_soc_adjust(struct BatteryProperties *props)
 {
     int soc_decrease;
     int soc, vcell_mv;
+    struct sysinfo info;
+    long uptime = 0;
+    int ret;
+
+    ret = sysinfo(&info);
+    if (ret) {
+       KLOG_ERROR(LOG_TAG, "Fail to get sysinfo!!\n");
+       uptime = last_update_time;
+    } else
+       uptime = info.uptime;
 
     if (!first_update_done) {
         if (props->batteryLevel >= BATTERY_FULL) {
@@ -149,14 +166,14 @@ static void flounder_soc_adjust(struct BatteryProperties *props)
         } else {
             lasttime_soc = props->batteryLevel;
         }
+        last_update_time = uptime;
         first_update_done = true;
     }
 
-    if (props->batteryLevel == BATTERY_STATUS_FULL)
+    if (props->batteryStatus == BATTERY_STATUS_FULL)
         soc = BATTERY_FULL;
     else if (props->batteryLevel >= BATTERY_FULL &&
-             lasttime_soc < BATTERY_FULL &&
-             props->batteryStatus != BATTERY_STATUS_FULL)
+             lasttime_soc < BATTERY_FULL)
         soc = BATTERY_FULL - 1;
     else
         soc = props->batteryLevel;
@@ -166,12 +183,20 @@ static void flounder_soc_adjust(struct BatteryProperties *props)
     else if (props->batteryLevel < 0)
         props->batteryLevel = 0;
 
-    vcell_mv = props->batteryVoltage / 1000;
+    vcell_mv = props->batteryVoltage;
     if (props->batteryStatus == BATTERY_STATUS_DISCHARGING ||
+        props->batteryStatus == BATTERY_STATUS_NOT_CHARGING ||
         props->batteryStatus == BATTERY_STATUS_UNKNOWN) {
         if (vcell_mv >= BATTERY_CRITICAL_LOW_MV) {
+            force_decrease = false;
             soc_decrease = lasttime_soc - soc;
             if (soc_decrease < 0) {
+                soc = lasttime_soc;
+                goto done;
+            }
+
+            if (uptime > last_update_time &&
+                uptime - last_update_time <= UPDATE_PERIOD_MINIMUM_S) {
                 soc = lasttime_soc;
                 goto done;
             }
@@ -185,17 +210,28 @@ static void flounder_soc_adjust(struct BatteryProperties *props)
         } else if (vcell_mv < BATTERY_DEAD_MV) {
             soc = 0;
         } else {
+            if (force_decrease &&
+                uptime > last_update_time &&
+                uptime - last_update_time <= UPDATE_PERIOD_MINIMUM_S) {
+                soc = lasttime_soc;
+                goto done;
+            }
+
             soc_decrease = CRITICAL_LOW_FORCE_SOC_DROP;
             if (lasttime_soc <= soc_decrease)
                soc = 0;
             else
                 soc = lasttime_soc - soc_decrease;
+            force_decrease = true;
         }
-    } else if (soc > lasttime_soc) {
-        soc = lasttime_soc + 1;
+    } else {
+        force_decrease = false;
+        if (soc > lasttime_soc)
+            soc = lasttime_soc + 1;
     }
+    last_update_time = uptime;
 done:
-    props->batteryLevel = soc;
+    props->batteryLevel = lasttime_soc = soc;
 }
 
 static void flounder_bat_monitor(struct BatteryProperties *props)
