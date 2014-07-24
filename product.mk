@@ -17,10 +17,6 @@
 # based on the flounder device
 #
 
-# (TODO): Remove this hack once all devices in the source tree
-# have switched to a separate vendor.img.
-TARGET_COPY_OUT_VENDOR := vendor
-
 PRODUCT_RUNTIMES := runtime_libart_default
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
