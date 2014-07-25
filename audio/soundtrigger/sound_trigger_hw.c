@@ -255,6 +255,7 @@ static void *callback_thread_loop(void *context)
                 i += strlen(msg + i) + 1;
             }
         } else if (fds[1].revents & POLLIN) {
+            read(fds[1].fd, &n, sizeof(n)); /* clear the socket */
             ALOGI("%s: Termination message", __func__);
             break;
         } else {
