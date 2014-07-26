@@ -145,11 +145,8 @@ endif
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 # NFC packages
-# Note: NFC HAL is built with $(TARGET_DEVICE), so this
-# includes both flounder and flounder64 HALs to support both
 PRODUCT_PACKAGES += \
-    nfc_nci.flounder \
-    nfc_nci.flounder64 \
+    nfc_nci.bcm2079x.default \
     NfcNci \
     Tag \
 
