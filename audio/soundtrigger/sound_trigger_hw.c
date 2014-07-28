@@ -256,7 +256,7 @@ static void *callback_thread_loop(void *context)
             }
         } else if (fds[1].revents & POLLIN) {
             read(fds[1].fd, &n, sizeof(n)); /* clear the socket */
-            ALOGI("%s: Termination message", __func__);
+            ALOGI("%s: Termination message: %d", __func__, n);
             break;
         } else {
             ALOGI("%s: Message to ignore", __func__);
@@ -345,6 +345,7 @@ static int stdev_unload_sound_model(const struct sound_trigger_hw_device *dev,
     stdev->model_handle = 0;
     if (stdev->recognition_callback != NULL) {
         stdev->recognition_callback = NULL;
+        ALOGI("%s: Sending T", __func__);
         write(stdev->send_sock, "T", 1);
         pthread_mutex_unlock(&stdev->lock);
 
@@ -406,6 +407,7 @@ static int stdev_stop_recognition(const struct sound_trigger_hw_device *dev,
         goto exit;
     }
     stdev->recognition_callback = NULL;
+    ALOGI("%s: Sending T", __func__);
     write(stdev->send_sock, "T", 1);
     pthread_mutex_unlock(&stdev->lock);
 
