@@ -88,12 +88,13 @@ static void power_init(struct power_module __unused *module)
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time",
                 "80000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq",
-                "624000");
+                "1020000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
                 "99");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads", "65 228000:75 624000:85");
+    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads",
+                "65 228000:75 624000:85 1400000:95");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
-                "20000");
+                "20000 1400000:40000 2000000:60000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration",
                 BOOST_PULSE_DURATION_STR);
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/io_is_busy", "0");
