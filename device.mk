@@ -202,7 +202,8 @@ PRODUCT_PACKAGES += \
     audio.a2dp.default \
     audio.usb.default \
     audio.r_submix.default \
-    libhtcacoustic
+    libhtcacoustic \
+    libnvvisualizer
 
 # for sound trigger on DSP
 PRODUCT_PACKAGES += \
