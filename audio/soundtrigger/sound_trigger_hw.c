@@ -84,7 +84,6 @@ enum {
 
 static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
 {
-    int exit_sockets[2];
     int ret = -1;
 
     stdev->vad_fd = open(FLOUNDER_VAD_DEV, O_RDWR);
@@ -105,12 +104,6 @@ static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
     if (!stdev->ctl_dsp)
         goto err;
 
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, exit_sockets) == -1)
-        goto err;
-
-    stdev->send_sock = exit_sockets[0];
-    stdev->term_sock = exit_sockets[1];
-
     return 0;
 
 err:
@@ -120,12 +113,23 @@ err:
     return ret;
 }
 
+static void stdev_close_term_sock(struct flounder_sound_trigger_device *stdev)
+{
+    if (stdev->send_sock >=0) {
+        close(stdev->send_sock);
+        stdev->send_sock = -1;
+    }
+    if (stdev->term_sock >=0) {
+        close(stdev->term_sock);
+        stdev->term_sock = -1;
+    }
+}
+
 static void stdev_close_mixer(struct flounder_sound_trigger_device *stdev)
 {
     if (stdev) {
         mixer_close(stdev->mixer);
-        close(stdev->send_sock);
-        close(stdev->term_sock);
+        stdev_close_term_sock(stdev);
         close(stdev->vad_fd);
     }
 }
@@ -198,6 +202,7 @@ static void *callback_thread_loop(void *context)
     struct flounder_sound_trigger_device *stdev =
                (struct flounder_sound_trigger_device *)context;
     struct pollfd fds[2];
+    int exit_sockets[2];
     int err = 0;
     int i, n;
 
@@ -207,6 +212,13 @@ static void *callback_thread_loop(void *context)
     pthread_mutex_lock(&stdev->lock);
     if (stdev->recognition_callback == NULL)
         goto exit;
+
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, exit_sockets) == -1)
+        goto exit;
+
+    stdev_close_term_sock(stdev);
+    stdev->send_sock = exit_sockets[0];
+    stdev->term_sock = exit_sockets[1];
 
     memset(fds, 0, 2 * sizeof(struct pollfd));
     fds[0].events = POLLIN;
@@ -269,6 +281,8 @@ found:
 
 exit:
     stdev->recognition_callback = NULL;
+    stdev_close_term_sock(stdev);
+
     mixer_ctl_set_value(stdev->ctl_dsp, 0, 0);
     mixer_ctl_set_value(stdev->ctl_mic, 0, 0);
 
@@ -346,7 +360,8 @@ static int stdev_unload_sound_model(const struct sound_trigger_hw_device *dev,
     if (stdev->recognition_callback != NULL) {
         stdev->recognition_callback = NULL;
         ALOGI("%s: Sending T", __func__);
-        write(stdev->send_sock, "T", 1);
+        if (stdev->send_sock >=0)
+            write(stdev->send_sock, "T", 1);
         pthread_mutex_unlock(&stdev->lock);
 
         pthread_join(stdev->callback_thread, (void **)NULL);
@@ -408,7 +423,8 @@ static int stdev_stop_recognition(const struct sound_trigger_hw_device *dev,
     }
     stdev->recognition_callback = NULL;
     ALOGI("%s: Sending T", __func__);
-    write(stdev->send_sock, "T", 1);
+    if (stdev->send_sock >=0)
+        write(stdev->send_sock, "T", 1);
     pthread_mutex_unlock(&stdev->lock);
 
     pthread_join(stdev->callback_thread, (void **)NULL);
@@ -455,6 +471,8 @@ static int stdev_open(const hw_module_t *module, const char *name,
     stdev->device.stop_recognition = stdev_stop_recognition;
 
     pthread_mutex_init(&stdev->lock, (const pthread_mutexattr_t *)NULL);
+
+    stdev->send_sock = stdev->term_sock = -1;
 
     ret = stdev_init_mixer(stdev);
     if (ret) {
