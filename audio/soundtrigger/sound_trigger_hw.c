@@ -69,6 +69,7 @@ struct flounder_sound_trigger_device {
     struct mixer *mixer;
     struct mixer_ctl *ctl_dsp;
     struct mixer_ctl *ctl_mic;
+    struct sound_trigger_recognition_config *config;
 };
 
 struct rt_codec_cmd {
@@ -188,6 +189,17 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
     event->phrase_extras[0].num_levels = 1;
     event->phrase_extras[0].levels[0].level = 100;
     event->phrase_extras[0].levels[0].user_id = 0;
+
+    if (stdev->config) {
+        unsigned int i;
+
+        event->num_phrases = stdev->config->num_phrases;
+        if (event->num_phrases > SOUND_TRIGGER_MAX_PHRASES)
+            event->num_phrases = SOUND_TRIGGER_MAX_PHRASES;
+        for (i=0; i < event->num_phrases; i++)
+            memcpy(&event->phrase_extras[i], &stdev->config->phrases[i],
+                   sizeof(struct sound_trigger_phrase_recognition_extra));
+    }
     event->common.data_offset =
                     sizeof(struct sound_trigger_phrase_recognition_event);
     event->common.data_size = FLOUNDER_MIC_BUF_SIZE;
@@ -357,6 +369,8 @@ static int stdev_unload_sound_model(const struct sound_trigger_hw_device *dev,
         goto exit;
     }
     stdev->model_handle = 0;
+    free(stdev->config);
+    stdev->config = NULL;
     if (stdev->recognition_callback != NULL) {
         stdev->recognition_callback = NULL;
         ALOGI("%s: Sending T", __func__);
@@ -376,7 +390,7 @@ exit:
 
 static int stdev_start_recognition(const struct sound_trigger_hw_device *dev,
                                    sound_model_handle_t sound_model_handle,
-                                   const struct sound_trigger_recognition_config *config __unused,
+                                   const struct sound_trigger_recognition_config *config,
                                    recognition_callback_t callback,
                                    void *cookie)
 {
@@ -393,6 +407,17 @@ static int stdev_start_recognition(const struct sound_trigger_hw_device *dev,
     if (stdev->recognition_callback != NULL) {
         status = -ENOSYS;
         goto exit;
+    }
+
+    free(stdev->config);
+    stdev->config = NULL;
+    if (config) {
+        stdev->config = malloc(sizeof(*config));
+        if (!stdev->config) {
+            status = -ENOMEM;
+            goto exit;
+        }
+        memcpy(stdev->config, config, sizeof(*config));
     }
 
     stdev->recognition_callback = callback;
@@ -421,6 +446,8 @@ static int stdev_stop_recognition(const struct sound_trigger_hw_device *dev,
         status = -ENOSYS;
         goto exit;
     }
+    free(stdev->config);
+    stdev->config = NULL;
     stdev->recognition_callback = NULL;
     ALOGI("%s: Sending T", __func__);
     if (stdev->send_sock >=0)
