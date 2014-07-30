@@ -151,7 +151,8 @@ enum {
 
 #define PLAYBACK_HDMI_DEFAULT_CHANNEL_COUNT   2
 
-#define CAPTURE_PERIOD_SIZE 256
+#define CAPTURE_PERIOD_SIZE 1024
+#define CAPTURE_PERIOD_SIZE_LOW_LATENCY 256
 #define CAPTURE_PERIOD_COUNT 2
 #define CAPTURE_DEFAULT_CHANNEL_COUNT 2
 #define CAPTURE_DEFAULT_SAMPLING_RATE 48000
@@ -300,6 +301,7 @@ struct stream_in {
     uint32_t                            main_channels;
     audio_usecase_t                     usecase;
     bool                                enable_aec;
+    audio_input_flags_t                 input_flags;
 
     /* TODO: remove resampler if possible when AudioFlinger supports downsampling from 48 to 8 */
     unsigned int                        requested_rate;

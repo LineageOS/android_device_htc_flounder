@@ -1229,6 +1229,12 @@ static int get_hw_echo_reference(struct stream_in *in)
             return -EINVAL;
         }
 
+        if (in->input_flags & AUDIO_INPUT_FLAG_FAST) {
+            ALOGV("%s: change capture period size to low latency size %d",
+                  __func__, CAPTURE_PERIOD_SIZE_LOW_LATENCY);
+            ref_pcm_profile->config.period_size = CAPTURE_PERIOD_SIZE_LOW_LATENCY;
+        }
+
         ref_device = (struct pcm_device *)calloc(1, sizeof(struct pcm_device));
         ref_device->pcm_profile = ref_pcm_profile;
 
@@ -1982,6 +1988,12 @@ int start_input_stream(struct stream_in *in)
         goto error_config;
     }
 
+    if (in->input_flags & AUDIO_INPUT_FLAG_FAST) {
+        ALOGV("%s: change capture period size to low latency size %d",
+              __func__, CAPTURE_PERIOD_SIZE_LOW_LATENCY);
+        pcm_profile->config.period_size = CAPTURE_PERIOD_SIZE_LOW_LATENCY;
+    }
+
     uc_info = (struct audio_usecase *)calloc(1, sizeof(struct audio_usecase));
     uc_info->id = in->usecase;
     uc_info->type = PCM_CAPTURE;
@@ -2064,10 +2076,10 @@ int start_input_stream(struct stream_in *in)
      * The HW is limited to support only the default pcm_profile settings.
      * As such a change in aux_channels will not have an effect.
      */
-    ALOGV("%s: Opening PCM device card_id(%d) device_id(%d), channels %d, smp rate %d format %d",
-          __func__, pcm_device->pcm_profile->card, pcm_device->pcm_profile->id,
+    ALOGV("%s: Opening PCM device card_id(%d) device_id(%d), channels %d, smp rate %d format %d, \
+          period_size %d", __func__, pcm_device->pcm_profile->card, pcm_device->pcm_profile->id,
           pcm_device->pcm_profile->config.channels,pcm_device->pcm_profile->config.rate,
-          pcm_device->pcm_profile->config.format);
+          pcm_device->pcm_profile->config.format, pcm_device->pcm_profile->config.period_size);
 
     pcm_device->pcm = pcm_open(pcm_device->pcm_profile->card, pcm_device->pcm_profile->id,
                        PCM_IN | PCM_MONOTONIC, &pcm_device->pcm_profile->config);
@@ -4049,7 +4061,7 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
                                   audio_devices_t devices,
                                   struct audio_config *config,
                                   struct audio_stream_in **stream_in,
-                                  audio_input_flags_t flags __unused,
+                                  audio_input_flags_t flags,
                                   const char *address __unused,
                                   audio_source_t source __unused)
 {
@@ -4092,7 +4104,9 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
     in->standby = 1;
     in->main_channels = config->channel_mask;
     in->requested_rate = config->sample_rate;
-
+    if (config->sample_rate != CAPTURE_DEFAULT_SAMPLING_RATE)
+        flags = flags & ~AUDIO_INPUT_FLAG_FAST;
+    in->input_flags = flags;
     /* HW codec is limited to default channels. No need to update with
      * requested channels */
     in->config = pcm_profile->config;
