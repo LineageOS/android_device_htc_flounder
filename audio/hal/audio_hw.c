@@ -4256,7 +4256,7 @@ static void *dummybuf_thread(void *context)
         }
 
         pthread_mutex_unlock(&adev->dummybuf_thread_lock);
-        usleep(10000);
+        usleep(3000);
     }
 
     return NULL;
@@ -4264,7 +4264,7 @@ static void *dummybuf_thread(void *context)
 
 static void dummybuf_thread_open(struct audio_device *adev)
 {
-    adev->dummybuf_thread_timeout = 6000; /* in 10s ms */
+    adev->dummybuf_thread_timeout = 6000; /* in 18 sec */
     adev->dummybuf_thread_cancel = 0;
     adev->dummybuf_thread_active = 0;
     pthread_mutex_init(&adev->dummybuf_thread_lock, (const pthread_mutexattr_t *) NULL);
