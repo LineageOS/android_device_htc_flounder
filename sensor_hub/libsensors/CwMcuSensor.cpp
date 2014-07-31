@@ -48,6 +48,8 @@
 #define IIO_MAX_NAME_LENGTH 30
 #define INT32_CHAR_LEN 12
 
+#define INIT_TRIGGER_RETRY 5
+
 static const char iio_dir[] = "/sys/bus/iio/devices/";
 
 static int chomp(char *buf, size_t len) {
@@ -362,6 +364,8 @@ CwMcuSensor::CwMcuSensor()
     }
 
     if (data_fd >= 0) {
+        int i;
+
         ALOGV("%s: 11 Before pthread_mutex_lock()\n", __func__);
         pthread_mutex_lock(&sys_fs_mutex);
         ALOGV("%s: 11 Acquired pthread_mutex_lock()\n", __func__);
@@ -375,20 +379,34 @@ CwMcuSensor::CwMcuSensor()
                  device_name, dev_num);
         ALOGV("CwMcuSensor::CwMcuSensor: mTriggerName = %s\n", mTriggerName);
 
+        if (sysfs_set_input_attr_by_int("buffer/enable", 0) < 0) {
+            ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed00: %s\n",
+                  strerror(errno));
+        }
+
         if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0)
             ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer length failed: %s\n", strerror(errno));
 
-        rc = sysfs_set_input_attr("trigger/current_trigger",
-                                  mTriggerName, strlen(mTriggerName));
-        if (rc < 0) {
-            ALOGE("CwMcuSensor::CwMcuSensor: set current trigger failed: rc = %d, strerr() = %s\n",
-                  rc, strerror(errno));
-        } else {
-            init_trigger_done = true;
+        // This is a piece of paranoia that retry for current_trigger
+        for (i = 0; i < INIT_TRIGGER_RETRY; i++) {
+            rc = sysfs_set_input_attr("trigger/current_trigger",
+                                      mTriggerName, strlen(mTriggerName));
+            if (rc < 0) {
+                if (sysfs_set_input_attr_by_int("buffer/enable", 0) < 0) {
+                    ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed11: %s\n",
+                          strerror(errno));
+                }
+                ALOGE("CwMcuSensor::CwMcuSensor: set current trigger failed: rc = %d, strerr() = %s"
+                      ", i = %d\n",
+                      rc, strerror(errno), i);
+            } else {
+                init_trigger_done = true;
+                break;
+            }
         }
 
         if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
-            ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed: %s\n", strerror(errno));
+            ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed22: %s\n", strerror(errno));
         }
 
         pthread_mutex_unlock(&sys_fs_mutex);
@@ -591,8 +609,9 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     what = find_sensor(handle);
 
-    ALOGD("CwMcuSensor::setEnable: [v04-Enhance timestamp accuracy], handle = %d, en = %d,"
-          " what = %d\n", handle, en, what);
+    ALOGD("CwMcuSensor::setEnable: "
+          "[v05-Fix init trigger iio device fails], handle = %d, en = %d, what = %d\n",
+          handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
         pthread_mutex_unlock(&sys_fs_mutex);
