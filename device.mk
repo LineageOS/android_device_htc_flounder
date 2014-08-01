@@ -120,6 +120,23 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/bcm/lib64/gps.bcm47521.so:system/lib64/hw/gps.bcm47521.so \
     $(LOCAL_PATH)/gps/bcm/gps.bcm47521.so:system/lib/hw/gps.bcm47521.so
 
+# GPS: QCT MODULES
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/gps/qct/gps.conf:system/etc/gps.conf \
+    $(LOCAL_PATH)/gps/qct/SuplRootCert:system/etc/SuplRootCert \
+    $(LOCAL_PATH)/gps/qct/libgeofence.so:system/lib/libgeofence.so \
+    $(LOCAL_PATH)/gps/qct/libloc_api_v02.so:system/lib/libloc_api_v02.so \
+    $(LOCAL_PATH)/gps/qct/libloc_ds_api.so:system/lib/libloc_ds_api.so \
+    $(LOCAL_PATH)/gps/qct/lib64/libgeofence.so:system/lib64/libgeofence.so \
+    $(LOCAL_PATH)/gps/qct/lib64/libloc_api_v02.so:system/lib64/libloc_api_v02.so \
+    $(LOCAL_PATH)/gps/qct/lib64/libloc_ds_api.so:system/lib64/libloc_ds_api.so
+
+PRODUCT_PACKAGES += \
+    gps.default \
+    libloc_core \
+    libloc_eng \
+    libgps.utils
+
 # NFC feature + config files
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.nfc.xml:system/etc/permissions/android.hardware.nfc.xml \
@@ -181,7 +198,8 @@ PRODUCT_PROPERTY_OVERRIDES := \
     ro.hwui.text_large_cache_height=1024 \
     ro.hwui.disable_scissor_opt=true \
     ro.bt.bdaddr_path=/sys/module/flounder_bdaddress/parameters/bdaddress \
-    ro.frp.pst=/dev/block/platform/sdhci-tegra.3/by-name/PST
+    ro.frp.pst=/dev/block/platform/sdhci-tegra.3/by-name/PST \
+    ro.ril.def.agps.mode=1
 
 # setup dalvik vm configs.
 $(call inherit-product, frameworks/native/build/tablet-10in-xhdpi-2048-dalvik-heap.mk)
