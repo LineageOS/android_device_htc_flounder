@@ -158,32 +158,12 @@ struct pcm_device_profile pcm_device_capture_sco = {
     .devices = AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET,
 };
 
-struct pcm_device_profile pcm_device_playback_hdmi = {
-    .config = {
-        .channels = PLAYBACK_HDMI_MULTI_DEFAULT_CHANNEL_COUNT,
-        .rate = PLAYBACK_DEFAULT_SAMPLING_RATE,
-        .period_size = PLAYBACK_HDMI_MULTI_PERIOD_SIZE,
-        .period_count = PLAYBACK_HDMI_MULTI_PERIOD_COUNT,
-        .format = PCM_FORMAT_S16_LE,
-        .start_threshold = PLAYBACK_HDMI_MULTI_START_THRESHOLD,
-        .stop_threshold = PLAYBACK_HDMI_MULTI_STOP_THRESHOLD,
-        .silence_threshold = 0,
-        .avail_min = PLAYBACK_HDMI_MULTI_AVAILABLE_MIN,
-    },
-    .card = HDMI_CARD,
-    .id = 3,
-    .type = PCM_PLAYBACK,
-    .devices = AUDIO_DEVICE_OUT_AUX_DIGITAL,
-};
-
-
 struct pcm_device_profile *pcm_devices[] = {
     &pcm_device_playback_hs,
     &pcm_device_capture,
     &pcm_device_playback_spk,
     &pcm_device_playback_sco,
     &pcm_device_capture_sco,
-    &pcm_device_playback_hdmi,
     &pcm_device_capture_loopback_aec,
     NULL,
 };
@@ -355,7 +335,7 @@ int mixer_init(struct audio_device *adev)
                 mixer = mixer_open(card);
                 if (mixer == NULL) {
                     if (++retry_num > RETRY_NUMBER) {
-                        ALOGE("%s unable to open the mixer for card %d, aborting.",
+                        ALOGE("%s unable to open the mixer for--card %d, aborting.",
                               __func__, card);
                         goto error;
                     }
@@ -504,9 +484,6 @@ snd_device_t get_output_snd_device(struct audio_device *adev, audio_devices_t de
         } else if (devices == (AUDIO_DEVICE_OUT_WIRED_HEADSET |
                                AUDIO_DEVICE_OUT_SPEAKER)) {
             snd_device = SND_DEVICE_OUT_SPEAKER_AND_HEADPHONES;
-        } else if (devices == (AUDIO_DEVICE_OUT_AUX_DIGITAL |
-                               AUDIO_DEVICE_OUT_SPEAKER)) {
-            snd_device = SND_DEVICE_OUT_SPEAKER_AND_HDMI;
         } else {
             ALOGE("%s: Invalid combo device(%#x)", __func__, devices);
             goto exit;
@@ -531,8 +508,6 @@ snd_device_t get_output_snd_device(struct audio_device *adev, audio_devices_t de
             snd_device = SND_DEVICE_OUT_SPEAKER;
     } else if (devices & AUDIO_DEVICE_OUT_ALL_SCO) {
         snd_device = SND_DEVICE_OUT_BT_SCO;
-    } else if (devices & AUDIO_DEVICE_OUT_AUX_DIGITAL) {
-        snd_device = SND_DEVICE_OUT_HDMI ;
     } else if (devices & AUDIO_DEVICE_OUT_EARPIECE) {
         snd_device = SND_DEVICE_OUT_HANDSET;
     } else {
@@ -679,8 +654,6 @@ snd_device_t get_input_snd_device(struct audio_device *adev, audio_devices_t out
             snd_device = SND_DEVICE_IN_HANDSET_MIC;
         } else if (out_device & AUDIO_DEVICE_OUT_BLUETOOTH_SCO_HEADSET) {
             snd_device = SND_DEVICE_IN_BT_SCO_MIC;
-        } else if (out_device & AUDIO_DEVICE_OUT_AUX_DIGITAL) {
-            snd_device = SND_DEVICE_IN_HDMI_MIC;
         } else {
             ALOGE("%s: Unknown output device(s) %#x", __func__, out_device);
             ALOGW("%s: Using default handset-mic", __func__);
@@ -781,34 +754,6 @@ static int disable_snd_device(struct audio_device *adev,
         }
     }
     return 0;
-}
-
-/* must be called with hw device mutex locked */
-static int read_hdmi_channel_masks(struct stream_out *out)
-{
-    int ret = 0;
-    int channels = edid_get_max_channels(out->dev);
-
-    switch (channels) {
-        /*
-         * Do not handle stereo output in Multi-channel cases
-         * Stereo case is handled in normal playback path
-         */
-    case 6:
-        ALOGV("%s: HDMI supports 5.1", __func__);
-        out->supported_channel_masks[0] = AUDIO_CHANNEL_OUT_5POINT1;
-        break;
-    case 8:
-        ALOGV("%s: HDMI supports 5.1 and 7.1 channels", __func__);
-        out->supported_channel_masks[0] = AUDIO_CHANNEL_OUT_5POINT1;
-        out->supported_channel_masks[1] = AUDIO_CHANNEL_OUT_7POINT1;
-        break;
-    default:
-        ALOGE("HDMI does not support multi channel playback");
-        ret = -ENOSYS;
-        break;
-    }
-    return ret;
 }
 
 static int select_devices(struct audio_device *adev,
@@ -2260,58 +2205,6 @@ static int destroy_offload_callback_thread(struct stream_out *out)
     return 0;
 }
 
-static bool allow_hdmi_channel_config(struct audio_device *adev)
-{
-    struct listnode *node;
-    struct audio_usecase *usecase;
-    bool ret = true;
-
-    list_for_each(node, &adev->usecase_list) {
-        usecase = node_to_item(node, struct audio_usecase, adev_list_node);
-        if (usecase->devices & AUDIO_DEVICE_OUT_AUX_DIGITAL) {
-            /*
-             * If voice call is already existing, do not proceed further to avoid
-             * disabling/enabling both RX and TX devices, CSD calls, etc.
-             * Once the voice call done, the HDMI channels can be configured to
-             * max channels of remaining use cases.
-             */
-            if (usecase->id == USECASE_VOICE_CALL) {
-                ALOGD("%s: voice call is active, no change in HDMI channels",
-                      __func__);
-                ret = false;
-                break;
-            } else if (usecase->id == USECASE_AUDIO_PLAYBACK_MULTI_CH) {
-                ALOGD("%s: multi channel playback is active, "
-                      "no change in HDMI channels", __func__);
-                ret = false;
-                break;
-            }
-        }
-    }
-    return ret;
-}
-
-static int check_and_set_hdmi_channels(struct audio_device *adev,
-                                       unsigned int channels)
-{
-    struct listnode *node;
-    struct audio_usecase *usecase;
-
-    /* Check if change in HDMI channel config is allowed */
-    if (!allow_hdmi_channel_config(adev))
-        return 0;
-
-    if (channels == adev->cur_hdmi_channels) {
-        ALOGD("%s: Requested channels are same as current", __func__);
-        return 0;
-    }
-
-    set_hdmi_channels(adev, channels);
-    adev->cur_hdmi_channels = channels;
-
-    return 0;
-}
-
 static int uc_release_pcm_devices(struct audio_usecase *usecase)
 {
     struct stream_out *out = (struct stream_out *)usecase->stream;
@@ -2450,10 +2343,6 @@ static int stop_output_stream(struct stream_out *out)
     list_remove(&uc_info->adev_list_node);
     free(uc_info);
 
-    /* Must be called after removing the usecase from list */
-    if (out->devices & AUDIO_DEVICE_OUT_AUX_DIGITAL)
-        check_and_set_hdmi_channels(adev, PLAYBACK_HDMI_DEFAULT_CHANNEL_COUNT);
-
     ALOGV("%s: exit: status(%d)", __func__, ret);
     return ret;
 }
@@ -2475,10 +2364,6 @@ int start_output_stream(struct stream_out *out)
     uc_info->in_snd_device = SND_DEVICE_NONE;
     uc_info->out_snd_device = SND_DEVICE_NONE;
     uc_select_pcm_devices(uc_info);
-
-    /* This must be called before adding this usecase to the list */
-    if (out->devices & AUDIO_DEVICE_OUT_AUX_DIGITAL)
-        check_and_set_hdmi_channels(adev, out->config.channels);
 
     list_add_tail(&adev->usecase_list, &uc_info->adev_list_node);
 
@@ -2799,18 +2684,6 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
             }
         }
 #endif
-        /*
-         * When HDMI cable is unplugged the music playback is paused and
-         * the policy manager sends routing=0. But the audioflinger
-         * continues to write data until standby time (3sec).
-         * As the HDMI core is turned off, the write gets blocked.
-         * Avoid this by routing audio to speaker until standby.
-         */
-        if (out->devices == AUDIO_DEVICE_OUT_AUX_DIGITAL &&
-                val == AUDIO_DEVICE_NONE) {
-            val = AUDIO_DEVICE_OUT_SPEAKER;
-        }
-
         if (val != 0) {
             out->devices = val;
 
@@ -3686,26 +3559,7 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     out->config = pcm_profile->config;
 
     /* Init use case and pcm_config */
-    if (out->flags & AUDIO_OUTPUT_FLAG_DIRECT &&
-            !(out->flags & AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD) &&
-        out->devices & AUDIO_DEVICE_OUT_AUX_DIGITAL) {
-        pthread_mutex_lock(&adev->lock);
-        ret = read_hdmi_channel_masks(out);
-        pthread_mutex_unlock(&adev->lock);
-        if (ret != 0)
-            goto error_open;
-
-        if (config->sample_rate == 0)
-            config->sample_rate = PLAYBACK_DEFAULT_SAMPLING_RATE;
-        if (config->channel_mask == 0)
-            config->channel_mask = AUDIO_CHANNEL_OUT_5POINT1;
-
-        out->channel_mask = config->channel_mask;
-        out->sample_rate = config->sample_rate;
-        out->usecase = USECASE_AUDIO_PLAYBACK_MULTI_CH;
-        out->config.rate = config->sample_rate;
-        out->config.channels = audio_channel_count_from_out_mask(out->channel_mask);
-    } else if (out->flags & AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD) {
+    if (out->flags & AUDIO_OUTPUT_FLAG_COMPRESS_OFFLOAD) {
         if (config->offload_info.version != AUDIO_INFO_INITIALIZER.version ||
             config->offload_info.size != AUDIO_INFO_INITIALIZER.size) {
             ALOGE("%s: Unsupported Offload information", __func__);
