@@ -115,9 +115,8 @@ enum {
 };
 
 
-#define MIXER_CARD 1
-#define HDMI_CARD  0
-#define SOUND_CARD 1
+#define MIXER_CARD 0
+#define SOUND_CARD 0
 
 /*
  * tinyAlsa library interprets period size as number of frames
