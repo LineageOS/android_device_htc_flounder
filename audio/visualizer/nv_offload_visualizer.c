@@ -160,7 +160,7 @@ bool exit_thread;
 /* 0 if the capture thread was created successfully */
 int thread_status;
 
-#define SOUND_CARD 1
+#define SOUND_CARD 0
 #define CAPTURE_DEVICE 8 /* Effects capture node */
 
 #define AUDIO_CAPTURE_CHANNEL_COUNT 2
