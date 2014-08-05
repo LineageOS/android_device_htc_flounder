@@ -1882,7 +1882,8 @@ static ssize_t read_frames(struct stream_in *in, void *buffer, ssize_t frames)
 
     while (frames_wr < frames) {
         size_t frames_rd = frames - frames_wr;
-        ALOGV("%s: frames_rd: %zd, frames_wr: %zd, in->config.channels: %d", __func__,frames_rd,frames_wr,in->config.channels);
+        ALOGVV("%s: frames_rd: %zd, frames_wr: %zd, in->config.channels: %d",
+               __func__,frames_rd,frames_wr,in->config.channels);
         if (in->resampler != NULL) {
             in->resampler->resample_from_provider(in->resampler,
                     (int16_t *)((char *)buffer +

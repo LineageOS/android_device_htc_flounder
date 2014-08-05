@@ -41,7 +41,7 @@
 
 static const struct sound_trigger_properties hw_properties = {
     "The Android Open Source Project", // implementor
-    "Sound Trigger stub HAL", // description
+    "Volantis OK Google ", // description
     1, // version
     { 0xe780f240, 0xf034, 0x11e3, 0xb79a, { 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b } }, // uuid
     1, // max_sound_models
@@ -51,6 +51,7 @@ static const struct sound_trigger_properties hw_properties = {
     false, // capture_transition
     0, // max_capture_ms
     false, // concurrent_capture
+    true, // trigger_in_event
     0 // power_consumption_mw
 };
 
@@ -183,12 +184,6 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
     event->common.status = RECOGNITION_STATUS_SUCCESS;
     event->common.type = SOUND_MODEL_TYPE_KEYPHRASE;
     event->common.model = stdev->model_handle;
-    event->key_phrase_in_capture = false;
-    event->num_phrases = 1;
-    event->phrase_extras[0].recognition_modes = RECOGNITION_MODE_VOICE_TRIGGER;
-    event->phrase_extras[0].num_levels = 1;
-    event->phrase_extras[0].levels[0].level = 100;
-    event->phrase_extras[0].levels[0].user_id = 0;
 
     if (stdev->config) {
         unsigned int i;
@@ -200,6 +195,19 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
             memcpy(&event->phrase_extras[i], &stdev->config->phrases[i],
                    sizeof(struct sound_trigger_phrase_recognition_extra));
     }
+
+    event->num_phrases = 1;
+    event->phrase_extras[0].confidence_level = 100;
+    event->phrase_extras[0].num_levels = 1;
+    event->phrase_extras[0].levels[0].level = 100;
+    event->phrase_extras[0].levels[0].user_id = 0;
+
+    event->common.trigger_in_data = true;
+    event->common.audio_config = AUDIO_CONFIG_INITIALIZER;
+    event->common.audio_config.sample_rate = 16000;
+    event->common.audio_config.channel_mask = AUDIO_CHANNEL_IN_MONO;
+    event->common.audio_config.format = AUDIO_FORMAT_PCM_16_BIT;
+
     event->common.data_offset =
                     sizeof(struct sound_trigger_phrase_recognition_event);
     event->common.data_size = FLOUNDER_MIC_BUF_SIZE;
