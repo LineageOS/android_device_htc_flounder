@@ -89,8 +89,7 @@ enum ABS_status {
 #define CONVERT_1000		0.001f
 #define CONVERT_10000		0.0001f
 
-#define RANGE_A                     (2*GRAVITY_EARTH)
-#define RESOLUTION_A                (RANGE_A/(256*1))
+#define RANGE_A                     (4*GRAVITY_EARTH)
 
 #define SENSOR_STATE_MASK           (0x7FFF)
 

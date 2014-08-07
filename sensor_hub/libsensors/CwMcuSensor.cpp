@@ -600,8 +600,9 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     what = find_sensor(handle);
 
-    ALOGD("CwMcuSensor::setEnable: "
-          "[v06-Remove SENSOR_TYPE_WAKE_GESTURE], handle = %d, en = %d, what = %d\n",
+    ALOGD("setEnable: "
+          "[v06-Correct Range, rate, resolution parameters, and Batched Step counter/detector]"
+          " handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -1031,12 +1032,13 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         break;
     case CW_STEP_DETECTOR:
         mPendingMask |= 1<<(sensorsid);
-        mPendingEvents[CW_STEP_COUNTER].data[0] = data[0];
-        mPendingEvents[CW_STEP_DETECTOR].timestamp = getTimestamp();
+        mPendingEvents[sensorsid].data[0] = data[0];
+        mPendingEvents[sensorsid].timestamp = getTimestamp();
         break;
     case CW_STEP_COUNTER:
         mPendingMask |= 1<<(sensorsid);
-        mPendingEvents[CW_STEP_COUNTER].u64.step_counter = *(uint32_t *)&data[0]; // We use 4 bytes in SensorHUB
+        mPendingEvents[sensorsid].u64.step_counter = *(uint32_t *)&data[0]; // We use 4 bytes in SensorHUB
+        ALOGV("processEvent: step counter = %" PRId64 "\n", mPendingEvents[sensorsid].u64.step_counter);
         break;
     case CW_META_DATA:
         mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;
