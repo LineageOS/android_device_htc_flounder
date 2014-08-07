@@ -120,3 +120,6 @@ TARGET_SUPPORTS_64_BIT_APPS := true
 endif
 
 TARGET_RELEASETOOLS_EXTENSIONS := device/htc/flounder
+
+# Include an expanded selection of fonts
+EXTENDED_FONT_FOOTPRINT := true
