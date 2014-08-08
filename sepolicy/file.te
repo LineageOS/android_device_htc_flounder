@@ -6,3 +6,6 @@ type ril_db_file, file_type, data_file_type;
 type kickstart_data_file, file_type, data_file_type;
 type efs_data_file, file_type, data_file_type;
 type ramdump_data_file, file_type, data_file_type;
+
+#Didim file used by surfaceflinger
+type sysfs_didim, sysfs_type, fs_type;

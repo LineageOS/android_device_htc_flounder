@@ -94,3 +94,9 @@
 /sys/devices/virtual/gps/bcm47521 gps_onoff/value 0660  gps  system
 
 /dev/block/platform/sdhci-tegra.3/by-name/PST 0600 system system
+
+# didim
+/sys/devices/platform/host1x/tegradc.0	smartdimmer/aggressiveness	0660 root graphics
+/sys/devices/platform/host1x/tegradc.0	smartdimmer/enable		0660 root graphics
+/sys/devices/platform/host1x/tegradc.0	smartdimmer/sd_window		0660 root graphics
+/sys/devices/platform/host1x/tegradc.0	smartdimmer/sd_window_enable	0660 root graphics

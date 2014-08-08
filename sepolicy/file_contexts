@@ -74,3 +74,10 @@
 
 # Persistent data block device
 /dev/block/mmcblk0p27 u:object_r:persistent_data_block_device:s0
+
+# Didim file
+/sys/devices/platform/host1x/tegradc.0/smartdimmer/aggressiveness u:object_r:sysfs_didim:s0
+/sys/devices/platform/host1x/tegradc.0/smartdimmer/enable u:object_r:sysfs_didim:s0
+/sys/devices/platform/host1x/tegradc.0/smartdimmer/sd_window u:object_r:sysfs_didim:s0
+/sys/devices/platform/host1x/tegradc.0/smartdimmer/sd_window_enable u:object_r:sysfs_didim:s0
+
