@@ -100,9 +100,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/media_codecs.xml:system/etc/media_codecs.xml \
     $(LOCAL_PATH)/media_profiles.xml:system/etc/media_profiles.xml \
     $(LOCAL_PATH)/audio_policy.conf:system/etc/audio_policy.conf \
-    $(LOCAL_PATH)/mixer_paths_1.xml:system/etc/mixer_paths_1.xml \
     $(LOCAL_PATH)/mixer_paths_0.xml:system/etc/mixer_paths_0.xml
-
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/enctune.conf:system/etc/enctune.conf
