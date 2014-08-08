@@ -30,8 +30,12 @@
 #define RETRY_NUMBER 10
 #define RETRY_US 500000
 
+#ifdef __LP64__
+#define OFFLOAD_FX_LIBRARY_PATH "/system/lib64/soundfx/libnvvisualizer.so"
+#else
+#define OFFLOAD_FX_LIBRARY_PATH "/system/lib/soundfx/libnvvisualizer.so"
+#endif
 
-#define OFFLOAD_FX_LIBRARY_PATH "/system/lib/soundfx/libnvidiaoffloadfx.so"
 #define HTC_ACOUSTIC_LIBRARY_PATH "/vendor/lib/libhtcacoustic.so"
 #ifdef PREPROCESSING_ENABLED
 #include <audio_utils/echo_reference.h>

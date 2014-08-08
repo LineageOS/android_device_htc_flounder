@@ -4361,10 +4361,10 @@ static int adev_open(const hw_module_t *module, const char *name,
             ALOGV("%s: DLOPEN successful for %s", __func__, OFFLOAD_FX_LIBRARY_PATH);
             adev->offload_fx_start_output =
                         (int (*)(audio_io_handle_t))dlsym(adev->offload_fx_lib,
-                                                        "offload_fx_hal_start_output");
+                                                        "visualizer_hal_start_output");
             adev->offload_fx_stop_output =
                         (int (*)(audio_io_handle_t))dlsym(adev->offload_fx_lib,
-                                                        "offload_fx_hal_stop_output");
+                                                        "visualizer_hal_stop_output");
         }
     }
 
