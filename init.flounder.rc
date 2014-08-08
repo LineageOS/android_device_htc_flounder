@@ -17,6 +17,9 @@ on init
     symlink /storage/emulated/legacy /storage/sdcard0
     symlink /mnt/shell/emulated/0 /storage/emulated/legacy
 
+on post-fs
+    write /sys/module/input_cfboost/parameters/gpu_wakeup 1
+
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
     mkdir /data/nvcam 0700 media camera
