@@ -18,4 +18,6 @@
 #define _BDROID_BUILDCFG_H
 
 #define BTIF_HF_SERVICES (BTA_HSP_SERVICE_MASK)
+#define BLE_VND_INCLUDED TRUE
+#define BTM_BLE_ADV_TX_POWER {-21, -15, -7, 1, 9}
 #endif
