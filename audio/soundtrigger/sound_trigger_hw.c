@@ -175,14 +175,20 @@ static int vad_get_phrase(struct flounder_sound_trigger_device *stdev,
 static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
                                        stdev)
 {
-    char *data = (char *)calloc(1,
-                    sizeof(struct sound_trigger_phrase_recognition_event) +
-                    FLOUNDER_MIC_BUF_SIZE);
-    struct sound_trigger_phrase_recognition_event *event =
-                    (struct sound_trigger_phrase_recognition_event *)data;
+    char *data;
+    struct sound_trigger_phrase_recognition_event *event;
+    unsigned int data_size = 0;
 
+    if (stdev->config && stdev->config->capture_requested)
+        data_size = FLOUNDER_MIC_BUF_SIZE;
+
+    data = (char *)calloc(1,
+                    sizeof(struct sound_trigger_phrase_recognition_event) +
+                    data_size);
     if (!data)
         return NULL;
+
+    event = (struct sound_trigger_phrase_recognition_event *)data;
     event->common.status = RECOGNITION_STATUS_SUCCESS;
     event->common.type = SOUND_MODEL_TYPE_KEYPHRASE;
     event->common.model = stdev->model_handle;
@@ -204,17 +210,19 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
     event->phrase_extras[0].levels[0].level = 100;
     event->phrase_extras[0].levels[0].user_id = 0;
 
-    event->common.trigger_in_data = true;
-    event->common.audio_config = AUDIO_CONFIG_INITIALIZER;
-    event->common.audio_config.sample_rate = 16000;
-    event->common.audio_config.channel_mask = AUDIO_CHANNEL_IN_MONO;
-    event->common.audio_config.format = AUDIO_FORMAT_PCM_16_BIT;
+    if (data_size != 0) {
+        event->common.trigger_in_data = true;
+        event->common.audio_config = AUDIO_CONFIG_INITIALIZER;
+        event->common.audio_config.sample_rate = 16000;
+        event->common.audio_config.channel_mask = AUDIO_CHANNEL_IN_MONO;
+        event->common.audio_config.format = AUDIO_FORMAT_PCM_16_BIT;
 
-    event->common.data_offset =
-                    sizeof(struct sound_trigger_phrase_recognition_event);
-    event->common.data_size = FLOUNDER_MIC_BUF_SIZE;
-    vad_get_phrase(stdev, data + event->common.data_offset,
-                   &event->common.data_size);
+        event->common.data_offset =
+                       sizeof(struct sound_trigger_phrase_recognition_event);
+        event->common.data_size = data_size;
+        vad_get_phrase(stdev, data + event->common.data_offset,
+                       &event->common.data_size);
+    }
     return data;
 }
 
