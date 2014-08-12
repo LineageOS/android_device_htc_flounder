@@ -338,10 +338,6 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_STEP_COUNTER].sensor = ID_CW_STEP_COUNTER;
     mPendingEvents[CW_STEP_COUNTER].type = SENSOR_TYPE_STEP_COUNTER;
 
-    mPendingEvents[HTC_WAKE_UP_GESTURE].version = sizeof(sensors_event_t);
-    mPendingEvents[HTC_WAKE_UP_GESTURE].sensor = ID_WAKE_UP_GESTURE;
-    mPendingEvents[HTC_WAKE_UP_GESTURE].type = SENSOR_TYPE_WAKE_GESTURE;
-
     mPendingEventsFlush.version = META_DATA_VERSION;
     mPendingEventsFlush.sensor = 0;
     mPendingEventsFlush.type = SENSOR_TYPE_META_DATA;
@@ -510,8 +506,6 @@ int CwMcuSensor::find_handle(int32_t sensors_id) {
         return ID_CW_STEP_DETECTOR;
     case CW_STEP_COUNTER:
         return ID_CW_STEP_COUNTER;
-    case HTC_WAKE_UP_GESTURE:
-        return ID_WAKE_UP_GESTURE;
     default:
         return 0xFF;
     }
@@ -568,9 +562,6 @@ int CwMcuSensor::find_sensor(int32_t handle) {
     case ID_L:
         what = CW_LIGHT;
         break;
-    case ID_WAKE_UP_GESTURE:
-        what = HTC_WAKE_UP_GESTURE;
-        break;
     }
     return what;
 }
@@ -610,7 +601,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     what = find_sensor(handle);
 
     ALOGD("CwMcuSensor::setEnable: "
-          "[v05-Fix init trigger iio device fails], handle = %d, en = %d, what = %d\n",
+          "[v06-Remove SENSOR_TYPE_WAKE_GESTURE], handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -952,8 +943,6 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
             if (mEnabled & (1<<id)) {
                 if (id == CW_SIGNIFICANT_MOTION) {
                     setEnable(ID_CW_SIGNIFICANT_MOTION, 0);
-                } else if (id == HTC_WAKE_UP_GESTURE) {
-                    setEnable(ID_WAKE_UP_GESTURE, 0);
                 }
                 calculate_rv_4th_element(id);
                 *data++ = mPendingEvents[id];
@@ -1048,11 +1037,6 @@ int CwMcuSensor::processEvent(uint8_t *event) {
     case CW_STEP_COUNTER:
         mPendingMask |= 1<<(sensorsid);
         mPendingEvents[CW_STEP_COUNTER].u64.step_counter = *(uint32_t *)&data[0]; // We use 4 bytes in SensorHUB
-        break;
-    case HTC_WAKE_UP_GESTURE:
-        mPendingMask |= 1<<(sensorsid);
-        mPendingEvents[HTC_WAKE_UP_GESTURE].data[0] = 1;
-        ALOGV("HTC_WAKE_UP_GESTURE occurs\n");
         break;
     case CW_META_DATA:
         mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;

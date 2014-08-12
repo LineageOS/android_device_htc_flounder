@@ -39,7 +39,6 @@ typedef enum {
     CW_ROTATIONVECTOR              = 7,
     CW_LINEARACCELERATION          = 8,
     CW_GRAVITY                     = 9,
-    HTC_WAKE_UP_GESTURE            = 10,
     CW_MAGNETIC_UNCALIBRATED       = 16,
     CW_GYROSCOPE_UNCALIBRATED      = 17,
     CW_GAME_ROTATION_VECTOR        = 18,
