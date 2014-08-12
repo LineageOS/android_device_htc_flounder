@@ -19,6 +19,7 @@ on init
 
 on post-fs
     write /sys/module/input_cfboost/parameters/gpu_wakeup 1
+    write /sys/devices/platform/spi-tegra114.2/spi_master/spi2/spi2.0/input/input0/doreflash 1
 
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
