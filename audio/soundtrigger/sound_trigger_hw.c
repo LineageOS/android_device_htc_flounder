@@ -31,12 +31,12 @@
 #include <hardware/sound_trigger.h>
 #include <tinyalsa/asoundlib.h>
 
-#define FLOUNDER_MIXER_VAD	1
+#define FLOUNDER_MIXER_VAD	0
 #define FLOUNDER_CTRL_DSP	26
 #define FLOUNDER_CTRL_MIC	198
 #define UEVENT_MSG_LEN		1024
 
-#define FLOUNDER_VAD_DEV	"/dev/snd/hwC1D0"
+#define FLOUNDER_VAD_DEV	"/dev/snd/hwC0D0"
 #define FLOUNDER_MIC_BUF_SIZE	(64 * 1024)
 
 static const struct sound_trigger_properties hw_properties = {
