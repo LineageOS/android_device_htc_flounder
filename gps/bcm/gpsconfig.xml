@@ -4,8 +4,8 @@
   <hal
     PortName="/dev/ttyTHS1"
     BaudRate="921600"
-    LogEnabled="false"
-    Log="DAEMON"
+    LogEnabled="true"
+    Log="LOGCAT"
     LogDirectory="/data/gps/gpslog/"
     NmeaOutName="/data/gps/nmea_out"
     CtrlPipe="/data/gps/glgpsctrl"
