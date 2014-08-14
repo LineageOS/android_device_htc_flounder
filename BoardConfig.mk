@@ -126,5 +126,7 @@ endif
 
 TARGET_RELEASETOOLS_EXTENSIONS := device/htc/flounder
 
+ART_USE_HSPACE_COMPACT=true
+
 # Include an expanded selection of fonts
 EXTENDED_FONT_FOOTPRINT := true
