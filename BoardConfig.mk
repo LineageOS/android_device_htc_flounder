@@ -124,6 +124,15 @@ TARGET_SUPPORTS_32_BIT_APPS :=
 TARGET_SUPPORTS_64_BIT_APPS := true
 endif
 
+# Enable dex-preoptimization to speed up first boot sequence
+ifeq ($(HOST_OS),linux)
+  ifeq ($(TARGET_BUILD_VARIANT),user)
+    ifeq ($(WITH_DEXPREOPT),)
+      WITH_DEXPREOPT := true
+    endif
+  endif
+endif
+
 TARGET_RELEASETOOLS_EXTENSIONS := device/htc/flounder
 
 ART_USE_HSPACE_COMPACT=true
