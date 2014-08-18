@@ -43,7 +43,7 @@
 /dev/adf*       0660    media   graphics
 /dev/tlk_device 0660    system  drmrpc
 #for mdm9x25
-/dev/mdm        0660    system  system
+/dev/mdm        0660    radio  system
 /dev/ks_hsic_bridge       0660   system     system
 /dev/efs_hsic_bridge      0660   system     system
 /dev/block/mmcblk0p8     0660   system     system
