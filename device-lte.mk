@@ -29,3 +29,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.telephony.default_network=10 \
     telephony.lteOnCdmaDevice=1
+
+DEVICE_PACKAGE_OVERLAYS += \
+    $(LOCAL_PATH)/lte_only_overlay
