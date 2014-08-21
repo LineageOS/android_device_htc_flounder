@@ -316,7 +316,7 @@
              bitRate="384000"
              width="176"
              height="144"
-             frameRate="30" />
+             frameRate="20" />
 
       <Audio codec="amrnb"
              bitRate="12200"
@@ -329,7 +329,7 @@
              bitRate="8000000"
              width="1280"
              height="720"
-             frameRate="30" />
+             frameRate="20" />
 
       <Audio codec="aac"
              bitRate="96000"
@@ -342,7 +342,7 @@
              bitRate="8000000"
              width="1280"
              height="720"
-             frameRate="30" />
+             frameRate="20" />
 
       <Audio codec="aac"
              bitRate="96000"
@@ -355,7 +355,7 @@
              bitRate="384000"
              width="176"
              height="144"
-             frameRate="30" />
+             frameRate="20" />
 
       <Audio codec="amrnb"
              bitRate="12200"
@@ -368,7 +368,7 @@
              bitRate="1536000"
              width="352"
              height="288"
-             frameRate="30" />
+             frameRate="20" />
 
       <Audio codec="amrnb"
              bitRate="12200"
@@ -381,7 +381,7 @@
              bitRate="4000000"
              width="640"
              height="480"
-             frameRate="30" />
+             frameRate="20" />
 
       <Audio codec="aac"
              bitRate="96000"
@@ -394,7 +394,7 @@
              bitRate="384000"
              width="176"
              height="144"
-             frameRate="30" />
+             frameRate="20" />
 
       <!--
             The Audio part of the profile will not be used since time lapse mode
@@ -411,7 +411,7 @@
              bitRate="4000000"
              width="640"
              height="480"
-             frameRate="30" />
+             frameRate="20" />
 
       <!--
             The Audio part of the profile will not be used since time lapse mode
@@ -428,7 +428,7 @@
              bitRate="384000"
              width="176"
              height="144"
-             frameRate="30" />
+             frameRate="20" />
 
       <!--
             The Audio part of the profile will not be used since time lapse mode
@@ -445,7 +445,7 @@
              bitRate="1536000"
              width="352"
              height="288"
-             frameRate="30" />
+             frameRate="20" />
 
       <!--
             The Audio part of the profile will not be used since time lapse mode
@@ -462,7 +462,7 @@
              bitRate="4000000"
              width="640"
              height="480"
-             frameRate="30" />
+             frameRate="20" />
 
       <!--
             The Audio part of the profile will not be used since time lapse mode
