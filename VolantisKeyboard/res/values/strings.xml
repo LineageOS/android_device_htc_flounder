@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Name of the application. [CHAR LIMIT=35] -->
+    <string name="app_label">Volantis Keyboard</string>
+    <!-- Keyboard layouts label, used to describe the set of all built-in layouts in the UI. [CHAR LIMIT=35] -->
+    <string name="keyboard_layouts_label">Volantis keyboard</string>
+    <!-- UK English keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_english_uk_label">Volantis English (UK)</string>
+    <!-- US English keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_english_us_label">Volantis English (US)</string>
+    <!-- US Intl keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_english_us_intl_label">Volantis English (US International)</string>
+    <!-- German keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_german_label">Volantis German</string>
+    <!-- French keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_french_label">Volantis French</string>
+    <!-- French Canadian keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_french_ca_label">Volantis French (Canada)</string>
+    <!-- Italian keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_italian_label">Volantis Italian</string>
+</resources>

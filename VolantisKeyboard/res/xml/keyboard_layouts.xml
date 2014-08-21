@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<keyboard-layouts xmlns:android="http://schemas.android.com/apk/res/android">
+    <keyboard-layout android:name="keyboard_layout_volantis_english_uk"
+            android:label="@string/keyboard_layout_volantis_english_uk_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_english_uk" />
+    <keyboard-layout android:name="keyboard_layout_volantis_english_us"
+            android:label="@string/keyboard_layout_volantis_english_us_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_english_us" />
+    <keyboard-layout android:name="keyboard_layout_volantis_english_us_intl"
+            android:label="@string/keyboard_layout_volantis_english_us_intl_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_english_us_intl" />
+    <keyboard-layout android:name="keyboard_layout_volantis_german"
+            android:label="@string/keyboard_layout_volantis_german_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_german" />
+    <keyboard-layout android:name="keyboard_layout_volantis_french"
+            android:label="@string/keyboard_layout_volantis_french_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_french" />
+    <keyboard-layout android:name="keyboard_layout_volantis_french_ca"
+            android:label="@string/keyboard_layout_volantis_french_ca_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_french_ca" />
+    <keyboard-layout android:name="keyboard_layout_volantis_italian"
+            android:label="@string/keyboard_layout_volantis_italian_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_italian" />
+</keyboard-layouts>
