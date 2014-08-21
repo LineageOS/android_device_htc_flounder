@@ -25,6 +25,7 @@ LOCAL_PROGUARD_ENABLED := disabled
 
 include $(BUILD_PACKAGE)
 
+ifneq ($(TARGET_BUILD_PDK),true)
 # Validate all key maps.
 include $(CLEAR_VARS)
 
@@ -45,3 +46,4 @@ droidcore all_modules : $(LOCAL_BUILT_MODULE)
 # Reset temp vars.
 validatekeymaps :=
 volantis_keymaps :=
+endif # !PDK build
