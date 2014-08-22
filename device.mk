@@ -182,7 +182,6 @@ PRODUCT_PROPERTY_OVERRIDES := \
     wifi.interface=wlan0 \
     ro.opengles.version=196609 \
     ro.sf.lcd_density=320 \
-    ro.zygote.disable_gl_preload=true \
     ro.hwui.texture_cache_size=72 \
     ro.hwui.layer_cache_size=48 \
     ro.hwui.r_buffer_cache_size=8 \
