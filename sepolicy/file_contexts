@@ -54,9 +54,9 @@
 /dev/efs_hsic_bridge                   u:object_r:kickstart_device:s0
 # RCA, EF1, EF2, CDR labeling
 /dev/block/mmcblk0p8                   u:object_r:efs_block_device:s0
-/dev/block/mmcblk0p20                  u:object_r:efs_block_device:s0
 /dev/block/mmcblk0p21                  u:object_r:efs_block_device:s0
 /dev/block/mmcblk0p22                  u:object_r:efs_block_device:s0
+/dev/block/mmcblk0p23                  u:object_r:efs_block_device:s0
 # Qualcomm MSM Interface (QMI) devices
 /dev/socket/qmux_radio(/.*)?           u:object_r:qmuxd_socket:s0
 # service
