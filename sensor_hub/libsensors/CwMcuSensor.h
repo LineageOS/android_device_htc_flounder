@@ -82,7 +82,7 @@ typedef enum {
 
 #define TIMESTAMP_SYNC_CODE        (98)
 
-#define PERIODIC_SYNC_TIME_SEC     (30)
+#define PERIODIC_SYNC_TIME_SEC     (5)
 
 class CwMcuSensor : public SensorBase {
 
@@ -98,16 +98,16 @@ class CwMcuSensor : public SensorBase {
         char mDevPath[PATH_MAX];
         char mTriggerName[PATH_MAX];
 
-        bool offset_changed;
-        float cpu_divided_by_mcu;
-        float last_cpu_divided_by_mcu;
-        int64_t last_timestamp[numSensors];
-        int64_t last_mcu_sync_time;
-        int64_t last_cpu_sync_time;
-        int64_t cpu_to_mcu_time_offset;
+        float time_slope;
+        int64_t time_offset;
+        uint64_t last_mcu_sync_time;
+        uint64_t last_cpu_sync_time;
+
+        bool offset_reset[numSensors];
+        uint64_t last_mcu_timestamp[numSensors];
+        uint64_t last_cpu_timestamp[numSensors];
+        uint64_t last_timestamp[numSensors];
         pthread_t sync_time_thread;
-        uint64_t algo_cpu_base;
-        uint64_t algo_mcu_base;
 
         bool init_trigger_done;
 
