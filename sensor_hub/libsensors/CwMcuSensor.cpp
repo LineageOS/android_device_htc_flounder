@@ -29,7 +29,6 @@
 #define LOG_TAG "CwMcuSensor"
 #include <cutils/log.h>
 #include <cutils/properties.h>
-#include <utils/BitSet.h>
 
 #include "CwMcuSensor.h"
 
@@ -254,7 +253,6 @@ CwMcuSensor::CwMcuSensor()
     : SensorBase(NULL, "CwMcuSensor")
     , mEnabled(0)
     , mInputReader(IIO_MAX_BUFF_SIZE)
-    , mFlushSensorEnabled(-1)
     , offset_changed(true)
     , cpu_divided_by_mcu(0)
     , cpu_to_mcu_time_offset(0)
@@ -292,51 +290,102 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_ROTATIONVECTOR].version = sizeof(sensors_event_t);
     mPendingEvents[CW_ROTATIONVECTOR].sensor = ID_RV;
     mPendingEvents[CW_ROTATIONVECTOR].type = SENSOR_TYPE_ROTATION_VECTOR;
-    mPendingEvents[CW_ROTATIONVECTOR].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_LINEARACCELERATION].version = sizeof(sensors_event_t);
     mPendingEvents[CW_LINEARACCELERATION].sensor = ID_LA;
     mPendingEvents[CW_LINEARACCELERATION].type = SENSOR_TYPE_LINEAR_ACCELERATION;
-    mPendingEvents[CW_LINEARACCELERATION].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_GRAVITY].version = sizeof(sensors_event_t);
     mPendingEvents[CW_GRAVITY].sensor = ID_G;
     mPendingEvents[CW_GRAVITY].type = SENSOR_TYPE_GRAVITY;
-    mPendingEvents[CW_GRAVITY].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_MAGNETIC_UNCALIBRATED].version = sizeof(sensors_event_t);
     mPendingEvents[CW_MAGNETIC_UNCALIBRATED].sensor = ID_CW_MAGNETIC_UNCALIBRATED;
     mPendingEvents[CW_MAGNETIC_UNCALIBRATED].type = SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED;
-    mPendingEvents[CW_MAGNETIC_UNCALIBRATED].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].version = sizeof(sensors_event_t);
     mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].sensor = ID_CW_GYROSCOPE_UNCALIBRATED;
     mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].type = SENSOR_TYPE_GYROSCOPE_UNCALIBRATED;
-    mPendingEvents[CW_GYROSCOPE_UNCALIBRATED].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_GAME_ROTATION_VECTOR].version = sizeof(sensors_event_t);
     mPendingEvents[CW_GAME_ROTATION_VECTOR].sensor = ID_CW_GAME_ROTATION_VECTOR;
     mPendingEvents[CW_GAME_ROTATION_VECTOR].type = SENSOR_TYPE_GAME_ROTATION_VECTOR;
-    mPendingEvents[CW_GAME_ROTATION_VECTOR].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR].version = sizeof(sensors_event_t);
     mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR].sensor = ID_CW_GEOMAGNETIC_ROTATION_VECTOR;
     mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR].type = SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR;
-    mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_SIGNIFICANT_MOTION].version = sizeof(sensors_event_t);
     mPendingEvents[CW_SIGNIFICANT_MOTION].sensor = ID_CW_SIGNIFICANT_MOTION;
     mPendingEvents[CW_SIGNIFICANT_MOTION].type = SENSOR_TYPE_SIGNIFICANT_MOTION;
-    mPendingEvents[CW_SIGNIFICANT_MOTION].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_STEP_DETECTOR].version = sizeof(sensors_event_t);
     mPendingEvents[CW_STEP_DETECTOR].sensor = ID_CW_STEP_DETECTOR;
     mPendingEvents[CW_STEP_DETECTOR].type = SENSOR_TYPE_STEP_DETECTOR;
-    mPendingEvents[CW_STEP_DETECTOR].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_STEP_COUNTER].version = sizeof(sensors_event_t);
     mPendingEvents[CW_STEP_COUNTER].sensor = ID_CW_STEP_COUNTER;
     mPendingEvents[CW_STEP_COUNTER].type = SENSOR_TYPE_STEP_COUNTER;
+
+
+    mPendingEvents[CW_ACCELERATION_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_ACCELERATION_W].sensor = ID_A_W;
+    mPendingEvents[CW_ACCELERATION_W].type = SENSOR_TYPE_ACCELEROMETER;
+
+    mPendingEvents[CW_MAGNETIC_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_MAGNETIC_W].sensor = ID_M_W;
+    mPendingEvents[CW_MAGNETIC_W].type = SENSOR_TYPE_MAGNETIC_FIELD;
+
+    mPendingEvents[CW_GYRO_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_GYRO_W].sensor = ID_GY_W;
+    mPendingEvents[CW_GYRO_W].type = SENSOR_TYPE_GYROSCOPE;
+
+    mPendingEvents[CW_PRESSURE_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_PRESSURE_W].sensor = ID_PS_W;
+    mPendingEvents[CW_PRESSURE_W].type = SENSOR_TYPE_PRESSURE;
+    memset(mPendingEvents[CW_PRESSURE_W].data, 0, sizeof(mPendingEvents[CW_PRESSURE_W].data));
+
+    mPendingEvents[CW_ORIENTATION_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_ORIENTATION_W].sensor = ID_O_W;
+    mPendingEvents[CW_ORIENTATION_W].type = SENSOR_TYPE_ORIENTATION;
+    mPendingEvents[CW_ORIENTATION_W].orientation.status = SENSOR_STATUS_ACCURACY_HIGH;
+
+    mPendingEvents[CW_ROTATIONVECTOR_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_ROTATIONVECTOR_W].sensor = ID_RV_W;
+    mPendingEvents[CW_ROTATIONVECTOR_W].type = SENSOR_TYPE_ROTATION_VECTOR;
+
+    mPendingEvents[CW_LINEARACCELERATION_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_LINEARACCELERATION_W].sensor = ID_LA_W;
+    mPendingEvents[CW_LINEARACCELERATION_W].type = SENSOR_TYPE_LINEAR_ACCELERATION;
+
+    mPendingEvents[CW_GRAVITY_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_GRAVITY_W].sensor = ID_G_W;
+    mPendingEvents[CW_GRAVITY_W].type = SENSOR_TYPE_GRAVITY;
+
+    mPendingEvents[CW_MAGNETIC_UNCALIBRATED_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_MAGNETIC_UNCALIBRATED_W].sensor = ID_CW_MAGNETIC_UNCALIBRATED_W;
+    mPendingEvents[CW_MAGNETIC_UNCALIBRATED_W].type = SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED;
+
+    mPendingEvents[CW_GYROSCOPE_UNCALIBRATED_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_GYROSCOPE_UNCALIBRATED_W].sensor = ID_CW_GYROSCOPE_UNCALIBRATED_W;
+    mPendingEvents[CW_GYROSCOPE_UNCALIBRATED_W].type = SENSOR_TYPE_GYROSCOPE_UNCALIBRATED;
+
+    mPendingEvents[CW_GAME_ROTATION_VECTOR_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_GAME_ROTATION_VECTOR_W].sensor = ID_CW_GAME_ROTATION_VECTOR_W;
+    mPendingEvents[CW_GAME_ROTATION_VECTOR_W].type = SENSOR_TYPE_GAME_ROTATION_VECTOR;
+
+    mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR_W].sensor = ID_CW_GEOMAGNETIC_ROTATION_VECTOR_W;
+    mPendingEvents[CW_GEOMAGNETIC_ROTATION_VECTOR_W].type = SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR;
+
+    mPendingEvents[CW_STEP_DETECTOR_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_STEP_DETECTOR_W].sensor = ID_CW_STEP_DETECTOR_W;
+    mPendingEvents[CW_STEP_DETECTOR_W].type = SENSOR_TYPE_STEP_DETECTOR;
+
+    mPendingEvents[CW_STEP_COUNTER_W].version = sizeof(sensors_event_t);
+    mPendingEvents[CW_STEP_COUNTER_W].sensor = ID_CW_STEP_COUNTER_W;
+    mPendingEvents[CW_STEP_COUNTER_W].type = SENSOR_TYPE_STEP_COUNTER;
+
 
     mPendingEventsFlush.version = META_DATA_VERSION;
     mPendingEventsFlush.sensor = 0;
@@ -453,7 +502,7 @@ CwMcuSensor::CwMcuSensor()
 }
 
 CwMcuSensor::~CwMcuSensor() {
-    if (mEnabled) {
+    if (!mEnabled.isEmpty()) {
         setEnable(0, 0);
     }
 }
@@ -506,49 +555,136 @@ int CwMcuSensor::find_handle(int32_t sensors_id) {
         return ID_CW_STEP_DETECTOR;
     case CW_STEP_COUNTER:
         return ID_CW_STEP_COUNTER;
+    case CW_ACCELERATION_W:
+        return ID_A_W;
+    case CW_MAGNETIC_W:
+        return ID_M_W;
+    case CW_GYRO_W:
+        return ID_GY_W;
+    case CW_PRESSURE_W:
+        return ID_PS_W;
+    case CW_ORIENTATION_W:
+        return ID_O_W;
+    case CW_ROTATIONVECTOR_W:
+        return ID_RV_W;
+    case CW_LINEARACCELERATION_W:
+        return ID_LA_W;
+    case CW_GRAVITY_W:
+        return ID_G_W;
+    case CW_MAGNETIC_UNCALIBRATED_W:
+        return ID_CW_MAGNETIC_UNCALIBRATED_W;
+    case CW_GYROSCOPE_UNCALIBRATED_W:
+        return ID_CW_GYROSCOPE_UNCALIBRATED_W;
+    case CW_GAME_ROTATION_VECTOR_W:
+        return ID_CW_GAME_ROTATION_VECTOR_W;
+    case CW_GEOMAGNETIC_ROTATION_VECTOR_W:
+        return ID_CW_GEOMAGNETIC_ROTATION_VECTOR_W;
+    case CW_STEP_DETECTOR_W:
+        return ID_CW_STEP_DETECTOR_W;
+    case CW_STEP_COUNTER_W:
+        return ID_CW_STEP_COUNTER_W;
     default:
         return 0xFF;
     }
 }
 
+bool CwMcuSensor::is_batch_wake_sensor(int32_t handle) {
+    switch (handle) {
+    case ID_A_W:
+    case ID_M_W:
+    case ID_GY_W:
+    case ID_PS_W:
+    case ID_O_W:
+    case ID_RV_W:
+    case ID_LA_W:
+    case ID_G_W:
+    case ID_CW_MAGNETIC_UNCALIBRATED_W:
+    case ID_CW_GYROSCOPE_UNCALIBRATED_W:
+    case ID_CW_GAME_ROTATION_VECTOR_W:
+    case ID_CW_GEOMAGNETIC_ROTATION_VECTOR_W:
+    case ID_CW_STEP_DETECTOR_W:
+    case ID_CW_STEP_COUNTER_W:
+        return true;
+    default:
+        return false;
+    }
+}
+
 int CwMcuSensor::find_sensor(int32_t handle) {
     int what = -1;
+
     switch (handle) {
     case ID_A:
         what = CW_ACCELERATION;
         break;
+    case ID_A_W:
+        what = CW_ACCELERATION_W;
+        break;
     case ID_M:
         what = CW_MAGNETIC;
+        break;
+    case ID_M_W:
+        what = CW_MAGNETIC_W;
         break;
     case ID_GY:
         what = CW_GYRO;
         break;
+    case ID_GY_W:
+        what = CW_GYRO_W;
+        break;
     case ID_PS:
         what = CW_PRESSURE;
+        break;
+    case ID_PS_W:
+        what = CW_PRESSURE_W;
         break;
     case ID_O:
         what = CW_ORIENTATION;
         break;
+    case ID_O_W:
+        what = CW_ORIENTATION_W;
+        break;
     case ID_RV:
         what = CW_ROTATIONVECTOR;
+        break;
+    case ID_RV_W:
+        what = CW_ROTATIONVECTOR_W;
         break;
     case ID_LA:
         what = CW_LINEARACCELERATION;
         break;
+    case ID_LA_W:
+        what = CW_LINEARACCELERATION_W;
+        break;
     case ID_G:
         what = CW_GRAVITY;
+        break;
+    case ID_G_W:
+        what = CW_GRAVITY_W;
         break;
     case ID_CW_MAGNETIC_UNCALIBRATED:
         what = CW_MAGNETIC_UNCALIBRATED;
         break;
+    case ID_CW_MAGNETIC_UNCALIBRATED_W:
+        what = CW_MAGNETIC_UNCALIBRATED_W;
+        break;
     case ID_CW_GYROSCOPE_UNCALIBRATED:
         what = CW_GYROSCOPE_UNCALIBRATED;
+        break;
+    case ID_CW_GYROSCOPE_UNCALIBRATED_W:
+        what = CW_GYROSCOPE_UNCALIBRATED_W;
         break;
     case ID_CW_GAME_ROTATION_VECTOR:
         what = CW_GAME_ROTATION_VECTOR;
         break;
+    case ID_CW_GAME_ROTATION_VECTOR_W:
+        what = CW_GAME_ROTATION_VECTOR_W;
+        break;
     case ID_CW_GEOMAGNETIC_ROTATION_VECTOR:
         what = CW_GEOMAGNETIC_ROTATION_VECTOR;
+        break;
+    case ID_CW_GEOMAGNETIC_ROTATION_VECTOR_W:
+        what = CW_GEOMAGNETIC_ROTATION_VECTOR_W;
         break;
     case ID_CW_SIGNIFICANT_MOTION:
         what = CW_SIGNIFICANT_MOTION;
@@ -556,13 +692,20 @@ int CwMcuSensor::find_sensor(int32_t handle) {
     case ID_CW_STEP_DETECTOR:
         what = CW_STEP_DETECTOR;
         break;
+    case ID_CW_STEP_DETECTOR_W:
+        what = CW_STEP_DETECTOR_W;
+        break;
     case ID_CW_STEP_COUNTER:
         what = CW_STEP_COUNTER;
+        break;
+    case ID_CW_STEP_COUNTER_W:
+        what = CW_STEP_COUNTER_W;
         break;
     case ID_L:
         what = CW_LIGHT;
         break;
     }
+
     return what;
 }
 
@@ -592,23 +735,20 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     property_get("debug.sensorhal.fill.block", value, "0");
     ALOGV("CwMcuSensor::setEnable: debug.sensorhal.fill.block= %s", value);
-    if (atoi(value) == 1) {
-        fill_block_debug = 1;
-    } else {
-        fill_block_debug = 0;
-    }
+    fill_block_debug = atoi(value) == 1;
 
     what = find_sensor(handle);
 
-    ALOGD("setEnable: "
-          "[v06-Correct Range, rate, resolution parameters, and Batched Step counter/detector]"
-          " handle = %d, en = %d, what = %d\n",
+    ALOGD("CwMcuSensor::setEnable: "
+          "[v07-Support Non-wake up FIFO] handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
         pthread_mutex_unlock(&sys_fs_mutex);
         return -EINVAL;
     }
+
+
     strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "enable");
     fd = open(fixed_sysfs_path, O_RDWR);
     if (fd >= 0) {
@@ -620,10 +760,13 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
         close(fd);
 
-        mEnabled &= ~(1<<what);
-        mEnabled |= (uint32_t(flags)<<what);
+        if (flags) {
+            mEnabled.markBit(what);
+        } else {
+            mEnabled.clearBit(what);
+        }
 
-        if (!mEnabled) {
+        if (mEnabled.isEmpty()) {
             if (sysfs_set_input_attr_by_int("buffer/enable", 0) < 0) {
                 ALOGE("CwMcuSensor::setEnable: set buffer disable failed: %s\n", strerror(errno));
             } else {
@@ -634,11 +777,12 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
         ALOGE("%s open failed: %s", __func__, strerror(errno));
     }
 
+
     // Sensor Calibration init. Waiting for firmware ready
-    if (((what == CW_MAGNETIC) && (flags == 0)) ||
-            ((what == CW_ORIENTATION) && (flags == 0)) ||
-            ((what == CW_ROTATIONVECTOR) && (flags == 0))
-       ) {
+    if (!flags &&
+            ((what == CW_MAGNETIC) ||
+             (what == CW_ORIENTATION) ||
+             (what == CW_ROTATIONVECTOR))) {
         ALOGV("Save Compass calibration data");
         strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "calibrator_data_mag");
         rc = cw_read_calibrator_file(CW_MAGNETIC, fixed_sysfs_path, temp_data);
@@ -678,9 +822,11 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
         return -EINVAL;
     }
 
-    if (flags == SENSORS_BATCH_WAKE_UPON_FIFO_FULL) {
-        ALOGV("CwMcuSensor::batch: SENSORS_BATCH_WAKE_UPON_FIFO_FULL~!!\n");
-    }
+    if(is_batch_wake_sensor(handle)) {
+        flags |= SENSORS_BATCH_WAKE_UPON_FIFO_FULL;
+        ALOGD("CwMcuSensor::batch: SENSORS_BATCH_WAKE_UPON_FIFO_FULL~!!\n");
+    } else
+        flags &= ~SENSORS_BATCH_WAKE_UPON_FIFO_FULL;
 
     switch (what) {
     case CW_LIGHT:
@@ -703,7 +849,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     pthread_mutex_lock(&sys_fs_mutex);
     ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
-    if (!mEnabled) {
+    if (mEnabled.isEmpty()) {
         if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0) {
             ALOGE("CwMcuSensor::batch: set IIO buffer length failed: %s\n", strerror(errno));
         } else {
@@ -761,7 +907,6 @@ int CwMcuSensor::flush(int handle)
     int err;
 
     what = find_sensor(handle);
-    mFlushSensorEnabled = handle;
 
     if (uint32_t(what) >= CW_SENSORS_ID_END) {
         return -EINVAL;
@@ -789,14 +934,14 @@ int CwMcuSensor::flush(int handle)
     }
 
     pthread_mutex_unlock(&sys_fs_mutex);
-    ALOGV("CwMcuSensor::flush: fd = %d, sensors_id = %d, path = %s, err = %d\n",
+    ALOGI("CwMcuSensor::flush: fd = %d, sensors_id = %d, path = %s, err = %d\n",
           fd, what, fixed_sysfs_path, err);
     return err;
 }
 
 
 bool CwMcuSensor::hasPendingEvents() const {
-    return mPendingMask;
+    return !mPendingMask.isEmpty();
 }
 
 int CwMcuSensor::setDelay(int32_t handle, int64_t delay_ns) {
@@ -835,6 +980,9 @@ void CwMcuSensor::calculate_rv_4th_element(int sensors_id) {
     case CW_ROTATIONVECTOR:
     case CW_GAME_ROTATION_VECTOR:
     case CW_GEOMAGNETIC_ROTATION_VECTOR:
+    case CW_ROTATIONVECTOR_W:
+    case CW_GAME_ROTATION_VECTOR_W:
+    case CW_GEOMAGNETIC_ROTATION_VECTOR_W:
         float q0, q1, q2, q3;
 
         q1 = mPendingEvents[sensors_id].data[0];
@@ -941,7 +1089,7 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
 
             mPendingEvents[id].timestamp = event_cpu_time;
 
-            if (mEnabled & (1<<id)) {
+            if (mEnabled.hasBit(id)) {
                 if (id == CW_SIGNIFICANT_MOTION) {
                     setEnable(ID_CW_SIGNIFICANT_MOTION, 0);
                 }
@@ -973,8 +1121,9 @@ int CwMcuSensor::processEvent(uint8_t *event) {
 
     switch (sensorsid) {
     case CW_ORIENTATION:
-        mPendingMask |= 1<<sensorsid;
-        if (sensorsid == CW_ORIENTATION) {
+    case CW_ORIENTATION_W:
+        mPendingMask.markBit(sensorsid);
+        if ((sensorsid == CW_ORIENTATION) || (sensorsid == CW_ORIENTATION_W)) {
             mPendingEvents[sensorsid].orientation.status = bias[0];
         }
         mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_10;
@@ -986,17 +1135,24 @@ int CwMcuSensor::processEvent(uint8_t *event) {
     case CW_GYRO:
     case CW_LINEARACCELERATION:
     case CW_GRAVITY:
-        mPendingMask |= 1<<sensorsid;
-        if (sensorsid == CW_MAGNETIC) {
+    case CW_ACCELERATION_W:
+    case CW_MAGNETIC_W:
+    case CW_GYRO_W:
+    case CW_LINEARACCELERATION_W:
+    case CW_GRAVITY_W:
+        mPendingMask.markBit(sensorsid);
+        if ((sensorsid == CW_MAGNETIC) || (sensorsid == CW_MAGNETIC_W)) {
             mPendingEvents[sensorsid].magnetic.status = bias[0];
-            ALOGV("CwMcuSensor::processEvent: magnetic accuracy = %d\n", mPendingEvents[sensorsid].magnetic.status);
+            ALOGV("CwMcuSensor::processEvent: magnetic accuracy = %d\n",
+                  mPendingEvents[sensorsid].magnetic.status);
         }
         mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_100;
         mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_100;
         mPendingEvents[sensorsid].data[2] = (float)data[2] * CONVERT_100;
         break;
     case CW_PRESSURE:
-        mPendingMask |= 1<<sensorsid;
+    case CW_PRESSURE_W:
+        mPendingMask.markBit(sensorsid);
         // .pressure is data[0] and the unit is hectopascal (hPa)
         mPendingEvents[sensorsid].pressure = ((float)*(int32_t *)(&data[0])) * CONVERT_100;
         // data[1] is not used, and data[2] is the temperature
@@ -1005,14 +1161,19 @@ int CwMcuSensor::processEvent(uint8_t *event) {
     case CW_ROTATIONVECTOR:
     case CW_GAME_ROTATION_VECTOR:
     case CW_GEOMAGNETIC_ROTATION_VECTOR:
-        mPendingMask |= 1<<sensorsid;
+    case CW_ROTATIONVECTOR_W:
+    case CW_GAME_ROTATION_VECTOR_W:
+    case CW_GEOMAGNETIC_ROTATION_VECTOR_W:
+        mPendingMask.markBit(sensorsid);
         mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_10000;
         mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_10000;
         mPendingEvents[sensorsid].data[2] = (float)data[2] * CONVERT_10000;
         break;
     case CW_MAGNETIC_UNCALIBRATED:
     case CW_GYROSCOPE_UNCALIBRATED:
-        mPendingMask |= 1<<sensorsid;
+    case CW_MAGNETIC_UNCALIBRATED_W:
+    case CW_GYROSCOPE_UNCALIBRATED_W:
+        mPendingMask.markBit(sensorsid);
         mPendingEvents[sensorsid].data[0] = (float)data[0] * CONVERT_100;
         mPendingEvents[sensorsid].data[1] = (float)data[1] * CONVERT_100;
         mPendingEvents[sensorsid].data[2] = (float)data[2] * CONVERT_100;
@@ -1021,29 +1182,34 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         mPendingEvents[sensorsid].data[5] = (float)bias[2] * CONVERT_100;
         break;
     case CW_SIGNIFICANT_MOTION:
-        mPendingMask |= 1<<(sensorsid);
+        mPendingMask.markBit(sensorsid);
         mPendingEvents[sensorsid].data[0] = 1.0;
         mPendingEvents[sensorsid].timestamp = getTimestamp();
         ALOGV("sensors_id = %d, data = %p", sensorsid, data);
         break;
     case CW_LIGHT:
-        mPendingMask |= 1<<(sensorsid);
+        mPendingMask.markBit(sensorsid);
         mPendingEvents[sensorsid].light = indexToValue(data[0]);
         break;
     case CW_STEP_DETECTOR:
-        mPendingMask |= 1<<(sensorsid);
+    case CW_STEP_DETECTOR_W:
+        mPendingMask.markBit(sensorsid);
         mPendingEvents[sensorsid].data[0] = data[0];
         mPendingEvents[sensorsid].timestamp = getTimestamp();
         break;
     case CW_STEP_COUNTER:
-        mPendingMask |= 1<<(sensorsid);
-        mPendingEvents[sensorsid].u64.step_counter = *(uint32_t *)&data[0]; // We use 4 bytes in SensorHUB
-        ALOGV("processEvent: step counter = %" PRId64 "\n", mPendingEvents[sensorsid].u64.step_counter);
+    case CW_STEP_COUNTER_W:
+        mPendingMask.markBit(sensorsid);
+        // We use 4 bytes in SensorHUB
+        mPendingEvents[sensorsid].u64.step_counter = *(uint32_t *)&data[0];
+        ALOGV("processEvent: step counter = %" PRId64 "\n",
+              mPendingEvents[sensorsid].u64.step_counter);
         break;
     case CW_META_DATA:
         mPendingEventsFlush.meta_data.what = META_DATA_FLUSH_COMPLETE;
         mPendingEventsFlush.meta_data.sensor = find_handle(data[0]);
-        ALOGV("CW_META_DATA: meta_data.sensor = %d\n", mPendingEventsFlush.meta_data.sensor);
+        ALOGV("CW_META_DATA: meta_data.sensor = %d, data[0] = %d\n",
+              mPendingEventsFlush.meta_data.sensor, data[0]);
         break;
     default:
         ALOGW("%s: Unknown sensorsid = %d\n", __func__, sensorsid);

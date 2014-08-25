@@ -51,6 +51,20 @@ __BEGIN_DECLS
 #define ID_CW_STEP_DETECTOR                        14//CW_STEP_DETECTOR
 #define ID_CW_STEP_COUNTER                         15//CW_STEP_COUNTER
 
+#define ID_A_W                                     16//CW_ACCELERATION_WAKE_UP
+#define ID_M_W                                     17//CW_MAGNETIC_WAKE_UP
+#define ID_GY_W                                    18//CW_GYRO_WAKE_UP
+#define ID_PS_W                                    19//CW_PRESSURE_WAKE_UP
+#define ID_O_W                                     20//CW_ORIENTATION_WAKE_UP
+#define ID_RV_W                                    21//CW_ROTATIONVECTOR_WAKE_UP
+#define ID_LA_W                                    22//CW_LINEARACCELERATION_WAKE_UP
+#define ID_G_W                                     23//CW_GRAVITY_WAKE_UP
+#define ID_CW_MAGNETIC_UNCALIBRATED_W              24//CW_MAGNETIC_UNCALIBRATED_WAKE_UP
+#define ID_CW_GYROSCOPE_UNCALIBRATED_W             25//CW_GYROSCOPE_UNCALIBRATED_WAKE_UP
+#define ID_CW_GAME_ROTATION_VECTOR_W               26//CW_GAME_ROTATION_VECTOR_WAKE_UP
+#define ID_CW_GEOMAGNETIC_ROTATION_VECTOR_W        27//CW_GEOMAGNETIC_ROTATION_VECTOR_WAKE_UP
+#define ID_CW_STEP_DETECTOR_W                      28//CW_STEP_DETECTOR_WAKE_UP
+#define ID_CW_STEP_COUNTER_W                       29//CW_STEP_COUNTER_WAKE_UP
 /*****************************************************************************/
 
 // The SENSORS Module
