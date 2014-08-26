@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <sys/cdefs.h>
 #include <sys/types.h>
+#include <utils/BitSet.h>
 
 #include "InputEventReader.h"
 #include "sensors.h"
@@ -47,12 +48,28 @@ typedef enum {
     CW_STEP_DETECTOR               = 21,
     CW_STEP_COUNTER                = 22,
     HTC_ANY_MOTION                 = 28,
-    CW_SENSORS_ID_END, // Be careful, do not exceed 31
-    TIME_DIFF_EXHAUSTED            = 97,
-    CW_TIME_BASE                   = 98,
-    CW_META_DATA                   = 99,
-    CW_MAGNETIC_UNCALIBRATED_BIAS  = 100,
-    CW_GYROSCOPE_UNCALIBRATED_BIAS = 101
+    //Above are Firmware supported sensors,
+    CW_ACCELERATION_W                = 32,
+    CW_MAGNETIC_W                    = 33,
+    CW_GYRO_W                        = 34,
+    CW_PRESSURE_W                    = 37,
+    CW_ORIENTATION_W                 = 38,
+    CW_ROTATIONVECTOR_W              = 39,
+    CW_LINEARACCELERATION_W          = 40,
+    CW_GRAVITY_W                     = 41,
+    HTC_WAKE_UP_GESTURE_W            = 42,
+    CW_MAGNETIC_UNCALIBRATED_W       = 48,
+    CW_GYROSCOPE_UNCALIBRATED_W      = 49,
+    CW_GAME_ROTATION_VECTOR_W        = 50,
+    CW_GEOMAGNETIC_ROTATION_VECTOR_W = 51,
+    CW_STEP_DETECTOR_W               = 53,
+    CW_STEP_COUNTER_W                = 54,
+    CW_SENSORS_ID_END,
+    TIME_DIFF_EXHAUSTED              = 97,
+    CW_TIME_BASE                     = 98,
+    CW_META_DATA                     = 99,
+    CW_MAGNETIC_UNCALIBRATED_BIAS    = 100,
+    CW_GYROSCOPE_UNCALIBRATED_BIAS   = 101
 } CW_SENSORS_ID;
 
 #define        SAVE_PATH_ACC                                "/data/misc/AccOffset.txt"
@@ -65,16 +82,15 @@ typedef enum {
 
 #define TIMESTAMP_SYNC_CODE        (98)
 
-#define PERIODIC_SYNC_TIME_SEC     (1)
+#define PERIODIC_SYNC_TIME_SEC     (30)
 
 class CwMcuSensor : public SensorBase {
 
-        uint32_t mEnabled;
+        android::BitSet64 mEnabled;
         InputEventCircularReader mInputReader;
         sensors_event_t mPendingEvents[numSensors];
         sensors_event_t mPendingEventsFlush;
-        uint32_t mFlushSensorEnabled;
-        uint32_t mPendingMask;
+        android::BitSet64 mPendingMask;
         char fixed_sysfs_path[PATH_MAX];
         int fixed_sysfs_path_len;
 
@@ -107,6 +123,7 @@ public:
         virtual int getEnable(int32_t handle);
         virtual int batch(int handle, int flags, int64_t period_ns, int64_t timeout);
         virtual int flush(int handle);
+        bool is_batch_wake_sensor(int32_t handle);
         int find_sensor(int32_t handle);
         int find_handle(int32_t sensors_id);
         void cw_save_calibrator_file(int type, const char * path, int* str);
