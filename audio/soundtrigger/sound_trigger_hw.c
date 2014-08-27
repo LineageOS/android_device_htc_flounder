@@ -86,6 +86,13 @@ enum {
 };
 
 
+static void stdev_dsp_set_power(struct flounder_sound_trigger_device *stdev,
+                                int val)
+{
+    mixer_ctl_set_value(stdev->ctl_dsp, 0, val);
+    mixer_ctl_set_value(stdev->ctl_mic, 0, val);
+}
+
 static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
 {
     int ret = -1;
@@ -107,6 +114,8 @@ static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
     stdev->ctl_dsp = mixer_get_ctl(stdev->mixer, FLOUNDER_CTRL_DSP);
     if (!stdev->ctl_dsp)
         goto err;
+
+    stdev_dsp_set_power(stdev, 0); // Reset DSP at the beginning
 
     return 0;
 
@@ -260,8 +269,7 @@ static void *callback_thread_loop(void *context)
     fds[1].events = POLLIN;
     fds[1].fd = stdev->term_sock;
 
-    mixer_ctl_set_value(stdev->ctl_dsp, 0, 1);
-    mixer_ctl_set_value(stdev->ctl_mic, 0, 1);
+    stdev_dsp_set_power(stdev, 1);
 
     pthread_mutex_unlock(&stdev->lock);
 
@@ -313,8 +321,7 @@ exit:
     stdev->recognition_callback = NULL;
     stdev_close_term_sock(stdev);
 
-    mixer_ctl_set_value(stdev->ctl_dsp, 0, 0);
-    mixer_ctl_set_value(stdev->ctl_mic, 0, 0);
+    stdev_dsp_set_power(stdev, 0);
 
     pthread_mutex_unlock(&stdev->lock);
 
