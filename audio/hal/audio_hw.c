@@ -4253,8 +4253,10 @@ static int adev_open(const hw_module_t *module, const char *name,
             retry_count = RETRY_NUMBER;
             while (!adev->dummybuf_thread_active && retry_count-- > 0)
                 usleep(10000);
-            if(adev->dummybuf_thread_active)
+            if(adev->dummybuf_thread_active) {
+                usleep(10000); /* tfa9895 spk amp need more than 1ms i2s signal before giving dsp related i2c commands*/
                 adev->tfa9895_init = adev->htc_acoustic_set_amp_mode(0, AUDIO_DEVICE_OUT_SPEAKER, 0, 0, false);
+            }
             dummybuf_thread_close(adev);
         }
 
