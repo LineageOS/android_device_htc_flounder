@@ -62,6 +62,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/touch/touch_fusion:$(TARGET_COPY_OUT_VENDOR)/bin/touch_fusion \
     $(LOCAL_PATH)/touch/synaptics-dsx.idc:system/usr/idc/synaptics-dsx.idc
 
+# headset keylayout
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl
+
 PRODUCT_PACKAGES += \
     libwpa_client \
     hostapd \
