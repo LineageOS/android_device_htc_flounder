@@ -37,6 +37,7 @@
 #endif
 
 #define HTC_ACOUSTIC_LIBRARY_PATH "/vendor/lib/libhtcacoustic.so"
+
 #ifdef PREPROCESSING_ENABLED
 #include <audio_utils/echo_reference.h>
 #define MAX_PREPROCESSORS 3
@@ -45,6 +46,12 @@ struct effect_info_s {
     size_t num_channel_configs;
     channel_config_t *channel_configs;
 };
+#endif
+
+#ifdef __LP64__
+#define SOUND_TRIGGER_HAL_LIBRARY_PATH "/system/lib64/hw/sound_trigger.primary.flounder.so"
+#else
+#define SOUND_TRIGGER_HAL_LIBRARY_PATH "/system/lib/hw/sound_trigger.primary.flounder.so"
 #endif
 
 #define TTY_MODE_OFF    1
@@ -191,6 +198,7 @@ typedef enum {
 
     /* Capture usecases */
     USECASE_AUDIO_CAPTURE,
+    USECASE_AUDIO_CAPTURE_HOTWORD,
 
     USECASE_VOICE_CALL,
     AUDIO_USECASE_MAX
@@ -223,7 +231,8 @@ enum {
 typedef enum {
     PCM_PLAYBACK = 0x1,
     PCM_CAPTURE = 0x2,
-    VOICE_CALL = 0x4
+    VOICE_CALL = 0x4,
+    PCM_HOTWORD_STREAMING = 0x8
 } usecase_type_t;
 
 struct offload_cmd {
@@ -249,6 +258,7 @@ struct pcm_device {
     struct resampler_itfe*     resampler;
     int16_t*                   res_buffer;
     size_t                     res_byte_count;
+    int                        sound_trigger_handle;
 };
 
 struct stream_out {
@@ -394,6 +404,11 @@ struct audio_device {
     int                     (*htc_acoustic_init_rt5506)();
     int                     (*htc_acoustic_set_rt5506_amp)(int, int);
     int                     (*htc_acoustic_set_amp_mode)(int, int, int, int, bool);
+
+    void*                   sound_trigger_lib;
+    int                     (*sound_trigger_open_for_streaming)();
+    size_t                  (*sound_trigger_read_samples)(int, void*, size_t);
+    int                     (*sound_trigger_close_for_streaming)(int);
 
     int                     tfa9895_init;
     int                     tfa9895_mode_change;
