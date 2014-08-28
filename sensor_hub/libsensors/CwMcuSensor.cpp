@@ -51,6 +51,10 @@
 
 static const char iio_dir[] = "/sys/bus/iio/devices/";
 
+static int min(int a, int b) {
+    return (a < b) ? a : b;
+}
+
 static int chomp(char *buf, size_t len) {
     if (buf == NULL)
         return -1;
@@ -419,6 +423,7 @@ CwMcuSensor::CwMcuSensor()
 
     if (data_fd >= 0) {
         int i;
+        int fd;
 
         ALOGV("%s: 11 Before pthread_mutex_lock()\n", __func__);
         pthread_mutex_lock(&sys_fs_mutex);
@@ -461,6 +466,21 @@ CwMcuSensor::CwMcuSensor()
 
         if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
             ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed22: %s\n", strerror(errno));
+        }
+
+        strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "calibrator_en");
+        fd = open(fixed_sysfs_path, O_RDWR);
+        if (fd >= 0) {
+            static const char buf[] = "12";
+
+            rc = write(fd, buf, sizeof(buf) - 1);
+            if (rc < 0) {
+                ALOGE("%s: write buf = %s, failed: %s", __func__, buf, strerror(errno));
+            }
+
+            close(fd);
+        } else {
+            ALOGE("%s open %s failed: %s", __func__, fixed_sysfs_path, strerror(errno));
         }
 
         pthread_mutex_unlock(&sys_fs_mutex);
@@ -723,10 +743,6 @@ int CwMcuSensor::getEnable(int32_t handle) {
     return  0;
 }
 
-static int min(int a, int b) {
-    return (a < b) ? a : b;
-}
-
 int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     int what;
@@ -749,7 +765,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     what = find_sensor(handle);
 
     ALOGD("CwMcuSensor::setEnable: "
-          "[v08-Fine tune timestamp accuracy], handle = %d, en = %d, what = %d\n",
+          "[v09-Make Step Counter accumulate from boot], handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -1196,6 +1212,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
         mPendingMask.markBit(sensorsid);
         // We use 4 bytes in SensorHUB
         mPendingEvents[sensorsid].u64.step_counter = *(uint32_t *)&data[0];
+        mPendingEvents[sensorsid].u64.step_counter += 0x100000000LL * (*(uint32_t *)&bias[0]);
         ALOGV("processEvent: step counter = %" PRId64 "\n",
               mPendingEvents[sensorsid].u64.step_counter);
         break;
