@@ -33,6 +33,9 @@ on post-fs-data
     mkdir /data/nfc 0770 nfc nfc
     mkdir /data/nfc/param 0770 nfc nfc
 
+    # secure os storage
+    mkdir /data/ss 0700 system system
+
     # for GPS files
     mkdir /data/gps 0770 gps system
 
@@ -252,3 +255,7 @@ service netmgrd /vendor/bin/netmgrd
     class late_start
     disabled
     group system radio
+
+service tlk_daemon /vendor/bin/tlk_daemon --storagedir /data/ss
+    class main
+    group system
