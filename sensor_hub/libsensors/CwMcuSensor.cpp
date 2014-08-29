@@ -765,7 +765,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     what = find_sensor(handle);
 
     ALOGD("CwMcuSensor::setEnable: "
-          "[v09-Make Step Counter accumulate from boot], handle = %d, en = %d, what = %d\n",
+          "[v10-Pass correct timestamp for Step and Significant], handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -1194,8 +1194,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
     case CW_SIGNIFICANT_MOTION:
         mPendingMask.markBit(sensorsid);
         mPendingEvents[sensorsid].data[0] = 1.0;
-        mPendingEvents[sensorsid].timestamp = getTimestamp();
-        ALOGV("sensors_id = %d, data = %p", sensorsid, data);
+        ALOGV("SIGNIFICANT timestamp = %" PRIu64 "\n", mPendingEvents[sensorsid].timestamp);
         break;
     case CW_LIGHT:
         mPendingMask.markBit(sensorsid);
@@ -1205,7 +1204,7 @@ int CwMcuSensor::processEvent(uint8_t *event) {
     case CW_STEP_DETECTOR_W:
         mPendingMask.markBit(sensorsid);
         mPendingEvents[sensorsid].data[0] = data[0];
-        mPendingEvents[sensorsid].timestamp = getTimestamp();
+        ALOGV("STEP_DETECTOR, timestamp = %" PRIu64 "\n", mPendingEvents[sensorsid].timestamp);
         break;
     case CW_STEP_COUNTER:
     case CW_STEP_COUNTER_W:
