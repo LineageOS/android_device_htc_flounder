@@ -3,3 +3,6 @@ type kickstart_device, dev_type;
 
 # Radio related block device
 type efs_block_device, dev_type;
+
+# GPU Frequency Constraint device
+type gpu_freq_device, dev_type;
