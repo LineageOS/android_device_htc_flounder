@@ -143,3 +143,6 @@ EXTENDED_FONT_FOOTPRINT := true
 
 # let charger mode enter suspend
 BOARD_CHARGER_ENABLE_SUSPEND := true
+
+# Build 32-bit Keystore because Trusty isn't yet 64-bit
+USE_32_BIT_KEYSTORE := true
