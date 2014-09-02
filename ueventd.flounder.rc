@@ -21,6 +21,7 @@
 /dev/tfa9895    0660    system  audio
 /dev/tfa9895l   0660    system  audio
 /dev/tegra_dc*  0660    system  system
+/dev/constraint_gpu_freq 0660 system system
 /dev/ttyACM*    0660    radio   system
 /dev/ttyACM2    0660    radio   log
 /dev/nvhdcp0    0666    system  system

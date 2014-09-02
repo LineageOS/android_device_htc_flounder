@@ -35,8 +35,10 @@
 #define CPU_MAX_FREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 #define FACEDOWN_PATH "/sys/class/htc_sensorhub/sensor_hub/facedown_enabled"
 #define TOUCH_SYNA_INTERACTIVE_PATH "/sys/devices/platform/spi-tegra114.2/spi_master/spi2/spi2.0/input/input0/interactive"
+#define GPU_BOOST_PATH "/dev/constraint_gpu_freq"
 #define LOW_POWER_MAX_FREQ "1020000"
 #define NORMAL_MAX_FREQ "2901000"
+#define GPU_FREQ_CONSTRAINT "852000 852000 -1 2000"
 
 struct flounder_power_module {
     struct power_module base;
@@ -106,6 +108,8 @@ static void power_set_interactive(struct power_module __unused *module, int on)
 static int boostpulse_open(struct flounder_power_module *flounder)
 {
     char buf[80];
+    int len;
+    static int gpu_boost_fd = -1;
 
     pthread_mutex_lock(&flounder->lock);
 
@@ -117,6 +121,22 @@ static int boostpulse_open(struct flounder_power_module *flounder)
                 strerror_r(errno, buf, sizeof(buf));
                 ALOGE("Error opening %s: %s\n", BOOSTPULSE_PATH, buf);
                 flounder->boostpulse_warned = 1;
+            }
+        }
+    }
+    {
+        if ( gpu_boost_fd == -1 )
+            gpu_boost_fd = open(GPU_BOOST_PATH, O_WRONLY);
+
+        if (gpu_boost_fd < 0) {
+            strerror_r(errno, buf, sizeof(buf));
+            ALOGE("Error opening %s: %s\n", GPU_BOOST_PATH, buf);
+        } else {
+            len = write(gpu_boost_fd, GPU_FREQ_CONSTRAINT,
+                        strlen(GPU_FREQ_CONSTRAINT));
+            if (len < 0) {
+                strerror_r(errno, buf, sizeof(buf));
+                ALOGE("Error writing to %s: %s\n", GPU_BOOST_PATH, buf);
             }
         }
     }
