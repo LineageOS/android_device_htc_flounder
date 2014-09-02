@@ -21,4 +21,7 @@
     <keyboard-layout android:name="keyboard_layout_volantis_italian"
             android:label="@string/keyboard_layout_volantis_italian_label"
             android:keyboardLayout="@raw/keyboard_layout_volantis_italian" />
+    <keyboard-layout android:name="keyboard_layout_volantis_japanese"
+            android:label="@string/keyboard_layout_volantis_japanese_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_japanese" />
 </keyboard-layouts>
