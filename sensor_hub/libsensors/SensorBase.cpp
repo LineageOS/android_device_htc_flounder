@@ -109,7 +109,7 @@ bool SensorBase::hasPendingEvents() const {
 int64_t SensorBase::getTimestamp() {
     struct timespec t;
     t.tv_sec = t.tv_nsec = 0;
-    clock_gettime(CLOCK_REALTIME, &t);
+    clock_gettime(CLOCK_BOOTTIME, &t);
     return int64_t(t.tv_sec)*NS_PER_SEC + t.tv_nsec;
 }
 
