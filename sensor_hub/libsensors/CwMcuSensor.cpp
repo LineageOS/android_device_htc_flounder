@@ -42,7 +42,7 @@
 #define EXHAUSTED_MAGIC 0x77
 
 /*****************************************************************************/
-#define IIO_MAX_BUFF_SIZE 1024
+#define IIO_MAX_BUFF_SIZE 4096
 #define IIO_MAX_DATA_SIZE 24
 #define IIO_MAX_NAME_LENGTH 30
 #define INT32_CHAR_LEN 12
@@ -765,7 +765,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     what = find_sensor(handle);
 
     ALOGD("CwMcuSensor::setEnable: "
-          "[v10-Pass correct timestamp for Step and Significant], handle = %d, en = %d, what = %d\n",
+          "[v11-Enlarge IIO buffer], handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
