@@ -276,6 +276,7 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_ACCELERATION].version = sizeof(sensors_event_t);
     mPendingEvents[CW_ACCELERATION].sensor = ID_A;
     mPendingEvents[CW_ACCELERATION].type = SENSOR_TYPE_ACCELEROMETER;
+    mPendingEvents[CW_ACCELERATION].acceleration.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_MAGNETIC].version = sizeof(sensors_event_t);
     mPendingEvents[CW_MAGNETIC].sensor = ID_M;
@@ -284,6 +285,7 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_GYRO].version = sizeof(sensors_event_t);
     mPendingEvents[CW_GYRO].sensor = ID_GY;
     mPendingEvents[CW_GYRO].type = SENSOR_TYPE_GYROSCOPE;
+    mPendingEvents[CW_GYRO].gyro.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_LIGHT].version = sizeof(sensors_event_t);
     mPendingEvents[CW_LIGHT].sensor = ID_L;
@@ -344,6 +346,7 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_ACCELERATION_W].version = sizeof(sensors_event_t);
     mPendingEvents[CW_ACCELERATION_W].sensor = ID_A_W;
     mPendingEvents[CW_ACCELERATION_W].type = SENSOR_TYPE_ACCELEROMETER;
+    mPendingEvents[CW_ACCELERATION_W].acceleration.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_MAGNETIC_W].version = sizeof(sensors_event_t);
     mPendingEvents[CW_MAGNETIC_W].sensor = ID_M_W;
@@ -352,6 +355,7 @@ CwMcuSensor::CwMcuSensor()
     mPendingEvents[CW_GYRO_W].version = sizeof(sensors_event_t);
     mPendingEvents[CW_GYRO_W].sensor = ID_GY_W;
     mPendingEvents[CW_GYRO_W].type = SENSOR_TYPE_GYROSCOPE;
+    mPendingEvents[CW_GYRO_W].gyro.status = SENSOR_STATUS_ACCURACY_HIGH;
 
     mPendingEvents[CW_PRESSURE_W].version = sizeof(sensors_event_t);
     mPendingEvents[CW_PRESSURE_W].sensor = ID_PS_W;
@@ -765,7 +769,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     what = find_sensor(handle);
 
     ALOGD("CwMcuSensor::setEnable: "
-          "[v11-Enlarge IIO buffer], handle = %d, en = %d, what = %d\n",
+          "[v12-Correct accuracies for accel and gyro], handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -1083,6 +1087,9 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
 
             pthread_mutex_lock(&last_timestamp_mutex);
 
+            ALOGV("readEvents: id = %d, accuracy = %d\n"
+                  , id
+                  , mPendingEvents[id].acceleration.status);
             ALOGV("readEvents: id = %d,"
                   " mcu_time = %" PRId64 " ms,"
                   " cpu_time = %" PRId64 " ns,"
