@@ -37,7 +37,9 @@
 #define UEVENT_MSG_LEN		1024
 
 #define FLOUNDER_VAD_DEV	"/dev/snd/hwC0D0"
-#define FLOUNDER_MIC_BUF_SIZE	(64 * 1024)
+
+#define FLOUNDER_STREAMING_DELAY_USEC	1000
+#define FLOUNDER_STREAMING_READ_RETRY_ATTEMPTS	30
 
 static const struct sound_trigger_properties hw_properties = {
     "The Android Open Source Project", // implementor
@@ -48,10 +50,10 @@ static const struct sound_trigger_properties hw_properties = {
     1, // max_key_phrases
     1, // max_users
     RECOGNITION_MODE_VOICE_TRIGGER, // recognition_modes
-    false, // capture_transition
+    true, // capture_transition
     0, // max_capture_ms
-    false, // concurrent_capture
-    true, // trigger_in_event
+    true, // concurrent_capture
+    false, // trigger_in_event
     0 // power_consumption_mw
 };
 
@@ -71,6 +73,8 @@ struct flounder_sound_trigger_device {
     struct mixer_ctl *ctl_dsp;
     struct mixer_ctl *ctl_mic;
     struct sound_trigger_recognition_config *config;
+    int is_streaming;
+    int opened;
 };
 
 struct rt_codec_cmd {
@@ -83,10 +87,14 @@ enum {
     RT_WRITE_CODEC_DSP_IOCTL = _IOW('R', 0x04, struct rt_codec_cmd),
 };
 
+// Since there's only ever one sound_trigger_device, keep it as a global so that other people can
+// dlopen this lib to get at the streaming audio.
+static struct flounder_sound_trigger_device g_stdev = { .lock = PTHREAD_MUTEX_INITIALIZER };
 
 static void stdev_dsp_set_power(struct flounder_sound_trigger_device *stdev,
                                 int val)
 {
+    stdev->is_streaming = 0;
     mixer_ctl_set_value(stdev->ctl_dsp, 0, val);
     mixer_ctl_set_value(stdev->ctl_mic, 0, val);
 }
@@ -113,7 +121,7 @@ static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
     if (!stdev->ctl_dsp)
         goto err;
 
-    stdev_dsp_set_power(stdev, 0); // Reset DSP at the beginning
+    stdev_dsp_set_power(stdev, 0); // Disable DSP at the beginning
 
     return 0;
 
@@ -139,6 +147,7 @@ static void stdev_close_term_sock(struct flounder_sound_trigger_device *stdev)
 static void stdev_close_mixer(struct flounder_sound_trigger_device *stdev)
 {
     if (stdev) {
+        stdev_dsp_set_power(stdev, 0);
         mixer_close(stdev->mixer);
         stdev_close_term_sock(stdev);
         close(stdev->vad_fd);
@@ -163,35 +172,14 @@ static int vad_load_sound_model(struct flounder_sound_trigger_device *stdev,
     return ret;
 }
 
-static int vad_get_phrase(struct flounder_sound_trigger_device *stdev,
-                          char *buf, unsigned int *len)
-{
-    struct rt_codec_cmd cmd;
-    int ret;
-
-    cmd.number = (*len) / sizeof(int);
-    cmd.buf = (int *)buf;
-
-    ret = ioctl(stdev->vad_fd, RT_READ_CODEC_DSP_IOCTL, &cmd);
-    *len = (unsigned int)cmd.number * sizeof(int);
-    if (ret)
-        ALOGE("Error VAD read ioctl");
-    return ret;
-}
-
 static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
                                        stdev)
 {
     char *data;
     struct sound_trigger_phrase_recognition_event *event;
-    unsigned int data_size = 0;
-
-    if (stdev->config && stdev->config->capture_requested)
-        data_size = FLOUNDER_MIC_BUF_SIZE;
 
     data = (char *)calloc(1,
-                    sizeof(struct sound_trigger_phrase_recognition_event) +
-                    data_size);
+                    sizeof(struct sound_trigger_phrase_recognition_event));
     if (!data)
         return NULL;
 
@@ -216,20 +204,15 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
     event->phrase_extras[0].num_levels = 1;
     event->phrase_extras[0].levels[0].level = 100;
     event->phrase_extras[0].levels[0].user_id = 0;
+    // Signify that all the data is comming through streaming, not through the
+    // buffer.
+    event->common.capture_available = true;
 
-    if (data_size != 0) {
-        event->common.trigger_in_data = true;
-        event->common.audio_config = AUDIO_CONFIG_INITIALIZER;
-        event->common.audio_config.sample_rate = 16000;
-        event->common.audio_config.channel_mask = AUDIO_CHANNEL_IN_MONO;
-        event->common.audio_config.format = AUDIO_FORMAT_PCM_16_BIT;
+    event->common.audio_config = AUDIO_CONFIG_INITIALIZER;
+    event->common.audio_config.sample_rate = 16000;
+    event->common.audio_config.channel_mask = AUDIO_CHANNEL_IN_MONO;
+    event->common.audio_config.format = AUDIO_FORMAT_PCM_16_BIT;
 
-        event->common.data_offset =
-                       sizeof(struct sound_trigger_phrase_recognition_event);
-        event->common.data_size = data_size;
-        vad_get_phrase(stdev, data + event->common.data_offset,
-                       &event->common.data_size);
-    }
     return data;
 }
 
@@ -292,6 +275,7 @@ static void *callback_thread_loop(void *context)
                     event = (struct sound_trigger_phrase_recognition_event *)
                             sound_trigger_event_alloc(stdev);
                     if (event) {
+                        stdev->is_streaming = 1;
                         ALOGI("%s send callback model %d", __func__,
                               stdev->model_handle);
                         stdev->recognition_callback(&event->common,
@@ -319,7 +303,8 @@ exit:
     stdev->recognition_callback = NULL;
     stdev_close_term_sock(stdev);
 
-    stdev_dsp_set_power(stdev, 0);
+    if (stdev->config && !stdev->config->capture_requested)
+        stdev_dsp_set_power(stdev, 0);
 
     pthread_mutex_unlock(&stdev->lock);
 
@@ -406,6 +391,8 @@ static int stdev_unload_sound_model(const struct sound_trigger_hw_device *dev,
     }
 
 exit:
+    stdev_dsp_set_power(stdev, 0);
+
     pthread_mutex_unlock(&stdev->lock);
     return status;
 }
@@ -441,6 +428,8 @@ static int stdev_start_recognition(const struct sound_trigger_hw_device *dev,
         }
         memcpy(stdev->config, config, sizeof(*config));
     }
+
+    stdev_dsp_set_power(stdev, 0);
 
     stdev->recognition_callback = callback;
     stdev->recognition_cookie = cookie;
@@ -480,19 +469,118 @@ static int stdev_stop_recognition(const struct sound_trigger_hw_device *dev,
     pthread_mutex_lock(&stdev->lock);
 
 exit:
+    stdev_dsp_set_power(stdev, 0);
+
     pthread_mutex_unlock(&stdev->lock);
     return status;
 }
 
+__attribute__ ((visibility ("default")))
+int sound_trigger_open_for_streaming()
+{
+    struct flounder_sound_trigger_device *stdev = &g_stdev;
+    int ret = 0;
+
+    pthread_mutex_lock(&stdev->lock);
+
+    if (!stdev->opened) {
+        ALOGE("%s: stdev has not been opened", __func__);
+        ret = -EFAULT;
+        goto exit;
+    }
+    if (!stdev->is_streaming) {
+        ALOGE("%s: DSP is not currently streaming", __func__);
+        ret = -EBUSY;
+        goto exit;
+    }
+    // TODO: Probably want to get something from whoever called us to bind to it/assert that it's a
+    // valid connection. Perhaps returning a more
+    // meaningful handle would be a good idea as well.
+    ret = 1;
+exit:
+    pthread_mutex_unlock(&stdev->lock);
+    return ret;
+}
+
+__attribute__ ((visibility ("default")))
+size_t sound_trigger_read_samples(int audio_handle, void *buffer, size_t  buffer_len)
+{
+    struct rt_codec_cmd cmd;
+    struct flounder_sound_trigger_device *stdev = &g_stdev;
+    int i;
+    int ret = 0;
+
+    if (audio_handle <= 0) {
+        ALOGE("%s: invalid audio handle", __func__);
+        return -EINVAL;
+    }
+
+    pthread_mutex_lock(&stdev->lock);
+
+    if (!stdev->opened) {
+        ALOGE("%s: stdev has not been opened", __func__);
+        ret = -EFAULT;
+        goto exit;
+    }
+    if (!stdev->is_streaming) {
+        ALOGE("%s: DSP is not currently streaming", __func__);
+        ret = -EINVAL;
+        goto exit;
+    }
+
+    cmd.number = buffer_len / sizeof(int);
+    cmd.buf = (int*) buffer;
+
+    for (i = 0; i < FLOUNDER_STREAMING_READ_RETRY_ATTEMPTS; i++) {
+        ret = ioctl(stdev->vad_fd, RT_READ_CODEC_DSP_IOCTL, &cmd);
+        if (ret == 0) {
+            usleep(FLOUNDER_STREAMING_DELAY_USEC);
+        } else if (ret < 0) {
+            ALOGV("%s: IOCTL failed with code %d", __func__, ret);
+            goto exit;
+        } else {
+            // The IOCTL returns the number of int16 samples that were read, so we need to multiply
+            // it by 2 when we return things.
+            ALOGV("%s: IOCTL captured %d samples", __func__, ret);
+            ret <<= 1;
+            goto exit;
+        }
+    }
+    ALOGV("%s: Timeout waiting for data from dsp", __func__);
+exit:
+    pthread_mutex_unlock(&stdev->lock);
+    return ret;
+}
+
+__attribute__ ((visibility ("default")))
+int sound_trigger_close_for_streaming(int audio_handle __unused)
+{
+    // TODO: Power down the DSP? I think we shouldn't in case we want to open this mic for streaming
+    // for the voice search?
+    return 0;
+}
 
 static int stdev_close(hw_device_t *device)
 {
     struct flounder_sound_trigger_device *stdev =
                                 (struct flounder_sound_trigger_device *)device;
+    int ret = 0;
 
+    pthread_mutex_lock(&stdev->lock);
+    if (!stdev->opened) {
+        ALOGE("%s: device already closed", __func__);
+        ret = -EFAULT;
+        goto exit;
+    }
     stdev_close_mixer(stdev);
-    free(device);
-    return 0;
+    stdev->model_handle = 0;
+    stdev->send_sock = 0;
+    stdev->term_sock = 0;
+    stdev->opened = false;
+
+exit:
+    pthread_mutex_unlock(&stdev->lock);
+    return ret;
 }
 
 static int stdev_open(const hw_module_t *module, const char *name,
@@ -504,9 +592,20 @@ static int stdev_open(const hw_module_t *module, const char *name,
     if (strcmp(name, SOUND_TRIGGER_HARDWARE_INTERFACE) != 0)
         return -EINVAL;
 
-    stdev = calloc(1, sizeof(struct flounder_sound_trigger_device));
-    if (!stdev)
-        return -ENOMEM;
+    stdev = &g_stdev;
+    pthread_mutex_lock(&stdev->lock);
+
+    if (stdev->opened) {
+        ALOGE("%s: Only one sountrigger can be opened at a time", __func__);
+        ret = -EBUSY;
+        goto exit;
+    }
+
+    ret = stdev_init_mixer(stdev);
+    if (ret) {
+        ALOGE("Error mixer init");
+        goto exit;
+    }
 
     stdev->device.common.tag = HARDWARE_DEVICE_TAG;
     stdev->device.common.version = SOUND_TRIGGER_DEVICE_API_VERSION_1_0;
@@ -517,18 +616,12 @@ static int stdev_open(const hw_module_t *module, const char *name,
     stdev->device.unload_sound_model = stdev_unload_sound_model;
     stdev->device.start_recognition = stdev_start_recognition;
     stdev->device.stop_recognition = stdev_stop_recognition;
-
-    pthread_mutex_init(&stdev->lock, (const pthread_mutexattr_t *)NULL);
-
     stdev->send_sock = stdev->term_sock = -1;
+    stdev->opened = true;
 
-    ret = stdev_init_mixer(stdev);
-    if (ret) {
-        ALOGE("Error mixer init");
-        free(stdev);
-    } else {
-        *device = &stdev->device.common; /* same address as stdev */
-    }
+    *device = &stdev->device.common; /* same address as stdev */
+exit:
+    pthread_mutex_unlock(&stdev->lock);
     return ret;
 }
 
