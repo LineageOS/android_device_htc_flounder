@@ -1,2 +1,2 @@
 board=flounder|flounder_lte
-require version-bootloader=3.35.0.2108
+require version-bootloader=3.36.0.2108
