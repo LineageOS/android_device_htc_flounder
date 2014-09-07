@@ -1056,15 +1056,19 @@ static int set_preprocessor_param(effect_handle_t handle,
 static int set_preprocessor_echo_delay(effect_handle_t handle,
                                      int32_t delay_us)
 {
-    uint32_t buf[sizeof(effect_param_t) / sizeof(uint32_t) + 2]={0};
-    effect_param_t *param = (effect_param_t *)buf;
+    struct {
+        effect_param_t  param;
+        uint32_t        data_0;
+        int32_t         data_1;
+    } buf;
+    memset(&buf, 0, sizeof(buf));
 
-    param->psize = sizeof(uint32_t);
-    param->vsize = sizeof(uint32_t);
-    (*(uint32_t *)param->data) = AEC_PARAM_ECHO_DELAY;
-    (*((int32_t *)param->data + 1)) = delay_us;
+    buf.param.psize = sizeof(uint32_t);
+    buf.param.vsize = sizeof(uint32_t);
+    buf.data_0 = AEC_PARAM_ECHO_DELAY;
+    buf.data_1 = delay_us;
 
-    return set_preprocessor_param(handle, param);
+    return set_preprocessor_param(handle, &buf.param);
 }
 
 static void push_echo_reference(struct stream_in *in, size_t frames)
@@ -1146,7 +1150,7 @@ static void put_echo_reference(struct audio_device *adev,
 }
 
 static struct echo_reference_itfe *get_echo_reference(struct audio_device *adev,
-                                                      audio_format_t format,
+                                                      audio_format_t format __unused,
                                                       uint32_t channel_count,
                                                       uint32_t sampling_rate)
 {
@@ -1230,7 +1234,7 @@ static int get_playback_delay(struct stream_out *out,
                        size_t frames,
                        struct echo_reference_buffer *buffer)
 {
-    size_t kernel_frames;
+    unsigned int kernel_frames;
     int status;
     int primary_pcm = 0;
     struct pcm_device *pcm_device;
@@ -1255,7 +1259,7 @@ static int get_playback_delay(struct stream_out *out,
      * sample being written. */
     buffer->delay_ns = (long)(((int64_t)(kernel_frames + frames)* 1000000000)/
                             out->config.rate);
-    ALOGV("get_playback_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames: [%5zd], delay_ns: [%d],",
+    ALOGV("get_playback_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames: [%5u], delay_ns: [%d],",
          buffer->time_stamp.tv_sec, buffer->time_stamp.tv_nsec, kernel_frames, buffer->delay_ns);
 
     return 0;
@@ -1310,7 +1314,7 @@ static int in_configure_reverse(struct stream_in *in)
 
 #define MAX_NUM_CHANNEL_CONFIGS 10
 
-static void in_read_audio_effect_channel_configs(struct stream_in *in,
+static void in_read_audio_effect_channel_configs(struct stream_in *in __unused,
                                                  struct effect_info_s *effect_info)
 {
     /* size and format of the cmd are defined in hardware/audio_effect.h */
@@ -3984,7 +3988,7 @@ static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
 }
 
 static int adev_open_input_stream(struct audio_hw_device *dev,
-                                  audio_io_handle_t handle,
+                                  audio_io_handle_t handle __unused,
                                   audio_devices_t devices,
                                   struct audio_config *config,
                                   struct audio_stream_in **stream_in,
