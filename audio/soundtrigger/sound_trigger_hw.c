@@ -40,6 +40,7 @@
 
 #define FLOUNDER_STREAMING_DELAY_USEC	1000
 #define FLOUNDER_STREAMING_READ_RETRY_ATTEMPTS	30
+#define FLOUNDER_STREAMING_BUFFER_SIZE	(16 * 1024)
 
 static const struct sound_trigger_properties hw_properties = {
     "The Android Open Source Project", // implementor
@@ -75,6 +76,9 @@ struct flounder_sound_trigger_device {
     struct sound_trigger_recognition_config *config;
     int is_streaming;
     int opened;
+    char *streaming_buf;
+    size_t streaming_buf_read;
+    size_t streaming_buf_len;
 };
 
 struct rt_codec_cmd {
@@ -95,6 +99,8 @@ static void stdev_dsp_set_power(struct flounder_sound_trigger_device *stdev,
                                 int val)
 {
     stdev->is_streaming = 0;
+    stdev->streaming_buf_read = 0;
+    stdev->streaming_buf_len = 0;
     mixer_ctl_set_value(stdev->ctl_dsp, 0, val);
     mixer_ctl_set_value(stdev->ctl_mic, 0, val);
 }
@@ -216,6 +222,37 @@ static char *sound_trigger_event_alloc(struct flounder_sound_trigger_device *
     return data;
 }
 
+// The stdev should be locked when you call this function.
+static int fetch_streaming_buffer(struct flounder_sound_trigger_device * stdev)
+{
+    struct rt_codec_cmd cmd;
+    int ret = 0;
+    int i;
+
+    cmd.number = FLOUNDER_STREAMING_BUFFER_SIZE / sizeof(int);
+    cmd.buf = (int*) stdev->streaming_buf;
+
+    ALOGV("%s: Fetching bytes", __func__);
+    for (i = 0; i < FLOUNDER_STREAMING_READ_RETRY_ATTEMPTS; i++) {
+        ret = ioctl(stdev->vad_fd, RT_READ_CODEC_DSP_IOCTL, &cmd);
+        if (ret == 0) {
+            usleep(FLOUNDER_STREAMING_DELAY_USEC);
+        } else if (ret < 0) {
+            ALOGV("%s: IOCTL failed with code %d", __func__, ret);
+            return ret;
+        } else {
+            // The IOCTL returns the number of int16 samples that were read, so we need to multipy
+            // it by 2 .
+            ALOGV("%s: IOCTL captured %d samples", __func__, ret);
+            stdev->streaming_buf_read = 0;
+            stdev->streaming_buf_len = ret << 1;
+            return 0;
+        }
+    }
+    ALOGV("%s: Timeout waiting for data from dsp", __func__);
+    return 0;
+}
+
 static void *callback_thread_loop(void *context)
 {
     char msg[UEVENT_MSG_LEN];
@@ -281,6 +318,10 @@ static void *callback_thread_loop(void *context)
                         stdev->recognition_callback(&event->common,
                                                     stdev->recognition_cookie);
                         free(event);
+                        // Start reading data from the DSP while the upper levels do their thing.
+                        if (stdev->config && stdev->config->capture_requested) {
+                            fetch_streaming_buffer(stdev);
+                        }
                     }
                     goto found;
                 }
@@ -505,10 +546,9 @@ exit:
 __attribute__ ((visibility ("default")))
 size_t sound_trigger_read_samples(int audio_handle, void *buffer, size_t  buffer_len)
 {
-    struct rt_codec_cmd cmd;
     struct flounder_sound_trigger_device *stdev = &g_stdev;
     int i;
-    int ret = 0;
+    size_t ret = 0;
 
     if (audio_handle <= 0) {
         ALOGE("%s: invalid audio handle", __func__);
@@ -528,25 +568,19 @@ size_t sound_trigger_read_samples(int audio_handle, void *buffer, size_t  buffer
         goto exit;
     }
 
-    cmd.number = buffer_len / sizeof(int);
-    cmd.buf = (int*) buffer;
-
-    for (i = 0; i < FLOUNDER_STREAMING_READ_RETRY_ATTEMPTS; i++) {
-        ret = ioctl(stdev->vad_fd, RT_READ_CODEC_DSP_IOCTL, &cmd);
-        if (ret == 0) {
-            usleep(FLOUNDER_STREAMING_DELAY_USEC);
-        } else if (ret < 0) {
-            ALOGV("%s: IOCTL failed with code %d", __func__, ret);
-            goto exit;
-        } else {
-            // The IOCTL returns the number of int16 samples that were read, so we need to multiply
-            // it by 2 when we return things.
-            ALOGV("%s: IOCTL captured %d samples", __func__, ret);
-            ret <<= 1;
-            goto exit;
-        }
+    if (stdev->streaming_buf_read == stdev->streaming_buf_len) {
+        ret = fetch_streaming_buffer(stdev);
     }
-    ALOGV("%s: Timeout waiting for data from dsp", __func__);
+
+    if (!ret) {
+        ret = stdev->streaming_buf_len - stdev->streaming_buf_read;
+        if (ret > buffer_len)
+            ret = buffer_len;
+        memcpy(buffer, stdev->streaming_buf + stdev->streaming_buf_read, ret);
+        stdev->streaming_buf_read += ret;
+        ALOGV("%s: Sent %d bytes to buffer", __func__, ret);
+    }
+
 exit:
     pthread_mutex_unlock(&stdev->lock);
     return ret;
@@ -572,6 +606,7 @@ static int stdev_close(hw_device_t *device)
         ret = -EFAULT;
         goto exit;
     }
+    free(stdev->streaming_buf);
     stdev_close_mixer(stdev);
     stdev->model_handle = 0;
     stdev->send_sock = 0;
@@ -601,9 +636,16 @@ static int stdev_open(const hw_module_t *module, const char *name,
         goto exit;
     }
 
+    stdev->streaming_buf = malloc(FLOUNDER_STREAMING_BUFFER_SIZE);
+    if (!stdev->streaming_buf) {
+        ret = -ENOMEM;
+        goto exit;
+    }
+
     ret = stdev_init_mixer(stdev);
     if (ret) {
         ALOGE("Error mixer init");
+        free(stdev->streaming_buf);
         goto exit;
     }
 
@@ -617,6 +659,8 @@ static int stdev_open(const hw_module_t *module, const char *name,
     stdev->device.start_recognition = stdev_start_recognition;
     stdev->device.stop_recognition = stdev_stop_recognition;
     stdev->send_sock = stdev->term_sock = -1;
+    stdev->streaming_buf_read = 0;
+    stdev->streaming_buf_len = 0;
     stdev->opened = true;
 
     *device = &stdev->device.common; /* same address as stdev */
