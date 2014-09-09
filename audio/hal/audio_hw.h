@@ -420,11 +420,17 @@ struct audio_device {
     audio_devices_t         dummybuf_thread_devices;
     pthread_mutex_t         dummybuf_thread_lock;
     pthread_t               dummybuf_thread;
+
+    pthread_mutex_t         lock_inputs; /* see note below on mutex acquisition order */
 };
 
 /*
  * NOTE: when multiple mutexes have to be acquired, always take the
- * stream_in or stream_out mutex first, followed by the audio_device mutex.
+ * lock_inputs, stream_in, stream_out, audio_device, then tfa9895 mutex.
+ * stream_in mutex must always be before stream_out mutex
+ * if both have to be taken (see get_echo_reference(), put_echo_reference()...)
+ * dummybuf_thread mutex is not related to the other mutexes with respect to order.
+ * lock_inputs must be held in order to either close the input stream, or prevent closure.
  */
 
 #endif // NVIDIA_AUDIO_HW_H

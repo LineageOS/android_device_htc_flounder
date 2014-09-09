@@ -895,10 +895,6 @@ static int select_devices(struct audio_device *adev,
 }
 
 
-/**
- * NOTE: when multiple mutexes have to be acquired, always respect the following order:
- *        hw device > in stream > out stream
- */
 static ssize_t read_frames(struct stream_in *in, void *buffer, ssize_t frames);
 static int do_in_standby_l(struct stream_in *in);
 
@@ -2482,6 +2478,7 @@ static int stop_voice_call(struct audio_device *adev)
     return 0;
 }
 
+/* always called with adev lock held */
 static int start_voice_call(struct audio_device *adev)
 {
     struct audio_usecase *uc_info;
@@ -2648,13 +2645,13 @@ static int out_standby(struct audio_stream *stream)
 
     ALOGV("%s: enter: usecase(%d: %s)", __func__,
           out->usecase, use_case_table[out->usecase]);
-    pthread_mutex_lock(&adev->lock);
     pthread_mutex_lock(&out->lock);
     if (!out->standby) {
+        pthread_mutex_lock(&adev->lock);
         do_out_standby_l(out);
+        pthread_mutex_unlock(&adev->lock);
     }
     pthread_mutex_unlock(&out->lock);
-    pthread_mutex_unlock(&adev->lock);
     ALOGV("%s: exit", __func__);
     return 0;
 }
@@ -2714,7 +2711,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     struct pcm_device *pcm_device;
     struct pcm_device_profile *pcm_profile;
 #ifdef PREPROCESSING_ENABLED
-    bool force_input_standby = false;
+    struct stream_in *in = NULL;    /* if non-NULL, then force input to standby */
 #endif
 
     ALOGD("%s: enter: usecase(%d: %s) kvpairs: %s out->devices(%d) adev->mode(%d)",
@@ -2723,8 +2720,9 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     ret = str_parms_get_str(parms, AUDIO_PARAMETER_STREAM_ROUTING, value, sizeof(value));
     if (ret >= 0) {
         val = atoi(value);
-        pthread_mutex_lock(&adev->lock);
+        pthread_mutex_lock(&adev->lock_inputs);
         pthread_mutex_lock(&out->lock);
+        pthread_mutex_lock(&adev->lock);
 #ifdef PREPROCESSING_ENABLED
         if (((int)out->devices != val) && (val != 0) && (!out->standby) &&
             (out->usecase == USECASE_AUDIO_PLAYBACK)) {
@@ -2733,7 +2731,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
              *  - because a change in output device may change mic settings */
             if (adev->active_input && (adev->active_input->source == AUDIO_SOURCE_VOICE_COMMUNICATION ||
                     adev->active_input->source == AUDIO_SOURCE_MIC)) {
-                force_input_standby = true;
+                in = adev->active_input;
             }
         }
 #endif
@@ -2774,16 +2772,20 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
                 (out == adev->primary_output)) {
             stop_voice_call(adev);
         }
+        pthread_mutex_unlock(&adev->lock);
         pthread_mutex_unlock(&out->lock);
 #ifdef PREPROCESSING_ENABLED
-        if (force_input_standby) {
-            struct stream_in *in = adev->active_input;
+        if (in) {
+            /* The lock on adev->lock_inputs prevents input stream from being closed */
             pthread_mutex_lock(&in->lock);
+            pthread_mutex_lock(&adev->lock);
+            LOG_ALWAYS_FATAL_IF(in != adev->active_input);
             do_in_standby_l(in);
+            pthread_mutex_unlock(&adev->lock);
             pthread_mutex_unlock(&in->lock);
         }
 #endif
-        pthread_mutex_unlock(&adev->lock);
+        pthread_mutex_unlock(&adev->lock_inputs);
     }
 
     if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD) {
@@ -2895,16 +2897,29 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
 #ifdef PREPROCESSING_ENABLED
     size_t in_frames = bytes / frame_size;
     size_t out_frames = in_frames;
-    bool force_input_standby = false;
+    struct stream_in *in = NULL;
 #endif
 
-    pthread_mutex_lock(&adev->lock);
     pthread_mutex_lock(&out->lock);
     if (out->standby) {
+#ifdef PREPROCESSING_ENABLED
+        pthread_mutex_unlock(&out->lock);
+        /* Prevent input stream from being closed */
+        pthread_mutex_lock(&adev->lock_inputs);
+        pthread_mutex_lock(&out->lock);
+        if (!out->standby) {
+            pthread_mutex_unlock(&adev->lock_inputs);
+            goto false_alarm;
+        }
+#endif
+        pthread_mutex_lock(&adev->lock);
         ret = start_output_stream(out);
         /* ToDo: If use case is compress offload should return 0 */
         if (ret != 0) {
             pthread_mutex_unlock(&adev->lock);
+#ifdef PREPROCESSING_ENABLED
+            pthread_mutex_unlock(&adev->lock_inputs);
+#endif
             goto exit;
         }
         out->standby = false;
@@ -2914,12 +2929,19 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
         if (adev->active_input &&
             (adev->active_input->source == AUDIO_SOURCE_VOICE_COMMUNICATION ||
                 adev->active_input->source == AUDIO_SOURCE_MIC)) {
-                    force_input_standby = true;
+                    in = adev->active_input;
                     ALOGV("%s: enter:) force_input_standby true", __func__);
         }
 #endif
+        pthread_mutex_unlock(&adev->lock);
+#ifdef PREPROCESSING_ENABLED
+        if (!in) {
+            /* Leave mutex locked iff in != NULL */
+            pthread_mutex_unlock(&adev->lock_inputs);
+        }
+#endif
     }
-    pthread_mutex_unlock(&adev->lock);
+false_alarm:
 
     if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD) {
         ALOGVV("%s: writing buffer (%d bytes) to compress device", __func__, bytes);
@@ -2940,6 +2962,12 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
             out->offload_state = OFFLOAD_STATE_PLAYING;
         }
         pthread_mutex_unlock(&out->lock);
+#ifdef PREPROCESSING_ENABLED
+        if (in) {
+            /* This mutex was left locked iff in != NULL */
+            pthread_mutex_unlock(&adev->lock_inputs);
+        }
+#endif
         return ret;
     } else {
         if (out->muted)
@@ -3018,15 +3046,16 @@ exit:
     }
 
 #ifdef PREPROCESSING_ENABLED
-    if (force_input_standby) {
+    if (in) {
+        /* The lock on adev->lock_inputs prevents input stream from being closed */
+        pthread_mutex_lock(&in->lock);
         pthread_mutex_lock(&adev->lock);
-        if (adev->active_input) {
-            struct stream_in *in = adev->active_input;
-            pthread_mutex_lock(&in->lock);
-            do_in_standby_l(in);
-            pthread_mutex_unlock(&in->lock);
-        }
+        LOG_ALWAYS_FATAL_IF(in != adev->active_input);
+        do_in_standby_l(in);
         pthread_mutex_unlock(&adev->lock);
+        pthread_mutex_unlock(&in->lock);
+        /* This mutex was left locked iff in != NULL */
+        pthread_mutex_unlock(&adev->lock_inputs);
     }
 #endif
 
@@ -3265,6 +3294,7 @@ static int in_close_pcm_devices(struct stream_in *in)
 }
 
 
+/* must be called with stream and hw device mutex locked */
 static int do_in_standby_l(struct stream_in *in)
 {
     int status = 0;
@@ -3312,13 +3342,13 @@ static int in_standby(struct audio_stream *stream)
     struct audio_device *adev = in->dev;
     int status = 0;
     ALOGV("%s: enter", __func__);
-    pthread_mutex_lock(&adev->lock);
     pthread_mutex_lock(&in->lock);
     if (!in->standby) {
+        pthread_mutex_lock(&adev->lock);
         status = do_in_standby_l(in);
+        pthread_mutex_unlock(&adev->lock);
     }
     pthread_mutex_unlock(&in->lock);
-    pthread_mutex_unlock(&adev->lock);
     ALOGV("%s: exit:  status(%d)", __func__, status);
     return status;
 }
@@ -3350,8 +3380,8 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
     ret = str_parms_get_str(parms, AUDIO_PARAMETER_STREAM_INPUT_SOURCE, value, sizeof(value));
 
-    pthread_mutex_lock(&adev->lock);
     pthread_mutex_lock(&in->lock);
+    pthread_mutex_lock(&adev->lock);
     if (ret >= 0) {
         val = atoi(value);
         /* no audio source uses val == 0 */
@@ -3389,8 +3419,8 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
             }
         }
     }
-    pthread_mutex_unlock(&in->lock);
     pthread_mutex_unlock(&adev->lock);
+    pthread_mutex_unlock(&in->lock);
     str_parms_destroy(parms);
     ALOGV("%s: exit: status(%d)", __func__, ret);
     return ret;
@@ -3439,17 +3469,18 @@ static ssize_t in_read(struct audio_stream_in *stream, void *buffer,
 
     size_t frames_rq = bytes / audio_stream_in_frame_size(stream);
 
-    pthread_mutex_lock(&adev->lock);
+    /* no need to acquire adev->lock_inputs because API contract prevents a close */
     pthread_mutex_lock(&in->lock);
     if (in->standby) {
+        pthread_mutex_lock(&adev->lock);
         ret = start_input_stream(in);
         if (ret != 0) {
             pthread_mutex_unlock(&adev->lock);
             goto exit;
         }
         in->standby = 0;
+        pthread_mutex_unlock(&adev->lock);
     }
-    pthread_mutex_unlock(&adev->lock);
 
     if (!list_empty(&in->pcm_dev_list)) {
         if (in->usecase == USECASE_AUDIO_CAPTURE_HOTWORD) {
@@ -3511,8 +3542,8 @@ static int add_remove_audio_effect(const struct audio_stream *stream,
 
     ALOGI("add_remove_audio_effect(), effect type: %08x, enable: %d ", desc.type.timeLow, enable);
 
-    pthread_mutex_lock(&in->dev->lock);
     pthread_mutex_lock(&in->lock);
+    pthread_mutex_lock(&in->dev->lock);
 #ifndef PREPROCESSING_ENABLED
     if ((in->source == AUDIO_SOURCE_VOICE_COMMUNICATION) &&
             in->enable_aec != enable &&
@@ -3582,8 +3613,8 @@ static int add_remove_audio_effect(const struct audio_stream *stream,
 exit:
 #endif
     ALOGW_IF(status != 0, "add_remove_audio_effect() error %d", status);
-    pthread_mutex_unlock(&in->lock);
     pthread_mutex_unlock(&in->dev->lock);
+    pthread_mutex_unlock(&in->lock);
     return status;
 }
 
@@ -4065,8 +4096,12 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
 static void adev_close_input_stream(struct audio_hw_device *dev,
                                     struct audio_stream_in *stream)
 {
-    (void)dev;
+    struct audio_device *adev = (struct audio_device *)dev;
     ALOGV("%s", __func__);
+
+    /* prevent concurrent out_set_parameters, or out_write from standby */
+    pthread_mutex_lock(&adev->lock_inputs);
+
 #ifdef PREPROCESSING_ENABLED
     struct stream_in *in = (struct stream_in*)stream;
     int i;
@@ -4103,6 +4138,8 @@ static void adev_close_input_stream(struct audio_hw_device *dev,
 
     in_standby(&stream->common);
     free(stream);
+
+    pthread_mutex_unlock(&adev->lock_inputs);
 
     return;
 }
@@ -4301,7 +4338,6 @@ static int adev_open(const hw_module_t *module, const char *name,
     adev->device.dump = adev_dump;
 
     /* Set the default route before the PCM stream is opened */
-    pthread_mutex_lock(&adev->lock);
     adev->mode = AUDIO_MODE_NORMAL;
     adev->active_input = NULL;
     adev->primary_output = NULL;
@@ -4316,7 +4352,6 @@ static int adev_open(const hw_module_t *module, const char *name,
     adev->ns_in_voice_rec = false;
 
     list_init(&adev->usecase_list);
-    pthread_mutex_unlock(&adev->lock);
 
     if (mixer_init(adev) != 0) {
         free(adev->snd_dev_ref_cnt);
