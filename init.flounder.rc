@@ -64,7 +64,6 @@ on boot
     #write /sys/devices/system/cpu/cpufreq/interactive/boost_factor 2
     #write /sys/devices/system/cpu/cpufreq/interactive/sustain_load 80
     write /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable 0
-    write /sys/devices/system/cpu/cpufreq/interactive/io_is_busy 1
 
     restorecon_recursive /sys/devices/system/cpu/cpufreq/interactive
     chown system system /sys/devices/system/cpu/cpufreq/interactive/timer_rate
