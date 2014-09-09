@@ -76,7 +76,7 @@
 /data/efs(/.*)?                        u:object_r:efs_data_file:s0
 
 # Factory reset protection block device
-/dev/block/mmcblk0p27 u:object_r:frp_data_block_device:s0
+/dev/block/mmcblk0p27 u:object_r:frp_block_device:s0
 
 # Didim file
 /sys/devices/platform/host1x/tegradc.0/smartdimmer/aggressiveness u:object_r:sysfs_didim:s0
