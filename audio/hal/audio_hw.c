@@ -223,6 +223,7 @@ static const struct string_to_enum out_channels_name_to_enum_table[] = {
     STRING_TO_ENUM(AUDIO_CHANNEL_OUT_7POINT1),
 };
 
+static void dummybuf_thread_close(struct audio_device *adev);
 
 static bool is_supported_format(audio_format_t format)
 {
@@ -2877,6 +2878,7 @@ static void *tfa9895_config_thread(void *context)
     }
     ALOGI("@@##tfa9895_config_thread Done!! tfa9895_mode_change=%d", adev->tfa9895_mode_change);
     pthread_mutex_unlock(&adev->tfa9895_lock);
+    dummybuf_thread_close(adev);
     return NULL;
 }
 
@@ -2983,17 +2985,18 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
                 if (pcm_device->status != 0)
                     ret = pcm_device->status;
             }
-            if ((out->devices & AUDIO_DEVICE_OUT_SPEAKER) &&
-                (adev->tfa9895_mode_change == 0x1)) {
-                pthread_t th;
+            if (out->devices & AUDIO_DEVICE_OUT_SPEAKER) {
                 pthread_mutex_lock(&adev->tfa9895_lock);
-                adev->tfa9895_mode_change &= ~0x1;
-                pthread_mutex_unlock(&adev->tfa9895_lock);
-                ALOGD("@@##checking - 2: tfa9895_config_thread: adev->tfa9895_mode_change=%d",
+                if (adev->tfa9895_mode_change == 0x1) {
+                    pthread_t th;
+                    adev->tfa9895_mode_change &= ~0x1;
+                    ALOGD("@@##checking - 2: tfa9895_config_thread: adev->tfa9895_mode_change=%d",
                             adev->tfa9895_mode_change);
-                if (pthread_create(&th,NULL, tfa9895_config_thread ,(void* )adev)!=0) {
-                    ALOGE("@@##THREAD_FADE_IN_UPPER_SPEAKER thread create fail");
+                    if (pthread_create(&th, NULL, tfa9895_config_thread, (void* )adev) != 0) {
+                        ALOGE("@@##THREAD_FADE_IN_UPPER_SPEAKER thread create fail");
+                    }
                 }
+                pthread_mutex_unlock(&adev->tfa9895_lock);
             }
         }
         if (ret == 0)
@@ -4131,7 +4134,7 @@ static void *dummybuf_thread(void *context)
     const char *mixer_ctl_name = "Headphone Jack Switch";
     struct mixer *mixer = NULL;
     struct mixer_ctl *ctl;
-    unsigned char data[DEEP_BUFFER_OUTPUT_PERIOD_SIZE*2] = {0};
+    unsigned char *data = NULL;
     memset(&config, 0 , sizeof(struct audio_config));
     struct pcm *pcm = NULL;
     struct pcm_device_profile *profile = NULL;
@@ -4146,7 +4149,14 @@ static void *dummybuf_thread(void *context)
     pthread_mutex_lock(&adev->dummybuf_thread_lock);
     pcm = pcm_open(profile->card, profile->id,
                    (PCM_OUT | PCM_MONOTONIC), &profile->config);
-    ALOGD("pcm_open: card=%d, id=%d", profile->card, profile->id);
+    if (pcm != NULL && !pcm_is_ready(pcm)) {
+        ALOGE("pcm_open: card=%d, id=%d is not ready", profile->card, profile->id);
+        pcm_close(pcm);
+        pcm = NULL;
+    } else {
+        ALOGD("pcm_open: card=%d, id=%d", profile->card, profile->id);
+    }
+
     if (mixer) {
         ctl = mixer_get_ctl_by_name(mixer, mixer_ctl_name);
         if (ctl != NULL)
@@ -4163,17 +4173,31 @@ static void *dummybuf_thread(void *context)
             return NULL;
         }
     }
-
     pthread_mutex_unlock(&adev->dummybuf_thread_lock);
+
     while (1) {
         pthread_mutex_lock(&adev->dummybuf_thread_lock);
         if (pcm) {
-            pcm_write(pcm, (void *)data, DEEP_BUFFER_OUTPUT_PERIOD_SIZE*2);
-            adev->dummybuf_thread_active = 1;
+            if (data == NULL)
+                data = (unsigned char *)calloc(DEEP_BUFFER_OUTPUT_PERIOD_SIZE * 8,
+                            sizeof(unsigned char));
+            if (data) {
+                pcm_write(pcm, (void *)data, DEEP_BUFFER_OUTPUT_PERIOD_SIZE * 8);
+                adev->dummybuf_thread_active = 1;
+            } else {
+                ALOGD("%s: cant open a buffer, retry to open it", __func__);
+            }
         } else {
             ALOGD("%s: cant open a output deep stream, retry to open it", __func__);
             pcm = pcm_open(profile->card, profile->id,
                    (PCM_OUT | PCM_MONOTONIC), &profile->config);
+            if (pcm != NULL && !pcm_is_ready(pcm)) {
+                ALOGE("pcm_open: card=%d, id=%d is not ready", profile->card, profile->id);
+                pcm_close(pcm);
+                pcm = NULL;
+            } else {
+                ALOGD("pcm_open: card=%d, id=%d", profile->card, profile->id);
+            }
         }
 
         if (adev->dummybuf_thread_cancel || adev->dummybuf_thread_timeout-- <= 0) {
@@ -4198,6 +4222,9 @@ static void *dummybuf_thread(void *context)
         usleep(3000);
     }
 
+    if (data)
+        free(data);
+
     return NULL;
 }
 
@@ -4215,14 +4242,21 @@ static void dummybuf_thread_close(struct audio_device *adev)
 {
     ALOGD("%s: enter", __func__);
     int retry_cnt = 20;
+
+    if (adev->dummybuf_thread == 0)
+        return;
+
     pthread_mutex_lock(&adev->dummybuf_thread_lock);
     adev->dummybuf_thread_cancel = 1;
     pthread_mutex_unlock(&adev->dummybuf_thread_lock);
 
     while (retry_cnt > 0) {
-        if (adev->dummybuf_thread_active == 0)
+        pthread_mutex_lock(&adev->dummybuf_thread_lock);
+        if (adev->dummybuf_thread_active == 0) {
+            pthread_mutex_unlock(&adev->dummybuf_thread_lock);
             break;
-
+        }
+        pthread_mutex_unlock(&adev->dummybuf_thread_lock);
         retry_cnt--;
         usleep(1000);
     }
@@ -4359,27 +4393,45 @@ static int adev_open(const hw_module_t *module, const char *name,
         adev->htc_acoustic_init_rt5506();
 
     if (audio_device_ref_count == 0) {
-        /* For NXP DSP config */
-        if (adev->htc_acoustic_set_amp_mode) {
-            adev->dummybuf_thread_devices = AUDIO_DEVICE_OUT_SPEAKER;
-            dummybuf_thread_open(adev);
-            retry_count = RETRY_NUMBER;
-            while (!adev->dummybuf_thread_active && retry_count-- > 0)
-                usleep(10000);
-            if(adev->dummybuf_thread_active) {
-                usleep(10000); /* tfa9895 spk amp need more than 1ms i2s signal before giving dsp related i2c commands*/
-                adev->tfa9895_init = adev->htc_acoustic_set_amp_mode(0, AUDIO_DEVICE_OUT_SPEAKER, 0, 0, false);
-            }
-            dummybuf_thread_close(adev);
-        }
-
         /* For HS GPIO initial config */
         adev->dummybuf_thread_devices = AUDIO_DEVICE_OUT_WIRED_HEADPHONE;
         dummybuf_thread_open(adev);
         retry_count = RETRY_NUMBER;
-        while (!adev->dummybuf_thread_active && retry_count-- > 0)
+        while (retry_count-- > 0) {
+            pthread_mutex_lock(&adev->dummybuf_thread_lock);
+            if (adev->dummybuf_thread_active != 0) {
+                pthread_mutex_unlock(&adev->dummybuf_thread_lock);
+                break;
+            }
+            pthread_mutex_unlock(&adev->dummybuf_thread_lock);
             usleep(10000);
+        }
         dummybuf_thread_close(adev);
+
+        /* For NXP DSP config */
+        if (adev->htc_acoustic_set_amp_mode) {
+            pthread_t th;
+            adev->dummybuf_thread_devices = AUDIO_DEVICE_OUT_SPEAKER;
+            dummybuf_thread_open(adev);
+            pthread_mutex_lock(&adev->dummybuf_thread_lock);
+            retry_count = RETRY_NUMBER;
+            while (retry_count-- > 0) {
+                if (adev->dummybuf_thread_active) {
+                    break;
+                }
+                pthread_mutex_unlock(&adev->dummybuf_thread_lock);
+                usleep(10000);
+                pthread_mutex_lock(&adev->dummybuf_thread_lock);
+            }
+            if (adev->dummybuf_thread_active) {
+                usleep(10000); /* tfa9895 spk amp need more than 1ms i2s signal before giving dsp related i2c commands*/
+                if (pthread_create(&th, NULL, tfa9895_config_thread, (void* )adev) != 0) {
+                    ALOGE("@@##THREAD_FADE_IN_UPPER_SPEAKER thread create fail");
+                }
+            }
+            pthread_mutex_unlock(&adev->dummybuf_thread_lock);
+            /* Then, dummybuf_thread_close() is called by tfa9895_config_thread() */
+        }
     }
     audio_device_ref_count++;
 
