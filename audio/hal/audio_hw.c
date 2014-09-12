@@ -907,7 +907,7 @@ static void get_capture_reference_delay(struct stream_in *in,
                               size_t frames,
                               struct echo_reference_buffer *buffer)
 {
-    ALOGV("%s: enter:)", __func__);
+    ALOGVV("%s: enter:)", __func__);
 
     /* read frames available in kernel driver buffer */
     unsigned int kernel_frames;
@@ -938,7 +938,7 @@ static void get_capture_reference_delay(struct stream_in *in,
     buffer->time_stamp = tstamp;
     buffer->delay_ns = kernel_delay;
 
-    ALOGV("get_capture_reference_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames: [%5d],"
+    ALOGVV("get_capture_reference_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames: [%5d],"
           " delay_ns: [%d] , frames:[%zd]",
            buffer->time_stamp.tv_sec , buffer->time_stamp.tv_nsec, kernel_frames, buffer->delay_ns, frames);
 }
@@ -947,7 +947,7 @@ static void get_capture_delay(struct stream_in *in,
                               size_t frames,
                               struct echo_reference_buffer *buffer)
 {
-    ALOGV("%s: enter:)", __func__);
+    ALOGVV("%s: enter:)", __func__);
     /* read frames available in kernel driver buffer */
     unsigned int kernel_frames;
     struct timespec tstamp;
@@ -988,7 +988,7 @@ static void get_capture_delay(struct stream_in *in,
 
     buffer->time_stamp = tstamp;
     buffer->delay_ns   = delay_ns;
-    ALOGV("get_capture_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames:[%5d],"
+    ALOGVV("get_capture_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames:[%5d],"
          " delay_ns: [%d], kernel_delay:[%ld], buf_delay:[%ld], rsmp_delay:[%ld],  "
          "in->read_buf_frames:[%zd], in->proc_buf_frames:[%zd], frames:[%zd]",
          buffer->time_stamp.tv_sec , buffer->time_stamp.tv_nsec, kernel_frames,
@@ -998,7 +998,7 @@ static void get_capture_delay(struct stream_in *in,
 
 static int32_t update_echo_reference(struct stream_in *in, size_t frames)
 {
-    ALOGV("%s: enter:), in->config.channels(%d)", __func__,in->config.channels);
+    ALOGVV("%s: enter:), in->config.channels(%d)", __func__,in->config.channels);
     struct echo_reference_buffer b;
     b.delay_ns = 0;
     struct pcm_device *pcm_device;
@@ -1006,7 +1006,7 @@ static int32_t update_echo_reference(struct stream_in *in, size_t frames)
     pcm_device = node_to_item(list_head(&in->pcm_dev_list),
                               struct pcm_device, stream_list_node);
 
-    ALOGV("update_echo_reference, in->config.channels(%d), frames = [%zd], in->ref_buf_frames = [%zd],  "
+    ALOGVV("update_echo_reference, in->config.channels(%d), frames = [%zd], in->ref_buf_frames = [%zd],  "
           "b.frame_count = [%zd]",
           in->config.channels, frames, in->ref_buf_frames, frames - in->ref_buf_frames);
     if (in->ref_buf_frames < frames) {
@@ -1015,7 +1015,7 @@ static int32_t update_echo_reference(struct stream_in *in, size_t frames)
             in->ref_buf = (int16_t *)realloc(in->ref_buf, pcm_frames_to_bytes(pcm_device->pcm, frames));
             ALOG_ASSERT((in->ref_buf != NULL),
                         "update_echo_reference() failed to reallocate ref_buf");
-            ALOGV("update_echo_reference(): ref_buf %p extended to %d bytes",
+            ALOGVV("update_echo_reference(): ref_buf %p extended to %d bytes",
                       in->ref_buf, pcm_frames_to_bytes(pcm_device->pcm, frames));
         }
         b.frame_count = frames - in->ref_buf_frames;
@@ -1026,7 +1026,7 @@ static int32_t update_echo_reference(struct stream_in *in, size_t frames)
         if (in->echo_reference->read(in->echo_reference, &b) == 0)
         {
             in->ref_buf_frames += b.frame_count;
-            ALOGV("update_echo_reference(): in->ref_buf_frames:[%zd], "
+            ALOGVV("update_echo_reference(): in->ref_buf_frames:[%zd], "
                     "in->ref_buf_size:[%zd], frames:[%zd], b.frame_count:[%zd]",
                  in->ref_buf_frames, in->ref_buf_size, frames, b.frame_count);
         }
@@ -1074,7 +1074,7 @@ static int set_preprocessor_echo_delay(effect_handle_t handle,
 
 static void push_echo_reference(struct stream_in *in, size_t frames)
 {
-    ALOGV("%s: enter:)", __func__);
+    ALOGVV("%s: enter:)", __func__);
     /* read frames from echo reference buffer and update echo delay
      * in->ref_buf_frames is updated with frames available in in->ref_buf */
 
@@ -1092,16 +1092,17 @@ static void push_echo_reference(struct stream_in *in, size_t frames)
     for (i = 0; i < in->num_preprocessors; i++) {
         if ((*in->preprocessors[i].effect_itfe)->process_reverse == NULL)
             continue;
-        ALOGV("%s: effect_itfe)->process_reverse() BEGIN i=(%d) ", __func__, i);
+        ALOGVV("%s: effect_itfe)->process_reverse() BEGIN i=(%d) ", __func__, i);
         (*in->preprocessors[i].effect_itfe)->process_reverse(in->preprocessors[i].effect_itfe,
                                                &buf,
                                                NULL);
-        ALOGV("%s: effect_itfe)->process_reverse() END i=(%d) ", __func__, i);
+        ALOGVV("%s: effect_itfe)->process_reverse() END i=(%d) ", __func__, i);
         set_preprocessor_echo_delay(in->preprocessors[i].effect_itfe, delay_us);
     }
 
     in->ref_buf_frames -= buf.frameCount;
-    ALOGV("%s: in->ref_buf_frames(%zd), in->config.channels(%d) ", __func__, in->ref_buf_frames, in->config.channels);
+    ALOGVV("%s: in->ref_buf_frames(%zd), in->config.channels(%d) ",
+           __func__, in->ref_buf_frames, in->config.channels);
     if (in->ref_buf_frames) {
         memcpy(in->ref_buf,
                in->ref_buf + buf.frameCount * in->config.channels,
@@ -1260,7 +1261,7 @@ static int get_playback_delay(struct stream_out *out,
      * sample being written. */
     buffer->delay_ns = (long)(((int64_t)(kernel_frames + frames)* 1000000000)/
                             out->config.rate);
-    ALOGV("get_playback_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames: [%5u], delay_ns: [%d],",
+    ALOGVV("get_playback_delay_time_stamp Secs: [%10ld], nSecs: [%9ld], kernel_frames: [%5u], delay_ns: [%d],",
          buffer->time_stamp.tv_sec, buffer->time_stamp.tv_nsec, kernel_frames, buffer->delay_ns);
 
     return 0;
@@ -3508,7 +3509,7 @@ static int add_remove_audio_effect(const struct audio_stream *stream,
     if (status != 0)
         return status;
 
-    ALOGV("add_remove_audio_effect(), effect type: %08x, enable: %d ", desc.type.timeLow, enable);
+    ALOGI("add_remove_audio_effect(), effect type: %08x, enable: %d ", desc.type.timeLow, enable);
 
     pthread_mutex_lock(&in->dev->lock);
     pthread_mutex_lock(&in->lock);
@@ -3565,7 +3566,7 @@ static int add_remove_audio_effect(const struct audio_stream *stream,
         in->aux_channels_changed = false;
         ALOGV("%s: enable(%d), in->aux_channels_changed(%d)", __func__, enable, in->aux_channels_changed);
     }
-    ALOGV("%s:  num_preprocessors = %d", __func__, in->num_preprocessors);
+    ALOGI("%s:  num_preprocessors = %d", __func__, in->num_preprocessors);
 
     if ( memcmp(&desc.type, FX_IID_AEC, sizeof(effect_uuid_t)) == 0) {
         in->enable_aec = enable;
