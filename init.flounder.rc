@@ -19,6 +19,11 @@ on init
 
 on post-fs
     write /sys/module/input_cfboost/parameters/gpu_wakeup 1
+    # Turn on swap
+    swapon_all /fstab.flounder
+
+    # Swap in only 1 page at a time
+    write /proc/sys/vm/page-cluster 0
 
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
