@@ -24,4 +24,13 @@
     <keyboard-layout android:name="keyboard_layout_volantis_japanese"
             android:label="@string/keyboard_layout_volantis_japanese_label"
             android:keyboardLayout="@raw/keyboard_layout_volantis_japanese" />
+    <keyboard-layout android:name="keyboard_layout_volantis_spanish"
+            android:label="@string/keyboard_layout_volantis_spanish_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_spanish" />
+    <keyboard-layout android:name="keyboard_layout_volantis_belgian"
+            android:label="@string/keyboard_layout_volantis_belgian_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_belgian" />
+    <keyboard-layout android:name="keyboard_layout_volantis_swedish"
+            android:label="@string/keyboard_layout_volantis_swedish_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_swedish" />
 </keyboard-layouts>
