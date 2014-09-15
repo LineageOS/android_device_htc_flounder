@@ -47,6 +47,7 @@
 /dev/mdm        0660    radio  system
 /dev/ks_hsic_bridge       0660   system     system
 /dev/efs_hsic_bridge      0660   system     system
+/dev/block/mmcblk0rpmb    0600   system     system
 /dev/block/mmcblk0p8     0660   system     system
 /dev/block/mmcblk0p21     0660   system     system
 /dev/block/mmcblk0p22     0660   system     system
