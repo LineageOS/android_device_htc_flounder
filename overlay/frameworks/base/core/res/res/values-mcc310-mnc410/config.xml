@@ -36,4 +36,10 @@
          that should be used instead. A value of RIL_RADIO_TECHNOLOGY_UNKNOWN:0 means
          there is no replacement value and VoLTE is assumed to be supported -->
     <integer name="config_volte_replacement_rat">3</integer>
+
+    <string name="mobile_provisioning_apn">lwaactivate</string>
+
+    <string name="mobile_provisioning_url">
+        https://buyasession.att.com/sbd/unauth/InitiateSBD.action?ICCID=%1$s&amp;IMEI=%2$s&amp;version=3.0
+    </string>
 </resources>
