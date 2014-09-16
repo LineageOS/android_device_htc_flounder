@@ -110,6 +110,7 @@ BOARD_SEPOLICY_UNION := \
 	rild.te \
 	surfaceflinger.te \
 	system_server.te \
+	tee.te \
 	te_macros \
 	touch_fusion.te
 
