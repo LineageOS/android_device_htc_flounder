@@ -35,3 +35,6 @@ allow netmgrd net_radio_prop:property_service set;
 
 # Access to /proc/sys/net/*
 allow netmgrd proc_net:file write;
+
+# Let netmgrd access /dev/mdm node (modem driver)
+allow netmgrd radio_device:chr_file r_file_perms;
