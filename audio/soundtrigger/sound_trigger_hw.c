@@ -53,7 +53,7 @@ static const struct sound_trigger_properties hw_properties = {
     RECOGNITION_MODE_VOICE_TRIGGER, // recognition_modes
     true, // capture_transition
     0, // max_capture_ms
-    true, // concurrent_capture
+    false, // concurrent_capture
     false, // trigger_in_event
     0 // power_consumption_mw
 };
