@@ -26,4 +26,6 @@
     <string name="keyboard_layout_volantis_belgian_label">Volantis Belgian</string>
     <!-- Swedish keyboard layout label. [CHAR LIMIT=35] -->
     <string name="keyboard_layout_volantis_swedish_label">Volantis Swedish</string>
+    <!-- Korean keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_korean_label">Volantis Korean</string>
 </resources>
