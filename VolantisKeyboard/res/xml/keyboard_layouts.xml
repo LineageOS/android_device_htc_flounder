@@ -33,4 +33,7 @@
     <keyboard-layout android:name="keyboard_layout_volantis_swedish"
             android:label="@string/keyboard_layout_volantis_swedish_label"
             android:keyboardLayout="@raw/keyboard_layout_volantis_swedish" />
+    <keyboard-layout android:name="keyboard_layout_volantis_korean"
+            android:label="@string/keyboard_layout_volantis_korean_label"
+            android:keyboardLayout="@raw/keyboard_layout_volantis_korean" />
 </keyboard-layouts>
