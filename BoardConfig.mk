@@ -145,3 +145,5 @@ EXTENDED_FONT_FOOTPRINT := true
 
 # let charger mode enter suspend
 BOARD_CHARGER_ENABLE_SUSPEND := true
+
+MALLOC_IMPL := dlmalloc
