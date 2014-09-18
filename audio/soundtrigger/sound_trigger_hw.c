@@ -32,8 +32,7 @@
 #include <tinyalsa/asoundlib.h>
 
 #define FLOUNDER_MIXER_VAD	0
-#define FLOUNDER_CTRL_DSP	26
-#define FLOUNDER_CTRL_MIC	198
+#define FLOUNDER_CTRL_DSP	"VAD Mode"
 #define UEVENT_MSG_LEN		1024
 
 #define FLOUNDER_VAD_DEV	"/dev/snd/hwC0D0"
@@ -72,7 +71,6 @@ struct flounder_sound_trigger_device {
     int vad_fd;
     struct mixer *mixer;
     struct mixer_ctl *ctl_dsp;
-    struct mixer_ctl *ctl_mic;
     struct sound_trigger_recognition_config *config;
     int is_streaming;
     int opened;
@@ -102,7 +100,6 @@ static void stdev_dsp_set_power(struct flounder_sound_trigger_device *stdev,
     stdev->streaming_buf_read = 0;
     stdev->streaming_buf_len = 0;
     mixer_ctl_set_value(stdev->ctl_dsp, 0, val);
-    mixer_ctl_set_value(stdev->ctl_mic, 0, val);
 }
 
 static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
@@ -119,11 +116,7 @@ static int stdev_init_mixer(struct flounder_sound_trigger_device *stdev)
     if (!stdev->mixer)
         goto err;
 
-    stdev->ctl_mic = mixer_get_ctl(stdev->mixer, FLOUNDER_CTRL_MIC);
-    if (!stdev->ctl_mic)
-        goto err;
-
-    stdev->ctl_dsp = mixer_get_ctl(stdev->mixer, FLOUNDER_CTRL_DSP);
+    stdev->ctl_dsp = mixer_get_ctl_by_name(stdev->mixer, FLOUNDER_CTRL_DSP);
     if (!stdev->ctl_dsp)
         goto err;
 
@@ -578,7 +571,7 @@ size_t sound_trigger_read_samples(int audio_handle, void *buffer, size_t  buffer
             ret = buffer_len;
         memcpy(buffer, stdev->streaming_buf + stdev->streaming_buf_read, ret);
         stdev->streaming_buf_read += ret;
-        ALOGV("%s: Sent %d bytes to buffer", __func__, ret);
+        ALOGV("%s: Sent %zu bytes to buffer", __func__, ret);
     }
 
 exit:
