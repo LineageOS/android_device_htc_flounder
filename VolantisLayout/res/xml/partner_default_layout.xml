@@ -61,8 +61,8 @@
         screen="5"
         x="0"
         y="0"
-		packageName="com.google.android.apps.plus"
-		className="com.google.android.apps.plus.phone.ConversationListActivity"
+		packageName="com.google.android.apps.photos"
+		className="com.google.android.apps.photos.home.HomeActivity"
 		/>
 
     <favorite
@@ -107,7 +107,7 @@
 
 			<favorite
 	                packageName="com.google.android.contacts"
-	                className="/com.android.contacts.activities.PeopleActivity"
+	                className="com.android.contacts.activities.PeopleActivity"
 	                />
 
 			<favorite
