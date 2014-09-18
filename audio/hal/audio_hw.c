@@ -4167,15 +4167,15 @@ static void *dummybuf_thread(void *context)
     ALOGD("%s: enter", __func__);
     pthread_detach(pthread_self());
     struct audio_device *adev = (struct audio_device *)context;
-    struct audio_config config;
+    struct pcm_config config;
     const char *mixer_ctl_name = "Headphone Jack Switch";
     struct mixer *mixer = NULL;
     struct mixer_ctl *ctl;
     unsigned char *data = NULL;
-    memset(&config, 0 , sizeof(struct audio_config));
     struct pcm *pcm = NULL;
     struct pcm_device_profile *profile = NULL;
 
+    memset(&config, 0, sizeof(struct pcm_config));
     if (adev->dummybuf_thread_devices == AUDIO_DEVICE_OUT_WIRED_HEADPHONE) {
         profile = &pcm_device_playback_hs;
         mixer = mixer_open(profile->card);
@@ -4183,9 +4183,13 @@ static void *dummybuf_thread(void *context)
     else
         profile = &pcm_device_playback_spk;
 
+    memcpy(&config, &profile->config, sizeof(struct pcm_config));
+    /* Use large value for stop_threshold so that automatic
+       trigger for stop is avoided, when this thread fails to write data */
+    config.stop_threshold = INT_MAX/2;
     pthread_mutex_lock(&adev->dummybuf_thread_lock);
     pcm = pcm_open(profile->card, profile->id,
-                   (PCM_OUT | PCM_MONOTONIC), &profile->config);
+                   (PCM_OUT | PCM_MONOTONIC), &config);
     if (pcm != NULL && !pcm_is_ready(pcm)) {
         ALOGE("pcm_open: card=%d, id=%d is not ready", profile->card, profile->id);
         pcm_close(pcm);
@@ -4227,7 +4231,7 @@ static void *dummybuf_thread(void *context)
         } else {
             ALOGD("%s: cant open a output deep stream, retry to open it", __func__);
             pcm = pcm_open(profile->card, profile->id,
-                   (PCM_OUT | PCM_MONOTONIC), &profile->config);
+                   (PCM_OUT | PCM_MONOTONIC), &config);
             if (pcm != NULL && !pcm_is_ready(pcm)) {
                 ALOGE("pcm_open: card=%d, id=%d is not ready", profile->card, profile->id);
                 pcm_close(pcm);
