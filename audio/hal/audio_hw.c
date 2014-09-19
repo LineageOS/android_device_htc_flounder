@@ -173,7 +173,7 @@ struct pcm_device_profile pcm_device_hotword_streaming = {
     .card = SOUND_CARD,
     .id = 0,
     .type = PCM_HOTWORD_STREAMING,
-    .devices = AUDIO_DEVICE_IN_BUILTIN_MIC
+    .devices = AUDIO_DEVICE_IN_BUILTIN_MIC|AUDIO_DEVICE_IN_WIRED_HEADSET|AUDIO_DEVICE_IN_BACK_MIC
 };
 
 struct pcm_device_profile *pcm_devices[] = {
