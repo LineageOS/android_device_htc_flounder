@@ -28,4 +28,8 @@
     <string name="keyboard_layout_volantis_swedish_label">Swedish</string>
     <!-- Korean keyboard layout label. [CHAR LIMIT=35] -->
     <string name="keyboard_layout_volantis_korean_label">Korean</string>
+    <!-- Zhuyin keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_zhuyin_label">Zhuyin</string>
+    <!-- Cangjie keyboard layout label. [CHAR LIMIT=35] -->
+    <string name="keyboard_layout_volantis_cangjie_label">Cangjie</string>
 </resources>
