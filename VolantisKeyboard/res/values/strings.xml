@@ -29,7 +29,7 @@
     <!-- Korean keyboard layout label. [CHAR LIMIT=35] -->
     <string name="keyboard_layout_volantis_korean_label">Korean</string>
     <!-- Zhuyin keyboard layout label. [CHAR LIMIT=35] -->
-    <string name="keyboard_layout_volantis_zhuyin_label">Zhuyin</string>
+    <string name="keyboard_layout_volantis_zhuyin_label">Chinese (Zhuyin)</string>
     <!-- Cangjie keyboard layout label. [CHAR LIMIT=35] -->
-    <string name="keyboard_layout_volantis_cangjie_label">Cangjie</string>
+    <string name="keyboard_layout_volantis_cangjie_label">Chinese (Cangjie)</string>
 </resources>
