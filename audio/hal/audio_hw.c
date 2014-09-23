@@ -110,7 +110,7 @@ struct pcm_device_profile pcm_device_playback_spk = {
         .period_count = PLAYBACK_PERIOD_COUNT,
         .format = PCM_FORMAT_S16_LE,
         .start_threshold = PLAYBACK_START_THRESHOLD,
-        .stop_threshold = PLAYBACK_STOP_THRESHOLD,
+        .stop_threshold = INT_MAX,
         .silence_threshold = 0,
         .avail_min = PLAYBACK_AVAILABLE_MIN,
     },
@@ -863,7 +863,9 @@ static int select_devices(struct audio_device *adev,
 
     /* Disable current sound devices */
     if (usecase->out_snd_device != SND_DEVICE_NONE) {
+        pthread_mutex_lock(&adev->tfa9895_lock);
         disable_snd_device(adev, usecase, usecase->out_snd_device, false);
+        pthread_mutex_unlock(&adev->tfa9895_lock);
     }
 
     if (usecase->in_snd_device != SND_DEVICE_NONE) {
@@ -2894,6 +2896,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
     struct listnode *node;
     size_t frame_size = audio_stream_out_frame_size(stream);
     size_t frames_wr = 0, frames_rq = 0;
+    unsigned char *data = NULL;
 #ifdef PREPROCESSING_ENABLED
     size_t in_frames = bytes / frame_size;
     size_t out_frames = in_frames;
@@ -3003,6 +3006,31 @@ false_alarm:
                     out->echo_reference->write(out->echo_reference, &b);
                  }
 #endif
+                if (out->devices & AUDIO_DEVICE_OUT_SPEAKER) {
+                    pthread_mutex_lock(&adev->tfa9895_lock);
+                    if (adev->tfa9895_mode_change == 0x1) {
+                        data = (unsigned char *)
+                                calloc(pcm_frames_to_bytes(pcm_device->pcm, out->config.period_size),
+                                        sizeof(unsigned char));
+                        if (data) {
+                            int i;
+                            for (i = out->config.period_count; i > 0; i--)
+                                pcm_write(pcm_device->pcm, (void *)data,
+                                    pcm_frames_to_bytes(pcm_device->pcm, out->config.period_size));
+                            /* TODO: Hold on 100 ms and wait i2s signal ready
+                                     before giving dsp related i2c commands */
+                            usleep(100000);
+                            adev->tfa9895_mode_change &= ~0x1;
+                            ALOGD("@@##checking - 2: tfa9895_config_thread: "
+                                    "adev->tfa9895_mode_change=%d", adev->tfa9895_mode_change);
+                            adev->tfa9895_init =
+                                adev->htc_acoustic_set_amp_mode(adev->mode, AUDIO_DEVICE_OUT_SPEAKER,
+                                                                    0, 0, false);
+                            free(data);
+                        }
+                    }
+                    pthread_mutex_unlock(&adev->tfa9895_lock);
+                }
                 ALOGVV("%s: writing buffer (%d bytes) to pcm device", __func__, bytes);
                 if (pcm_device->resampler && pcm_device->res_buffer)
                     pcm_device->status =
@@ -3012,19 +3040,6 @@ false_alarm:
                     pcm_device->status = pcm_write(pcm_device->pcm, (void *)buffer, bytes);
                 if (pcm_device->status != 0)
                     ret = pcm_device->status;
-            }
-            if (out->devices & AUDIO_DEVICE_OUT_SPEAKER) {
-                pthread_mutex_lock(&adev->tfa9895_lock);
-                if (adev->tfa9895_mode_change == 0x1) {
-                    pthread_t th;
-                    adev->tfa9895_mode_change &= ~0x1;
-                    ALOGD("@@##checking - 2: tfa9895_config_thread: adev->tfa9895_mode_change=%d",
-                            adev->tfa9895_mode_change);
-                    if (pthread_create(&th, NULL, tfa9895_config_thread, (void* )adev) != 0) {
-                        ALOGE("@@##THREAD_FADE_IN_UPPER_SPEAKER thread create fail");
-                    }
-                }
-                pthread_mutex_unlock(&adev->tfa9895_lock);
             }
         }
         if (ret == 0)
