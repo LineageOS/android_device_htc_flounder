@@ -60,7 +60,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/touch/maxim_fp35.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/maxim_fp35.bin \
     $(LOCAL_PATH)/touch/touch_fusion.idc:system/usr/idc/touch_fusion.idc \
     $(LOCAL_PATH)/touch/touch_fusion:$(TARGET_COPY_OUT_VENDOR)/bin/touch_fusion \
-    $(LOCAL_PATH)/touch/synaptics-dsx.idc:system/usr/idc/synaptics-dsx.idc
+    $(LOCAL_PATH)/touch/synaptics_dsx.idc:system/usr/idc/synaptics_dsx.idc
 
 # headset keylayout
 PRODUCT_COPY_FILES += \
