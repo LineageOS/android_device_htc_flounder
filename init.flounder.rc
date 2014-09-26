@@ -18,6 +18,7 @@ on init
     symlink /mnt/shell/emulated/0 /storage/emulated/legacy
 
 on post-fs
+    write /sys/power/gpu_power_on 1
     write /sys/module/input_cfboost/parameters/gpu_wakeup 1
     # Turn on swap
     swapon_all /fstab.flounder
