@@ -32,4 +32,10 @@
 
     <integer-array translatable="false" name="config_tether_upstream_types">
     </integer-array>
+
+    <string name="mobile_provisioning_apn">lwaactivate</string>
+
+    <string name="mobile_provisioning_url">
+        https://buyasession.att.com/sbd/unauth/InitiateSBD.action?ICCID=%1$s&amp;IMEI=%2$s&amp;version=3.0
+    </string>
 </resources>
