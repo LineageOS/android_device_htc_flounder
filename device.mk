@@ -225,6 +225,8 @@ PRODUCT_PACKAGES += \
     audio.r_submix.default \
     libhtcacoustic \
     libnvvisualizer
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.audio.monitorRotation=true
 
 # for sound trigger on DSP
 PRODUCT_PACKAGES += \
