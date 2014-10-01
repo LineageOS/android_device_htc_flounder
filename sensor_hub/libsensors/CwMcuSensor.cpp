@@ -780,7 +780,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
 
     what = find_sensor(handle);
 
-    ALOGD("CwMcuSensor::setEnable: "
+    ALOGV("CwMcuSensor::setEnable: "
           "[v13-Dynamic adjust the IIO buffer], handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
@@ -866,7 +866,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
 
     if(is_batch_wake_sensor(handle)) {
         flags |= SENSORS_BATCH_WAKE_UPON_FIFO_FULL;
-        ALOGD("CwMcuSensor::batch: SENSORS_BATCH_WAKE_UPON_FIFO_FULL~!!\n");
+        ALOGV("CwMcuSensor::batch: SENSORS_BATCH_WAKE_UPON_FIFO_FULL~!!\n");
     } else
         flags &= ~SENSORS_BATCH_WAKE_UPON_FIFO_FULL;
 
@@ -941,7 +941,7 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     }
     pthread_mutex_unlock(&sys_fs_mutex);
 
-    ALOGD("CwMcuSensor::batch: fd = %d, sensors_id = %d, flags = %d, delay_ms= %d,"
+    ALOGV("CwMcuSensor::batch: fd = %d, sensors_id = %d, flags = %d, delay_ms= %d,"
           " timeout_ms = %d, path = %s, err = %d\n",
           fd , what, flags, delay_ms, timeout_ms, fixed_sysfs_path, err);
 
@@ -1077,7 +1077,7 @@ int CwMcuSensor::readEvents(sensors_event_t* data, int count) {
             *data++ = mPendingEventsFlush;
             count--;
             numEventReceived++;
-            ALOGD("CwMcuSensor::readEvents: metadata = %d\n", mPendingEventsFlush.meta_data.sensor);
+            ALOGV("CwMcuSensor::readEvents: metadata = %d\n", mPendingEventsFlush.meta_data.sensor);
         } else if ((id == TIME_DIFF_EXHAUSTED) || (id == CW_TIME_BASE)) {
             ALOGV("readEvents: id = %d\n", id);
         } else {
