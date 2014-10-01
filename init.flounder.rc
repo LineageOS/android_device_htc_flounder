@@ -249,6 +249,11 @@ service iprenew_p2p /system/bin/dhcpcd -n
     disabled
     oneshot
 
+service iprenew_bt-pan /system/bin/dhcpcd -n
+    class main
+    disabled
+    oneshot
+
 service kickstart /vendor/bin/qcks -i /vendor/firmware/mdm/image/ -r /data/qcks/mdm/
     class late_start
     disabled
