@@ -45,6 +45,7 @@
 #define IIO_MAX_BUFF_SIZE 4096
 #define IIO_MAX_DATA_SIZE 24
 #define IIO_MAX_NAME_LENGTH 30
+#define IIO_BUF_SIZE_RETRY 8
 #define INT32_CHAR_LEN 12
 
 #define INIT_TRIGGER_RETRY 5
@@ -428,6 +429,7 @@ CwMcuSensor::CwMcuSensor()
     if (data_fd >= 0) {
         int i;
         int fd;
+        int iio_buf_size;
 
         ALOGV("%s: 11 Before pthread_mutex_lock()\n", __func__);
         pthread_mutex_lock(&sys_fs_mutex);
@@ -447,9 +449,6 @@ CwMcuSensor::CwMcuSensor()
                   strerror(errno));
         }
 
-        if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0)
-            ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer length failed: %s\n", strerror(errno));
-
         // This is a piece of paranoia that retry for current_trigger
         for (i = 0; i < INIT_TRIGGER_RETRY; i++) {
             rc = sysfs_set_input_attr("trigger/current_trigger",
@@ -468,8 +467,21 @@ CwMcuSensor::CwMcuSensor()
             }
         }
 
-        if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
-            ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed22: %s\n", strerror(errno));
+        iio_buf_size = IIO_MAX_BUFF_SIZE;
+        for (i = 0; i < IIO_BUF_SIZE_RETRY; i++) {
+            if (sysfs_set_input_attr_by_int("buffer/length", iio_buf_size) < 0) {
+                ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer length (%d) failed: %s\n",
+                      iio_buf_size, strerror(errno));
+            } else {
+                if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
+                    ALOGE("CwMcuSensor::CwMcuSensor: set IIO buffer enable failed22: %s, "
+                          "i = %d, iio_buf_size = %d\n", strerror(errno), i, iio_buf_size);
+                } else {
+                    ALOGI("CwMcuSensor::CwMcuSensor: set IIO buffer length success: %d\n", iio_buf_size);
+                    break;
+                }
+            }
+            iio_buf_size /= 2;
         }
 
         strcpy(&fixed_sysfs_path[fixed_sysfs_path_len], "calibrator_en");
@@ -769,7 +781,7 @@ int CwMcuSensor::setEnable(int32_t handle, int en) {
     what = find_sensor(handle);
 
     ALOGD("CwMcuSensor::setEnable: "
-          "[v12-Correct accuracies for accel and gyro], handle = %d, en = %d, what = %d\n",
+          "[v13-Dynamic adjust the IIO buffer], handle = %d, en = %d, what = %d\n",
           handle, en, what);
 
     if (uint32_t(what) >= numSensors) {
@@ -880,11 +892,8 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
     ALOGV("%s: Acquired pthread_mutex_lock()\n", __func__);
 
     if (mEnabled.isEmpty()) {
-        if (sysfs_set_input_attr_by_int("buffer/length", IIO_MAX_BUFF_SIZE) < 0) {
-            ALOGE("CwMcuSensor::batch: set IIO buffer length failed: %s\n", strerror(errno));
-        } else {
-            ALOGV("CwMcuSensor::batch: set IIO buffer length = %d\n", IIO_MAX_BUFF_SIZE);
-        }
+        int i;
+        int iio_buf_size;
 
         if (!init_trigger_done) {
             err = sysfs_set_input_attr("trigger/current_trigger",
@@ -897,10 +906,21 @@ int CwMcuSensor::batch(int handle, int flags, int64_t period_ns, int64_t timeout
             }
         }
 
-        if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
-            ALOGE("CwMcuSensor::batch: set IIO buffer enable failed: %s\n", strerror(errno));
-        } else {
-            ALOGV("CwMcuSensor::batch: set IIO buffer enable = 1\n");
+        iio_buf_size = IIO_MAX_BUFF_SIZE;
+        for (i = 0; i < IIO_BUF_SIZE_RETRY; i++) {
+            if (sysfs_set_input_attr_by_int("buffer/length", iio_buf_size) < 0) {
+                ALOGE("CwMcuSensor::batch: set IIO buffer length (%d) failed: %s\n",
+                      iio_buf_size, strerror(errno));
+            } else {
+                if (sysfs_set_input_attr_by_int("buffer/enable", 1) < 0) {
+                    ALOGE("CwMcuSensor::batch: set IIO buffer enable failed: %s, i = %d, "
+                          "iio_buf_size = %d\n", strerror(errno), i , iio_buf_size);
+                } else {
+                    ALOGI("CwMcuSensor::batch: set IIO buffer length = %d, success\n", iio_buf_size);
+                    break;
+                }
+            }
+            iio_buf_size /= 2;
         }
     }
 
