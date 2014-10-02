@@ -13,4 +13,4 @@
 /dev/block/platform/sdhci-tegra.3/by-name/MSC   /misc               emmc      defaults                                              defaults
 /dev/block/platform/sdhci-tegra.3/by-name/EBT   /bootloader         emmc      defaults                                              defaults
 /dev/block/platform/sdhci-tegra.3/by-name/PST   /persistent         emmc      defaults                                              defaults
-/dev/block/zram0                                none                swap      defaults                                              zramsize=355608800
+/dev/block/zram0                                none                swap      defaults                                              zramsize=533413200
