@@ -300,6 +300,11 @@ struct stream_out {
 
 #ifdef PREPROCESSING_ENABLED
     struct echo_reference_itfe *echo_reference;
+    // echo_reference_generation indicates if the echo reference used by the output stream is
+    // in sync with the one known by the audio_device. When different from the generation stored
+    // in the audio_device the output stream must release the echo reference.
+    // always modified with audio device and stream mutex locked.
+    int32_t echo_reference_generation;
 #endif
 };
 
@@ -398,6 +403,12 @@ struct audio_device {
 
 #ifdef PREPROCESSING_ENABLED
     struct echo_reference_itfe* echo_reference;
+    // echo_reference_generation indicates if the echo reference used by the output stream is
+    // in sync with the one known by the audio_device.
+    // incremented atomically with a memory barrier and audio device mutex locked but WITHOUT
+    // stream mutex locked: the stream will load it atomically with a barrier and re-read it
+    // with audio device mutex if needed
+    volatile int32_t        echo_reference_generation;
 #endif
 
     void*                   htc_acoustic_lib;
