@@ -167,6 +167,7 @@ on property:ro.boot.baseband=ROW
     enable netmgrd
     setprop rild.libpath /vendor/lib64/libril-qc-qmi-1.so
     setprop rild.libargs "-e wwan0"
+    setprop persist.radio.snapshot_enabled 1
 
 on property:ro.boot.baseband=US
     stop ril-daemon
@@ -178,6 +179,7 @@ on property:ro.boot.baseband=US
     enable netmgrd
     setprop rild.libpath /vendor/lib64/libril-qc-qmi-1.so
     setprop rild.libargs "-e wwan0"
+    setprop persist.radio.snapshot_enabled 1
 
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B \
