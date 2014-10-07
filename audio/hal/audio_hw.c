@@ -1108,44 +1108,30 @@ static void push_echo_reference(struct stream_in *in, size_t frames)
     }
 }
 
-static void add_echo_reference(struct stream_out *out,
-                               struct echo_reference_itfe *reference)
-{
-    ALOGV("%s: enter:)", __func__);
-    pthread_mutex_lock(&out->lock);
-
-    out->echo_reference = reference;
-    pthread_mutex_unlock(&out->lock);
-}
-
-static void remove_echo_reference(struct stream_out *out,
-                                  struct echo_reference_itfe *reference)
-{
-    ALOGV("%s: enter:)", __func__);
-    pthread_mutex_lock(&out->lock);
-    if (out->echo_reference == reference) {
-        /* stop writing to echo reference */
-        reference->write(reference, NULL);
-        out->echo_reference = NULL;
-    }
-    pthread_mutex_unlock(&out->lock);
-}
-
 static void put_echo_reference(struct audio_device *adev,
                           struct echo_reference_itfe *reference)
 {
     ALOGV("%s: enter:)", __func__);
+    int32_t prev_generation = adev->echo_reference_generation;
+    struct stream_out *out = adev->primary_output;
 
     if (adev->echo_reference != NULL &&
             reference == adev->echo_reference) {
         /* echo reference is taken from the low latency output stream used
          * for voice use cases */
-        if (adev->primary_output!= NULL &&
-                !adev->primary_output->standby && adev->primary_output->usecase == USECASE_AUDIO_PLAYBACK)
-            remove_echo_reference(adev->primary_output, reference);
-        ALOGV("release_echo_reference");
-        release_echo_reference(reference);
         adev->echo_reference = NULL;
+        android_atomic_inc(&adev->echo_reference_generation);
+        if (out != NULL && out->usecase == USECASE_AUDIO_PLAYBACK) {
+            // if the primary output is in standby or did not pick the echo reference yet
+            // we can safely get rid of it here.
+            // otherwise, out_write() or out_standby() will detect the change in echo reference
+            // generation and release the echo reference owned by the stream.
+            if ((out->echo_reference_generation != prev_generation) || out->standby)
+                release_echo_reference(reference);
+        } else {
+            release_echo_reference(reference);
+        }
+        ALOGV("release_echo_reference");
     }
 }
 
@@ -1158,8 +1144,8 @@ static struct echo_reference_itfe *get_echo_reference(struct audio_device *adev,
     put_echo_reference(adev, adev->echo_reference);
     /* echo reference is taken from the low latency output stream used
      * for voice use cases */
-    if (adev->primary_output!= NULL &&
-            !adev->primary_output->standby && adev->primary_output->usecase == USECASE_AUDIO_PLAYBACK) {
+    if (adev->primary_output!= NULL && adev->primary_output->usecase == USECASE_AUDIO_PLAYBACK &&
+            !adev->primary_output->standby) {
         struct audio_stream *stream =
                 &adev->primary_output->stream.common;
         uint32_t wr_channel_count = audio_channel_count_from_out_mask(stream->get_channels(stream));
@@ -1173,8 +1159,7 @@ static struct echo_reference_itfe *get_echo_reference(struct audio_device *adev,
                                            wr_sampling_rate,
                                            &adev->echo_reference);
         if (status == 0)
-            add_echo_reference(adev->primary_output,
-                               adev->echo_reference);
+            android_atomic_inc(&adev->echo_reference_generation);
     }
     return adev->echo_reference;
 }
@@ -2426,6 +2411,8 @@ int start_output_stream(struct stream_out *out)
         if (ret != 0)
             goto error_open;
 #ifdef PREPROCESSING_ENABLED
+        out->echo_reference = NULL;
+        out->echo_reference_generation = adev->echo_reference_generation;
         if (adev->echo_reference != NULL)
             out->echo_reference = adev->echo_reference;
 #endif
@@ -2614,6 +2601,7 @@ static int out_set_format(struct audio_stream *stream, audio_format_t format)
 
 static int do_out_standby_l(struct stream_out *out)
 {
+    struct audio_device *adev = out->dev;
     int status = 0;
 
     out->standby = true;
@@ -2623,6 +2611,11 @@ static int do_out_standby_l(struct stream_out *out)
         /* stop writing to echo reference */
         if (out->echo_reference != NULL) {
             out->echo_reference->write(out->echo_reference, NULL);
+            if (out->echo_reference_generation != adev->echo_reference_generation) {
+                ALOGV("%s: release_echo_reference %p", __func__, out->echo_reference);
+                release_echo_reference(out->echo_reference);
+                out->echo_reference_generation = adev->echo_reference_generation;
+            }
             out->echo_reference = NULL;
         }
 #endif
@@ -2973,6 +2966,25 @@ false_alarm:
 #endif
         return ret;
     } else {
+#ifdef PREPROCESSING_ENABLED
+        if (android_atomic_acquire_load(&adev->echo_reference_generation)
+                != out->echo_reference_generation) {
+            pthread_mutex_lock(&adev->lock);
+            if (out->echo_reference != NULL) {
+                ALOGV("%s: release_echo_reference %p", __func__, out->echo_reference);
+                release_echo_reference(out->echo_reference);
+            }
+            // note that adev->echo_reference_generation here can be different from the one
+            // tested above but it doesn't matter as we now have the adev mutex and it is consistent
+            // with what has been set by get_echo_reference() or put_echo_reference()
+            out->echo_reference_generation = adev->echo_reference_generation;
+            out->echo_reference = adev->echo_reference;
+            ALOGV("%s: update echo reference generation %d", __func__,
+                  out->echo_reference_generation);
+            pthread_mutex_unlock(&adev->lock);
+        }
+#endif
+
         if (out->muted)
             memset((void *)buffer, 0, bytes);
         list_for_each(node, &out->pcm_dev_list) {
