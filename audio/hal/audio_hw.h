@@ -74,7 +74,6 @@ enum {
     SND_DEVICE_OUT_BEGIN = SND_DEVICE_MIN,
     SND_DEVICE_OUT_HANDSET = SND_DEVICE_OUT_BEGIN,
     SND_DEVICE_OUT_SPEAKER,
-    SND_DEVICE_OUT_SPEAKER_REVERSE,
     SND_DEVICE_OUT_HEADPHONES,
     SND_DEVICE_OUT_SPEAKER_AND_HEADPHONES,
     SND_DEVICE_OUT_VOICE_HANDSET,
@@ -415,6 +414,7 @@ struct audio_device {
     int                     (*htc_acoustic_init_rt5506)();
     int                     (*htc_acoustic_set_rt5506_amp)(int, int);
     int                     (*htc_acoustic_set_amp_mode)(int, int, int, int, bool);
+    int                     (*htc_acoustic_spk_reverse)(bool);
 
     void*                   sound_trigger_lib;
     int                     (*sound_trigger_open_for_streaming)();
