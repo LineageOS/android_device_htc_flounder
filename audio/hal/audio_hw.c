@@ -258,7 +258,6 @@ static const char * const device_table[SND_DEVICE_MAX] = {
     /* Playback sound devices */
     [SND_DEVICE_OUT_HANDSET] = "handset",
     [SND_DEVICE_OUT_SPEAKER] = "speaker",
-    [SND_DEVICE_OUT_SPEAKER_REVERSE] = "speaker-reverse",
     [SND_DEVICE_OUT_HEADPHONES] = "headphones",
     [SND_DEVICE_OUT_SPEAKER_AND_HEADPHONES] = "speaker-and-headphones",
     [SND_DEVICE_OUT_VOICE_HANDSET] = "voice-handset",
@@ -523,10 +522,7 @@ snd_device_t get_output_snd_device(struct audio_device *adev, audio_devices_t de
         devices & AUDIO_DEVICE_OUT_WIRED_HEADSET) {
         snd_device = SND_DEVICE_OUT_HEADPHONES;
     } else if (devices & AUDIO_DEVICE_OUT_SPEAKER) {
-        if (adev->speaker_lr_swap)
-            snd_device = SND_DEVICE_OUT_SPEAKER_REVERSE;
-        else
-            snd_device = SND_DEVICE_OUT_SPEAKER;
+        snd_device = SND_DEVICE_OUT_SPEAKER;
     } else if (devices & AUDIO_DEVICE_OUT_ALL_SCO) {
         snd_device = SND_DEVICE_OUT_BT_SCO;
     } else if (devices & AUDIO_DEVICE_OUT_EARPIECE) {
@@ -3921,6 +3917,8 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
                 usecase = node_to_item(node, struct audio_usecase, adev_list_node);
                 if (usecase->type == PCM_PLAYBACK) {
                     select_devices(adev, usecase->id);
+                    if (adev->htc_acoustic_spk_reverse)
+                        adev->htc_acoustic_spk_reverse(adev->speaker_lr_swap);
                     break;
                 }
             }
@@ -4422,6 +4420,11 @@ static int adev_open(const hw_module_t *module, const char *name,
             adev->htc_acoustic_set_amp_mode =
                         (int (*)(int , int, int, int, bool))dlsym(adev->htc_acoustic_lib,
                                                         "set_amp_mode");
+            adev->htc_acoustic_spk_reverse =
+                        (int (*)(bool))dlsym(adev->htc_acoustic_lib,
+                                                        "spk_reverse");
+            if (adev->htc_acoustic_spk_reverse)
+                adev->htc_acoustic_spk_reverse(adev->speaker_lr_swap);
         }
     }
 

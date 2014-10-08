@@ -13,9 +13,6 @@
   <path name="speaker">
   </path>
 
-  <path name="speaker-reverse">
-  </path>
-
   <path name="headphones">
     <ctl name="Headphone Jack Switch" value="1"/>
   </path>
