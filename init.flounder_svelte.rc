@@ -9,4 +9,4 @@ on property:ro.boot.svelte=1
 
    # Reduce screen resolution
    setprop ro.config.density_override 144
-   setprop ro.config.size_override 1024,768
+   setprop ro.config.size_override 768,1024
