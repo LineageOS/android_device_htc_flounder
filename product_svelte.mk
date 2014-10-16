@@ -35,7 +35,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PROPERTY_OVERRIDES += \
 	ro.config.low_ram=true \
 	ro.logd.size=64K \
-	ro.sf.lcd_density=240
+	ro.sf.lcd_density=144
 
 PRODUCT_PROPERTY_OVERRIDES += dalvik.vm.jit.codecachesize=0
 
