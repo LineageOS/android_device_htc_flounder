@@ -167,7 +167,7 @@ static int vad_load_sound_model(struct flounder_sound_trigger_device *stdev,
 
     ret = ioctl(stdev->vad_fd, RT_WRITE_CODEC_DSP_IOCTL, &cmd);
     if (ret)
-        ALOGE("Error VAD write ioctl");
+        ALOGE("Error VAD write ioctl: %d", ret);
     return ret;
 }
 
@@ -383,6 +383,9 @@ static int stdev_load_sound_model(const struct sound_trigger_hw_device *dev,
     ret = vad_load_sound_model(stdev,
                                (char *)sound_model + sound_model->data_offset,
                                sound_model->data_size);
+    if (ret)
+        goto exit;
+
     stdev->model_handle = 1;
     stdev->sound_model_callback = callback;
     stdev->sound_model_cookie = cookie;
