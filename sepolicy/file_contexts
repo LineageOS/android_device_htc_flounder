@@ -87,6 +87,8 @@
 # mmc rpmb
 /dev/block/mmcblk0rpmb                 u:object_r:mmc_rpmb_block_device:s0
 
+/dev/block/zram0                       u:object_r:swap_block_device:s0
+
 # secure os storage
 /data/ss(/.*)?                         u:object_r:tee_data_file:s0
 
