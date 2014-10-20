@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <cutils/properties.h>
 //#define LOG_NDEBUG 0
 
 #define LOG_TAG "FlounderPowerHAL"
@@ -40,6 +41,9 @@
 #define LOW_POWER_MAX_FREQ "1020000"
 #define NORMAL_MAX_FREQ "2901000"
 #define GPU_FREQ_CONSTRAINT "852000 852000 -1 2000"
+#define SVELTE_PROP "ro.boot.svelte"
+#define SVELTE_MAX_FREQ_PROP "ro.config.svelte.max_cpu_freq"
+#define SVELTE_LOW_POWER_MAX_FREQ_PROP "ro.config.svelte.low_power_max_cpu_freq"
 
 struct flounder_power_module {
     struct power_module base;
@@ -49,6 +53,9 @@ struct flounder_power_module {
 };
 
 static bool low_power_mode = false;
+
+static char *max_cpu_freq = NORMAL_MAX_FREQ;
+static char *low_power_max_cpu_freq = LOW_POWER_MAX_FREQ;
 
 static void sysfs_write(const char *path, char *s)
 {
@@ -71,6 +78,18 @@ static void sysfs_write(const char *path, char *s)
     close(fd);
 }
 
+static void calculate_max_cpu_freq() {
+    int32_t is_svelte = property_get_int32(SVELTE_PROP, 0);
+
+    if (is_svelte) {
+        char prop_buffer[PROPERTY_VALUE_MAX];
+        int len = property_get(SVELTE_MAX_FREQ_PROP, prop_buffer, LOW_POWER_MAX_FREQ);
+        max_cpu_freq = strndup(prop_buffer, len);
+        len = property_get(SVELTE_LOW_POWER_MAX_FREQ_PROP, prop_buffer, LOW_POWER_MAX_FREQ);
+        low_power_max_cpu_freq = strndup(prop_buffer, len);
+    }
+}
+
 static void power_init(struct power_module __unused *module)
 {
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
@@ -90,6 +109,8 @@ static void power_init(struct power_module __unused *module)
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration",
                 "1000000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/io_is_busy", "0");
+
+    calculate_max_cpu_freq();
 }
 
 static void power_set_interactive(struct power_module __unused *module, int on)
@@ -100,7 +121,7 @@ static void power_set_interactive(struct power_module __unused *module, int on)
      * Lower maximum frequency when screen is off.
      */
     sysfs_write(CPU_MAX_FREQ_PATH,
-                (!on || low_power_mode) ? LOW_POWER_MAX_FREQ : NORMAL_MAX_FREQ);
+                (!on || low_power_mode) ? low_power_max_cpu_freq : max_cpu_freq);
     sysfs_write(IO_IS_BUSY_PATH, on ? "1" : "0");
     sysfs_write(FACEDOWN_PATH, on ? "0" : "1");
     sysfs_write(TOUCH_SYNA_INTERACTIVE_PATH, on ? "1" : "0");
@@ -174,9 +195,9 @@ static void flounder_power_hint(struct power_module *module, power_hint_t hint,
     case POWER_HINT_LOW_POWER:
         pthread_mutex_lock(&flounder->lock);
         if (data) {
-            sysfs_write(CPU_MAX_FREQ_PATH, LOW_POWER_MAX_FREQ);
+            sysfs_write(CPU_MAX_FREQ_PATH, low_power_max_cpu_freq);
         } else {
-            sysfs_write(CPU_MAX_FREQ_PATH, NORMAL_MAX_FREQ);
+            sysfs_write(CPU_MAX_FREQ_PATH, max_cpu_freq);
         }
         low_power_mode = data;
         pthread_mutex_unlock(&flounder->lock);
