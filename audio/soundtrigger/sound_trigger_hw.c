@@ -288,7 +288,7 @@ static void *callback_thread_loop(void *context)
         err = poll(fds, 2, -1);
         pthread_mutex_lock(&stdev->lock);
         if ((err < 0) || (stdev->recognition_callback == NULL)) {
-            ALOGE("Error in hotplug CPU poll: %d", errno);
+            ALOGE_IF(err < 0, "Error in hotplug CPU poll: %d", errno);
             break;
         }
 
