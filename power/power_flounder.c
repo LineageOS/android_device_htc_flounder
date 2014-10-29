@@ -35,6 +35,7 @@
 #define CPU_MAX_FREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 #define FACEDOWN_PATH "/sys/class/htc_sensorhub/sensor_hub/facedown_enabled"
 #define TOUCH_SYNA_INTERACTIVE_PATH "/sys/devices/platform/spi-tegra114.2/spi_master/spi2/spi2.0/input/input0/interactive"
+#define WAKE_GESTURE_PATH "/sys/devices/platform/spi-tegra114.2/spi_master/spi2/spi2.0/input/input0/wake_gesture"
 #define GPU_BOOST_PATH "/dev/constraint_gpu_freq"
 #define IO_IS_BUSY_PATH "/sys/devices/system/cpu/cpufreq/interactive/io_is_busy"
 #define LOW_POWER_MAX_FREQ "1020000"
@@ -147,6 +148,22 @@ static int boostpulse_open(struct flounder_power_module *flounder)
     return flounder->boostpulse_fd;
 }
 
+static void set_feature(struct power_module *module, feature_t feature, int state)
+{
+    struct flounder_power_module *flounder =
+            (struct flounder_power_module *) module;
+    switch (feature) {
+    case POWER_FEATURE_DOUBLE_TAP_TO_WAKE:
+        pthread_mutex_lock(&flounder->lock);
+        sysfs_write(WAKE_GESTURE_PATH, state ? "1" : "0");
+        pthread_mutex_unlock(&flounder->lock);
+        break;
+    default:
+        ALOGW("Error setting the feature, it doesn't exist %d\n", feature);
+        break;
+    }
+}
+
 static void flounder_power_hint(struct power_module *module, power_hint_t hint,
                                 void *data)
 {
@@ -206,6 +223,7 @@ struct flounder_power_module HAL_MODULE_INFO_SYM = {
         init: power_init,
         setInteractive: power_set_interactive,
         powerHint: flounder_power_hint,
+        setFeature: set_feature,
     },
 
     lock: PTHREAD_MUTEX_INITIALIZER,
