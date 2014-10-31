@@ -110,7 +110,7 @@ struct pcm_device_profile pcm_device_playback_spk = {
         .period_count = PLAYBACK_PERIOD_COUNT,
         .format = PCM_FORMAT_S16_LE,
         .start_threshold = PLAYBACK_START_THRESHOLD,
-        .stop_threshold = INT_MAX,
+        .stop_threshold = INT_MAX/2,
         .silence_threshold = 0,
         .avail_min = PLAYBACK_AVAILABLE_MIN,
     },
