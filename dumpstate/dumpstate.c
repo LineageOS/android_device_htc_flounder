@@ -34,4 +34,5 @@ void dumpstate_board()
     dump_file("wlan", "/sys/module/bcmdhd/parameters/info_string");
     dump_file("display controller", "/d/tegradc.0/stats");
     dump_file("sensor_hub version", "/sys/devices/virtual/htc_sensorhub/sensor_hub/firmware_version");
+    dump_file("audio nvavp", "/d/nvavp/refs");
 };
