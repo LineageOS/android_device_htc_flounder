@@ -166,6 +166,7 @@ on property:ro.hw.ks.ready=1
 
 on property:ro.boot.baseband=ROW
     stop ril-daemon
+    setprop persist.radio.apm_sim_not_pwdn 1
     enable kickstart
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
@@ -178,6 +179,7 @@ on property:ro.boot.baseband=ROW
 
 on property:ro.boot.baseband=US
     stop ril-daemon
+    setprop persist.radio.apm_sim_not_pwdn 1
     enable kickstart
     mkdir /dev/socket/qmux_radio 0770 radio radio
     chmod 2770 /dev/socket/qmux_radio
