@@ -110,7 +110,7 @@ struct pcm_device_profile pcm_device_playback_spk = {
         .period_count = PLAYBACK_PERIOD_COUNT,
         .format = PCM_FORMAT_S16_LE,
         .start_threshold = PLAYBACK_START_THRESHOLD,
-        .stop_threshold = INT_MAX/2,
+        .stop_threshold = PLAYBACK_STOP_THRESHOLD,
         .silence_threshold = 0,
         .avail_min = PLAYBACK_AVAILABLE_MIN,
     },
@@ -2886,6 +2886,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
     size_t frame_size = audio_stream_out_frame_size(stream);
     size_t frames_wr = 0, frames_rq = 0;
     unsigned char *data = NULL;
+    struct pcm_config config;
 #ifdef PREPROCESSING_ENABLED
     size_t in_frames = bytes / frame_size;
     size_t out_frames = in_frames;
@@ -3014,27 +3015,71 @@ false_alarm:
                     out->echo_reference->write(out->echo_reference, &b);
                  }
 #endif
-                if (out->devices & AUDIO_DEVICE_OUT_SPEAKER) {
-                    pthread_mutex_lock(&adev->tfa9895_lock);
-                    if (adev->tfa9895_mode_change == 0x1) {
+                if (adev->tfa9895_mode_change == 0x1) {
+                    if (out->devices & AUDIO_DEVICE_OUT_SPEAKER) {
+                        pthread_mutex_lock(&adev->tfa9895_lock);
                         data = (unsigned char *)
                                 calloc(pcm_frames_to_bytes(pcm_device->pcm, out->config.period_size),
                                         sizeof(unsigned char));
                         if (data) {
                             int i;
-                            for (i = out->config.period_count; i > 0; i--)
-                                pcm_write(pcm_device->pcm, (void *)data,
-                                    pcm_frames_to_bytes(pcm_device->pcm, out->config.period_size));
-                            /* TODO: Hold on 100 ms and wait i2s signal ready
+
+                            // reopen pcm with stop_threshold = INT_MAX/2
+                            memcpy(&config, &pcm_device->pcm_profile->config,
+                                    sizeof(struct pcm_config));
+                            config.stop_threshold = INT_MAX/2;
+
+                            if (pcm_device->pcm)
+                                pcm_close(pcm_device->pcm);
+
+                            for (i = 0; i < RETRY_NUMBER; i++) {
+                                pcm_device->pcm = pcm_open(pcm_device->pcm_profile->card,
+                                        pcm_device->pcm_profile->id,
+                                        PCM_OUT | PCM_MONOTONIC, &config);
+                                if (pcm_device->pcm != NULL && pcm_is_ready(pcm_device->pcm))
+                                    break;
+                                else
+                                    usleep(10000);
+                            }
+                            if (i >= RETRY_NUMBER)
+                                ALOGE("%s: failed to reopen pcm device", __func__);
+
+                            if (pcm_device->pcm) {
+                                for (i = out->config.period_count; i > 0; i--)
+                                    pcm_write(pcm_device->pcm, (void *)data,
+                                           pcm_frames_to_bytes(pcm_device->pcm,
+                                           out->config.period_size));
+                                /* TODO: Hold on 100 ms and wait i2s signal ready
                                      before giving dsp related i2c commands */
-                            usleep(100000);
-                            adev->tfa9895_mode_change &= ~0x1;
-                            ALOGD("@@##checking - 2: tfa9895_config_thread: "
+                                usleep(100000);
+                                adev->tfa9895_mode_change &= ~0x1;
+                                ALOGD("@@##checking - 2: tfa9895_config_thread: "
                                     "adev->tfa9895_mode_change=%d", adev->tfa9895_mode_change);
-                            adev->tfa9895_init =
-                                adev->htc_acoustic_set_amp_mode(adev->mode, AUDIO_DEVICE_OUT_SPEAKER,
-                                                                    0, 0, false);
+                                adev->tfa9895_init =
+                                        adev->htc_acoustic_set_amp_mode(
+                                                adev->mode, AUDIO_DEVICE_OUT_SPEAKER, 0, 0, false);
+                            }
                             free(data);
+
+                            // reopen pcm with normal stop_threshold
+                            if (pcm_device->pcm)
+                                pcm_close(pcm_device->pcm);
+
+                            for (i = 0; i < RETRY_NUMBER; i++) {
+                                pcm_device->pcm = pcm_open(pcm_device->pcm_profile->card,
+                                        pcm_device->pcm_profile->id,
+                                        PCM_OUT | PCM_MONOTONIC, &pcm_device->pcm_profile->config);
+                                if (pcm_device->pcm != NULL && pcm_is_ready(pcm_device->pcm))
+                                    break;
+                                else
+                                    usleep(10000);
+                            }
+                            if (i >= RETRY_NUMBER) {
+                                ALOGE("%s: failed to reopen pcm device, error return", __func__);
+                                pthread_mutex_unlock(&adev->tfa9895_lock);
+                                pthread_mutex_unlock(&out->lock);
+                                return -1;
+                            }
                         }
                     }
                     pthread_mutex_unlock(&adev->tfa9895_lock);
