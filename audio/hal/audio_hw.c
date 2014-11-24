@@ -47,6 +47,8 @@
 
 #include "sound/compress_params.h"
 
+#define MIXER_CTL_COMPRESS_PLAYBACK_VOLUME "Compress Playback Volume"
+
 /* TODO: the following PCM device profiles could be read from a config file */
 struct pcm_device_profile pcm_device_playback_hs = {
     .config = {
@@ -2842,15 +2844,37 @@ static int out_set_volume(struct audio_stream_out *stream, float left,
                           float right)
 {
     struct stream_out *out = (struct stream_out *)stream;
-    int volume[2];
+    struct audio_device *adev = out->dev;
+    int offload_volume[2];//For stereo
 
     if (out->usecase == USECASE_AUDIO_PLAYBACK_MULTI_CH) {
         /* only take left channel into account: the API is for stereo anyway */
         out->muted = (left == 0.0f);
         return 0;
     } else if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD) {
-        (void)right;
-        /* TODO */
+        struct mixer_ctl *ctl;
+        struct mixer *mixer = NULL;
+
+        offload_volume[0] = (int)(left * COMPRESS_PLAYBACK_VOLUME_MAX);
+        offload_volume[1] = (int)(right * COMPRESS_PLAYBACK_VOLUME_MAX);
+
+        mixer = mixer_open(MIXER_CARD);
+        if (!mixer) {
+            ALOGE("%s unable to open the mixer for card %d, aborting.",
+                    __func__, MIXER_CARD);
+            return -EINVAL;
+        }
+        ctl = mixer_get_ctl_by_name(mixer, MIXER_CTL_COMPRESS_PLAYBACK_VOLUME);
+        if (!ctl) {
+            ALOGE("%s: Could not get ctl for mixer cmd - %s",
+                  __func__, MIXER_CTL_COMPRESS_PLAYBACK_VOLUME);
+            mixer_close(mixer);
+            return -EINVAL;
+        }
+        ALOGD("out_set_volume set offload volume (%f, %f)", left, right);
+        mixer_ctl_set_array(ctl, offload_volume,
+                            sizeof(offload_volume)/sizeof(offload_volume[0]));
+        mixer_close(mixer);
         return 0;
     }
 
