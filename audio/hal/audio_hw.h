@@ -225,6 +225,7 @@ enum {
     OFFLOAD_STATE_IDLE,
     OFFLOAD_STATE_PLAYING,
     OFFLOAD_STATE_PAUSED,
+    OFFLOAD_STATE_PAUSED_FLUSHED,
 };
 
 typedef enum {
@@ -283,7 +284,6 @@ struct stream_out {
     audio_io_handle_t           handle;
 
     int                         non_blocking;
-    int                         playback_started;
     int                         offload_state;
     pthread_cond_t              offload_cond;
     pthread_t                   offload_thread;

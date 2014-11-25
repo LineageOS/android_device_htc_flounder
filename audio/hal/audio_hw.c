@@ -2110,8 +2110,6 @@ static int send_offload_cmd_l(struct stream_out* out, int command)
 /* must be called iwth out->lock locked */
 static void stop_compressed_output_l(struct stream_out *out)
 {
-    out->offload_state = OFFLOAD_STATE_IDLE;
-    out->playback_started = 0;
     out->send_new_metadata = 1;
     if (out->compr != NULL) {
         compress_stop(out->compr);
@@ -2125,9 +2123,6 @@ static void *offload_thread_loop(void *context)
 {
     struct stream_out *out = (struct stream_out *) context;
     struct listnode *item;
-
-    out->offload_state = OFFLOAD_STATE_IDLE;
-    out->playback_started = 0;
 
     setpriority(PRIO_PROCESS, 0, ANDROID_PRIORITY_AUDIO);
     set_sched_policy(0, SP_FOREGROUND);
@@ -2223,7 +2218,6 @@ static int create_offload_callback_thread(struct stream_out *out)
 static int destroy_offload_callback_thread(struct stream_out *out)
 {
     pthread_mutex_lock(&out->lock);
-    stop_compressed_output_l(out);
     send_offload_cmd_l(out, OFFLOAD_CMD_EXIT);
 
     pthread_mutex_unlock(&out->lock);
@@ -2352,43 +2346,29 @@ error_open:
     return ret;
 }
 
-static int stop_output_stream(struct stream_out *out)
+static int disable_output_path_l(struct stream_out *out)
 {
-    int i, ret = 0;
-    struct audio_usecase *uc_info;
     struct audio_device *adev = out->dev;
+    struct audio_usecase *uc_info;
 
-    ALOGV("%s: enter: usecase(%d: %s)", __func__,
-          out->usecase, use_case_table[out->usecase]);
     uc_info = get_usecase_from_id(adev, out->usecase);
     if (uc_info == NULL) {
         ALOGE("%s: Could not find the usecase (%d) in the list",
-              __func__, out->usecase);
+             __func__, out->usecase);
         return -EINVAL;
     }
-
-    if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD &&
-            adev->offload_fx_stop_output != NULL)
-        adev->offload_fx_stop_output(out->handle);
-
     disable_snd_device(adev, uc_info, uc_info->out_snd_device, true);
-
     uc_release_pcm_devices(uc_info);
     list_remove(&uc_info->adev_list_node);
     free(uc_info);
 
-    ALOGV("%s: exit: status(%d)", __func__, ret);
-    return ret;
+    return 0;
 }
 
-int start_output_stream(struct stream_out *out)
+static void enable_output_path_l(struct stream_out *out)
 {
-    int ret = 0;
-    struct audio_usecase *uc_info;
     struct audio_device *adev = out->dev;
-
-    ALOGV("%s: enter: usecase(%d: %s) devices(%#x) channels(%d)",
-          __func__, out->usecase, use_case_table[out->usecase], out->devices, out->config.channels);
+    struct audio_usecase *uc_info;
 
     uc_info = (struct audio_usecase *)calloc(1, sizeof(struct audio_usecase));
     uc_info->id = out->usecase;
@@ -2402,6 +2382,42 @@ int start_output_stream(struct stream_out *out)
     list_add_tail(&adev->usecase_list, &uc_info->adev_list_node);
 
     select_devices(adev, out->usecase);
+}
+
+static int stop_output_stream(struct stream_out *out)
+{
+    int ret = 0;
+    struct audio_device *adev = out->dev;
+    bool do_disable = true;
+
+    ALOGV("%s: enter: usecase(%d: %s)", __func__,
+          out->usecase, use_case_table[out->usecase]);
+
+    if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD &&
+            adev->offload_fx_stop_output != NULL) {
+        adev->offload_fx_stop_output(out->handle);
+
+        if (out->offload_state == OFFLOAD_STATE_PAUSED ||
+                out->offload_state == OFFLOAD_STATE_PAUSED_FLUSHED)
+            do_disable = false;
+        out->offload_state = OFFLOAD_STATE_IDLE;
+    }
+    if (do_disable)
+        ret = disable_output_path_l(out);
+
+    ALOGV("%s: exit: status(%d)", __func__, ret);
+    return ret;
+}
+
+int start_output_stream(struct stream_out *out)
+{
+    int ret = 0;
+    struct audio_device *adev = out->dev;
+
+    ALOGV("%s: enter: usecase(%d: %s) devices(%#x) channels(%d)",
+          __func__, out->usecase, use_case_table[out->usecase], out->devices, out->config.channels);
+
+    enable_output_path_l(out);
 
     if (out->usecase != USECASE_AUDIO_PLAYBACK_OFFLOAD) {
         out->compr = NULL;
@@ -2962,6 +2978,14 @@ false_alarm:
 
     if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD) {
         ALOGVV("%s: writing buffer (%d bytes) to compress device", __func__, bytes);
+
+        if (out->offload_state == OFFLOAD_STATE_PAUSED_FLUSHED) {
+            ALOGV("start offload write from pause state");
+            pthread_mutex_lock(&adev->lock);
+            enable_output_path_l(out);
+            pthread_mutex_unlock(&adev->lock);
+        }
+
         if (out->send_new_metadata) {
             ALOGVV("send new gapless metadata");
             compress_set_gapless_metadata(out->compr, &out->gapless_mdata);
@@ -2973,9 +2997,8 @@ false_alarm:
         if (ret >= 0 && ret < (ssize_t)bytes) {
             send_offload_cmd_l(out, OFFLOAD_CMD_WAIT_FOR_BUFFER);
         }
-        if (!out->playback_started) {
+        if (out->offload_state != OFFLOAD_STATE_PLAYING) {
             compress_start(out->compr);
-            out->playback_started = 1;
             out->offload_state = OFFLOAD_STATE_PLAYING;
         }
         pthread_mutex_unlock(&out->lock);
@@ -3267,6 +3290,9 @@ static int out_pause(struct audio_stream_out* stream)
         if (out->compr != NULL && out->offload_state == OFFLOAD_STATE_PLAYING) {
             status = compress_pause(out->compr);
             out->offload_state = OFFLOAD_STATE_PAUSED;
+            pthread_mutex_lock(&out->dev->lock);
+            status = disable_output_path_l(out);
+            pthread_mutex_unlock(&out->dev->lock);
         }
         pthread_mutex_unlock(&out->lock);
     }
@@ -3282,6 +3308,9 @@ static int out_resume(struct audio_stream_out* stream)
         status = 0;
         pthread_mutex_lock(&out->lock);
         if (out->compr != NULL && out->offload_state == OFFLOAD_STATE_PAUSED) {
+            pthread_mutex_lock(&out->dev->lock);
+            enable_output_path_l(out);
+            pthread_mutex_unlock(&out->dev->lock);
             status = compress_resume(out->compr);
             out->offload_state = OFFLOAD_STATE_PLAYING;
         }
@@ -3312,7 +3341,15 @@ static int out_flush(struct audio_stream_out* stream)
     ALOGV("%s", __func__);
     if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD) {
         pthread_mutex_lock(&out->lock);
-        stop_compressed_output_l(out);
+        if (out->offload_state == OFFLOAD_STATE_PLAYING) {
+            ALOGE("out_flush() called in wrong state %d", out->offload_state);
+            pthread_mutex_unlock(&out->lock);
+            return -ENOSYS;
+        }
+        if (out->offload_state == OFFLOAD_STATE_PAUSED) {
+            stop_compressed_output_l(out);
+            out->offload_state = OFFLOAD_STATE_PAUSED_FLUSHED;
+        }
         pthread_mutex_unlock(&out->lock);
         return 0;
     }
@@ -3832,6 +3869,8 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
 
         out->send_new_metadata = 1;
         create_offload_callback_thread(out);
+        out->offload_state = OFFLOAD_STATE_IDLE;
+
         ALOGV("%s: offloaded output offload_info version %04x bit rate %d",
                 __func__, config->offload_info.version,
                 config->offload_info.bit_rate);
