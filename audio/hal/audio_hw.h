@@ -167,8 +167,8 @@ enum {
 #define CAPTURE_DEFAULT_SAMPLING_RATE 48000
 #define CAPTURE_START_THRESHOLD 1
 
-#define COMPRESS_CARD       0
-#define COMPRESS_DEVICE     5
+#define COMPRESS_CARD       2
+#define COMPRESS_DEVICE     0
 #define COMPRESS_OFFLOAD_FRAGMENT_SIZE (32 * 1024)
 #define COMPRESS_OFFLOAD_NUM_FRAGMENTS 4
 /* ToDo: Check and update a proper value in msec */
