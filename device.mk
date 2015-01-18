@@ -161,6 +161,7 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 
 # NFC packages
 PRODUCT_PACKAGES += \
+    com.android.nfc_extras \
     nfc_nci.bcm2079x.default \
     NfcNci \
     Tag \
