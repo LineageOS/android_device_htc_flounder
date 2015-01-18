@@ -147,3 +147,8 @@ EXTENDED_FONT_FOOTPRINT := true
 BOARD_CHARGER_ENABLE_SUSPEND := true
 
 MALLOC_IMPL := dlmalloc
+
+# Inline kernel building
+TARGET_KERNEL_CONFIG := flounder_defconfig
+TARGET_KERNEL_SOURCE := kernel/htc/flounder
+BOARD_KERNEL_IMAGE_NAME := zImage-dtb
