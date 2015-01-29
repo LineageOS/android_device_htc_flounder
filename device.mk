@@ -30,7 +30,6 @@ endif
 
 LOCAL_FSTAB := $(LOCAL_PATH)/fstab.flounder
 
-
 TARGET_RECOVERY_FSTAB = $(LOCAL_FSTAB)
 
 PRODUCT_COPY_FILES := \
