@@ -15,3 +15,4 @@ $(call inherit-product, device/htc/flounder/aosp_flounder.mk)
 PRODUCT_NAME := cm_flounder
 PRODUCT_BRAND := google
 PRODUCT_MODEL := Nexus 9
+PRODUCT_RESTRICT_VENDOR_FILES := false
