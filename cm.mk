@@ -11,6 +11,8 @@ $(call inherit-product, vendor/cm/config/nfc_enhanced.mk)
 # Inherit device configuration
 $(call inherit-product, device/htc/flounder/aosp_flounder.mk)
 
+$(call inherit-product-if-exists, vendor/htc/flounder/flounder-vendor-blobs.mk)
+
 ## Device identifier. This must come after all inclusions
 PRODUCT_NAME := cm_flounder
 PRODUCT_BRAND := google
