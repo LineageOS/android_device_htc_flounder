@@ -12,6 +12,15 @@ def FullOTA_InstallEnd(info):
     info.script.AppendExtra(
         'package_extract_file("bootloader.img", "/dev/block/platform/sdhci-tegra.3/by-name/OTA");')
 
+  try:
+    vendor_img = info.input_zip.read("RADIO/vendor.img")
+  except KeyError:
+    print "no vendor.img in target_files; skipping install"
+  else:
+    info.script.Print("Writing vendor.img...")
+    common.ZipWriteStr(info.output_zip, "vendor.img", vendor_img)
+    info.script.AppendExtra(
+        'package_extract_file("vendor.img", "/dev/block/platform/sdhci-tegra.3/by-name/VNR");')
 
 def IncrementalOTA_InstallEnd(info):
   try:
