@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-# Use the non-open-source parts, if they're present
--include vendor/htc/flounder/BoardConfigVendor.mk
 # Build a separate vendor.img
 TARGET_COPY_OUT_VENDOR := vendor
 
@@ -145,3 +143,6 @@ EXTENDED_FONT_FOOTPRINT := true
 BOARD_CHARGER_ENABLE_SUSPEND := true
 
 MALLOC_IMPL := dlmalloc
+
+# Use the non-open-source parts, if they're present
+-include vendor/htc/flounder/BoardConfigVendor.mk
