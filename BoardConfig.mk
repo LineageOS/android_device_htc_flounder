@@ -34,6 +34,8 @@ BUILD_EMULATOR := false
 
 TARGET_NO_BOOTLOADER := true
 
+BOARD_KERNEL_CMDLINE += androidboot.hardware=flounder
+
 TARGET_NO_RADIOIMAGE := true
 
 TARGET_BOARD_PLATFORM := tegra132
