@@ -122,6 +122,12 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/bcmdhd_lte.cal:system/etc/wifi/bcmdhd_lte.cal
 
 PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/bluetooth/bcm4350b1.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4350b1.hcd \
+    $(LOCAL_PATH)/bluetooth/BCM4354_003.001.012.0259.0512.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4350c0.hcd \
+    $(LOCAL_PATH)/bluetooth/bcm4354.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4354.hcd \
+    $(LOCAL_PATH)/bluetooth/bt_vendor.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/bluetooth/bt_vendor.conf
+
+PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/bcm/gps.bcm47521.conf:system/etc/gps.bcm47521.conf \
     $(LOCAL_PATH)/gps/bcm/glgps:system/bin/glgps \
     $(LOCAL_PATH)/gps/bcm/gpsconfig.xml:system/etc/gpsconfig.xml \
