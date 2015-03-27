@@ -50,7 +50,7 @@
 #define MIXER_CTL_COMPRESS_PLAYBACK_VOLUME "Compress Playback Volume"
 
 /* TODO: the following PCM device profiles could be read from a config file */
-struct pcm_device_profile pcm_device_playback_hs = {
+struct pcm_device_profile pcm_device_playback = {
     .config = {
         .channels = PLAYBACK_DEFAULT_CHANNEL_COUNT,
         .rate = PLAYBACK_DEFAULT_SAMPLING_RATE,
@@ -63,9 +63,10 @@ struct pcm_device_profile pcm_device_playback_hs = {
         .avail_min = PLAYBACK_AVAILABLE_MIN,
     },
     .card = SOUND_CARD,
-    .id = 0,
+    .id = 9,
     .type = PCM_PLAYBACK,
-    .devices = AUDIO_DEVICE_OUT_WIRED_HEADSET|AUDIO_DEVICE_OUT_WIRED_HEADPHONE,
+    .devices = AUDIO_DEVICE_OUT_WIRED_HEADSET|AUDIO_DEVICE_OUT_WIRED_HEADPHONE|
+               AUDIO_DEVICE_OUT_SPEAKER,
 };
 
 struct pcm_device_profile pcm_device_capture = {
@@ -102,24 +103,6 @@ struct pcm_device_profile pcm_device_capture_loopback_aec = {
     .id = 1,
     .type = PCM_CAPTURE,
     .devices = SND_DEVICE_IN_LOOPBACK_AEC,
-};
-
-struct pcm_device_profile pcm_device_playback_spk = {
-    .config = {
-        .channels = PLAYBACK_DEFAULT_CHANNEL_COUNT,
-        .rate = PLAYBACK_DEFAULT_SAMPLING_RATE,
-        .period_size = PLAYBACK_PERIOD_SIZE,
-        .period_count = PLAYBACK_PERIOD_COUNT,
-        .format = PCM_FORMAT_S16_LE,
-        .start_threshold = PLAYBACK_START_THRESHOLD,
-        .stop_threshold = PLAYBACK_STOP_THRESHOLD,
-        .silence_threshold = 0,
-        .avail_min = PLAYBACK_AVAILABLE_MIN,
-    },
-    .card = SOUND_CARD,
-    .id = 1,
-    .type = PCM_PLAYBACK,
-    .devices = AUDIO_DEVICE_OUT_SPEAKER,
 };
 
 struct pcm_device_profile pcm_device_playback_sco = {
@@ -179,9 +162,8 @@ struct pcm_device_profile pcm_device_hotword_streaming = {
 };
 
 struct pcm_device_profile *pcm_devices[] = {
-    &pcm_device_playback_hs,
+    &pcm_device_playback,
     &pcm_device_capture,
-    &pcm_device_playback_spk,
     &pcm_device_playback_sco,
     &pcm_device_capture_sco,
     &pcm_device_capture_loopback_aec,
@@ -4332,13 +4314,7 @@ static void *dummybuf_thread(void *context)
     struct pcm_device_profile *profile = NULL;
 
     memset(&config, 0, sizeof(struct pcm_config));
-    if (adev->dummybuf_thread_devices == AUDIO_DEVICE_OUT_WIRED_HEADPHONE) {
-        profile = &pcm_device_playback_hs;
-        mixer = mixer_open(profile->card);
-    }
-    else
-        profile = &pcm_device_playback_spk;
-
+    profile = &pcm_device_playback;
     memcpy(&config, &profile->config, sizeof(struct pcm_config));
     /* Use large value for stop_threshold so that automatic
        trigger for stop is avoided, when this thread fails to write data */
@@ -4353,6 +4329,9 @@ static void *dummybuf_thread(void *context)
     } else {
         ALOGD("pcm_open: card=%d, id=%d", profile->card, profile->id);
     }
+
+    if (adev->dummybuf_thread_devices == AUDIO_DEVICE_OUT_WIRED_HEADPHONE)
+        mixer = mixer_open(profile->card);
 
     if (mixer) {
         ctl = mixer_get_ctl_by_name(mixer, mixer_ctl_name);
