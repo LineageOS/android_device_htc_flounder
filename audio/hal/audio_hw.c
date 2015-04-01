@@ -2812,6 +2812,9 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     }
 
     str_parms_destroy(parms);
+
+    if (ret > 0)
+        ret = 0;
     ALOGV("%s: exit: code(%d)", __func__, ret);
     return ret;
 }
@@ -3574,6 +3577,10 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
     pthread_mutex_unlock(&in->lock);
     pthread_mutex_unlock(&adev->lock_inputs);
     str_parms_destroy(parms);
+
+    if (ret > 0)
+        ret = 0;
+
     ALOGV("%s: exit: status(%d)", __func__, ret);
     return ret;
 }
@@ -4068,6 +4075,10 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
     }
 
     str_parms_destroy(parms);
+
+    if (ret > 0)
+        ret = 0;
+
     ALOGV("%s: exit with code(%d)", __func__, ret);
     return ret;
 }
