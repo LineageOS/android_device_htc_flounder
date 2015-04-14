@@ -23,7 +23,6 @@
 #define ALOGVV(a...) do { } while(0)
 #endif
 
-#include <errno.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <sys/time.h>
@@ -35,7 +34,6 @@
 
 #include <cutils/log.h>
 #include <cutils/str_parms.h>
-#include <cutils/properties.h>
 #include <cutils/atomic.h>
 #include <cutils/sched_policy.h>
 
