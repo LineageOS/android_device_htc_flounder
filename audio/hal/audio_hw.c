@@ -898,7 +898,7 @@ static int do_in_standby_l(struct stream_in *in);
 
 #ifdef PREPROCESSING_ENABLED
 static void get_capture_reference_delay(struct stream_in *in,
-                              size_t frames,
+                              size_t frames __unused,
                               struct echo_reference_buffer *buffer)
 {
     ALOGVV("%s: enter:)", __func__);
@@ -938,7 +938,7 @@ static void get_capture_reference_delay(struct stream_in *in,
 }
 
 static void get_capture_delay(struct stream_in *in,
-                              size_t frames,
+                              size_t frames __unused,
                               struct echo_reference_buffer *buffer)
 {
     ALOGVV("%s: enter:)", __func__);
@@ -4608,7 +4608,7 @@ static int adev_open(const hw_module_t *module, const char *name,
                         (int (*)(void))dlsym(adev->sound_trigger_lib,
                                                         "sound_trigger_open_for_streaming");
             adev->sound_trigger_read_samples =
-                        (int (*)(audio_io_handle_t, int))dlsym(adev->sound_trigger_lib,
+                        (size_t (*)(int, void *, size_t))dlsym(adev->sound_trigger_lib,
                                                         "sound_trigger_read_samples");
             adev->sound_trigger_close_for_streaming =
                         (int (*)(int))dlsym(adev->sound_trigger_lib,
