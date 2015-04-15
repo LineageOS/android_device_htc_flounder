@@ -51,7 +51,7 @@
 #define MIXER_CTL_SPK_VMIXER_SPK_SWITCH "SPK VMixer SPK Switch"
 
 /* TODO: the following PCM device profiles could be read from a config file */
-struct pcm_device_profile pcm_device_playback = {
+static struct pcm_device_profile pcm_device_playback = {
     .config = {
         .channels = PLAYBACK_DEFAULT_CHANNEL_COUNT,
         .rate = PLAYBACK_DEFAULT_SAMPLING_RATE,
@@ -70,7 +70,7 @@ struct pcm_device_profile pcm_device_playback = {
                AUDIO_DEVICE_OUT_SPEAKER,
 };
 
-struct pcm_device_profile pcm_device_capture = {
+static struct pcm_device_profile pcm_device_capture = {
     .config = {
         .channels = CAPTURE_DEFAULT_CHANNEL_COUNT,
         .rate = CAPTURE_DEFAULT_SAMPLING_RATE,
@@ -88,7 +88,7 @@ struct pcm_device_profile pcm_device_capture = {
     .devices = AUDIO_DEVICE_IN_BUILTIN_MIC|AUDIO_DEVICE_IN_WIRED_HEADSET|AUDIO_DEVICE_IN_BACK_MIC,
 };
 
-struct pcm_device_profile pcm_device_capture_loopback_aec = {
+static struct pcm_device_profile pcm_device_capture_loopback_aec = {
     .config = {
         .channels = CAPTURE_DEFAULT_CHANNEL_COUNT,
         .rate = CAPTURE_DEFAULT_SAMPLING_RATE,
@@ -106,7 +106,7 @@ struct pcm_device_profile pcm_device_capture_loopback_aec = {
     .devices = SND_DEVICE_IN_LOOPBACK_AEC,
 };
 
-struct pcm_device_profile pcm_device_playback_sco = {
+static struct pcm_device_profile pcm_device_playback_sco = {
     .config = {
         .channels = SCO_DEFAULT_CHANNEL_COUNT,
         .rate = SCO_DEFAULT_SAMPLING_RATE,
@@ -126,7 +126,7 @@ struct pcm_device_profile pcm_device_playback_sco = {
             AUDIO_DEVICE_OUT_BLUETOOTH_SCO_CARKIT,
 };
 
-struct pcm_device_profile pcm_device_capture_sco = {
+static struct pcm_device_profile pcm_device_capture_sco = {
     .config = {
         .channels = SCO_DEFAULT_CHANNEL_COUNT,
         .rate = SCO_DEFAULT_SAMPLING_RATE,
@@ -144,7 +144,7 @@ struct pcm_device_profile pcm_device_capture_sco = {
     .devices = AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET,
 };
 
-struct pcm_device_profile pcm_device_hotword_streaming = {
+static struct pcm_device_profile pcm_device_hotword_streaming = {
     .config = {
         .channels = 1,
         .rate = 16000,
@@ -162,7 +162,7 @@ struct pcm_device_profile pcm_device_hotword_streaming = {
     .devices = AUDIO_DEVICE_IN_BUILTIN_MIC|AUDIO_DEVICE_IN_WIRED_HEADSET|AUDIO_DEVICE_IN_BACK_MIC
 };
 
-struct pcm_device_profile *pcm_devices[] = {
+static struct pcm_device_profile * const pcm_devices[] = {
     &pcm_device_playback,
     &pcm_device_capture,
     &pcm_device_playback_sco,
@@ -186,7 +186,7 @@ static const char * const use_case_table[AUDIO_USECASE_MAX] = {
 
 static unsigned int audio_device_ref_count;
 
-struct pcm_config pcm_config_deep_buffer = {
+static struct pcm_config pcm_config_deep_buffer = {
     .channels = 2,
     .rate = DEEP_BUFFER_OUTPUT_SAMPLING_RATE,
     .period_size = DEEP_BUFFER_OUTPUT_PERIOD_SIZE,
@@ -279,7 +279,7 @@ static const char * const device_table[SND_DEVICE_MAX] = {
     [SND_DEVICE_IN_LOOPBACK_AEC] = "loopback-aec",
 };
 
-struct mixer_card *adev_get_mixer_for_card(struct audio_device *adev, int card)
+static struct mixer_card *adev_get_mixer_for_card(struct audio_device *adev, int card)
 {
     struct mixer_card *mixer_card;
     struct listnode *node;
@@ -292,7 +292,7 @@ struct mixer_card *adev_get_mixer_for_card(struct audio_device *adev, int card)
     return NULL;
 }
 
-struct mixer_card *uc_get_mixer_for_card(struct audio_usecase *usecase, int card)
+static struct mixer_card *uc_get_mixer_for_card(struct audio_usecase *usecase, int card)
 {
     struct mixer_card *mixer_card;
     struct listnode *node;
@@ -305,7 +305,7 @@ struct mixer_card *uc_get_mixer_for_card(struct audio_usecase *usecase, int card
     return NULL;
 }
 
-void free_mixer_list(struct audio_device *adev)
+static void free_mixer_list(struct audio_device *adev)
 {
     struct mixer_card *mixer_card;
     struct listnode *node;
@@ -319,7 +319,7 @@ void free_mixer_list(struct audio_device *adev)
     }
 }
 
-int mixer_init(struct audio_device *adev)
+static int mixer_init(struct audio_device *adev)
 {
     int i;
     int card;
@@ -370,7 +370,7 @@ error:
     return -ENODEV;
 }
 
-const char *get_snd_device_name(snd_device_t snd_device)
+static const char *get_snd_device_name(snd_device_t snd_device)
 {
     const char *name = NULL;
 
@@ -382,7 +382,7 @@ const char *get_snd_device_name(snd_device_t snd_device)
    return name;
 }
 
-const char *get_snd_device_display_name(snd_device_t snd_device)
+static const char *get_snd_device_display_name(snd_device_t snd_device)
 {
     const char *name = get_snd_device_name(snd_device);
 
@@ -392,7 +392,7 @@ const char *get_snd_device_display_name(snd_device_t snd_device)
     return name;
 }
 
-struct pcm_device_profile *get_pcm_device(usecase_type_t uc_type, audio_devices_t devices)
+static struct pcm_device_profile *get_pcm_device(usecase_type_t uc_type, audio_devices_t devices)
 {
     int i;
 
@@ -446,7 +446,7 @@ static int set_voice_volume_l(struct audio_device *adev, float volume)
 }
 
 
-snd_device_t get_output_snd_device(struct audio_device *adev, audio_devices_t devices)
+static snd_device_t get_output_snd_device(struct audio_device *adev, audio_devices_t devices)
 {
 
     audio_mode_t mode = adev->mode;
@@ -520,7 +520,7 @@ exit:
     return snd_device;
 }
 
-snd_device_t get_input_snd_device(struct audio_device *adev, audio_devices_t out_device)
+static snd_device_t get_input_snd_device(struct audio_device *adev, audio_devices_t out_device)
 {
     audio_source_t  source;
     audio_mode_t    mode   = adev->mode;
@@ -667,7 +667,7 @@ exit:
     return snd_device;
 }
 
-int set_hdmi_channels(struct audio_device *adev,  int channel_count)
+static int set_hdmi_channels(struct audio_device *adev,  int channel_count)
 {
     struct mixer_ctl *ctl;
     const char *mixer_ctl_name = "";
@@ -678,7 +678,7 @@ int set_hdmi_channels(struct audio_device *adev,  int channel_count)
     return 0;
 }
 
-int edid_get_max_channels(struct audio_device *adev)
+static int edid_get_max_channels(struct audio_device *adev)
 {
     int max_channels = 2;
     struct mixer_ctl *ctl;
@@ -689,7 +689,7 @@ int edid_get_max_channels(struct audio_device *adev)
 }
 
 /* Delay in Us */
-int64_t render_latency(audio_usecase_t usecase)
+static int64_t render_latency(audio_usecase_t usecase)
 {
     (void)usecase;
     /* TODO */
@@ -1345,7 +1345,7 @@ static void in_read_audio_effect_channel_configs(struct stream_in *in __unused,
 
 
 #define NUM_IN_AUX_CNL_CONFIGS 2
-channel_config_t in_aux_cnl_configs[NUM_IN_AUX_CNL_CONFIGS] = {
+static const channel_config_t in_aux_cnl_configs[NUM_IN_AUX_CNL_CONFIGS] = {
     { AUDIO_CHANNEL_IN_FRONT , AUDIO_CHANNEL_IN_BACK},
     { AUDIO_CHANNEL_IN_STEREO , AUDIO_CHANNEL_IN_RIGHT}
 };
@@ -1365,7 +1365,7 @@ static uint32_t in_get_aux_channels(struct stream_in *in)
     /* retain most complex aux channels configuration compatible with requested main channels and
      * supported by audio driver and all pre processors */
     for (i = 0; i < NUM_IN_AUX_CNL_CONFIGS; i++) {
-        channel_config_t *cur_chcfg = &in_aux_cnl_configs[i];
+        const channel_config_t *cur_chcfg = &in_aux_cnl_configs[i];
         if (cur_chcfg->main_channels == in->main_channels) {
             size_t match_cnt;
             size_t idx_preproc;
@@ -1920,7 +1920,7 @@ static int stop_input_stream(struct stream_in *in)
     return 0;
 }
 
-int start_input_stream(struct stream_in *in)
+static int start_input_stream(struct stream_in *in)
 {
     /* Enable output device and stream routing controls */
     int ret = 0;
@@ -2404,7 +2404,7 @@ static int stop_output_stream(struct stream_out *out)
     return ret;
 }
 
-int start_output_stream(struct stream_out *out)
+static int start_output_stream(struct stream_out *out)
 {
     int ret = 0;
     struct audio_device *adev = out->dev;
