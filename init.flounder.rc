@@ -142,7 +142,8 @@ on property:ro.debuggable=1
 # for loading correct gps hal share libraries
 on property:ro.boot.baseband=N/A
     setprop ro.hardware.gps bcm47521
-    enable gpsd
+# STOPSHIP: Temporarily disabled b/20307126
+#   enable gpsd
 
 on property:ro.boot.baseband=US
     write /sys/module/bcmdhd/parameters/nvram_path /system/etc/wifi/bcmdhd_lte.cal
@@ -152,7 +153,8 @@ on property:ro.boot.baseband=ROW
 
 on property:ro.baseband=unknown
     setprop ro.hardware.gps bcm47521
-    enable gpsd
+# STOPSHIP: Temporarily disabled b/20307126
+#   enable gpsd
 
 # for telephony function
 on property:ro.boot.baseband=N/A
