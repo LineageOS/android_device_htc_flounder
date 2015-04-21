@@ -238,6 +238,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.enable_boot_charger_mode=1
 
+# Enable USB OTG (CAF commit to Settings)
+ADDITIONAL_BUILD_PROPERTIES += \
+    persist.sys.isUsbOtgEnabled=true
+
 # add verity dependencies
 $(call inherit-product, build/target/product/verity.mk)
 PRODUCT_SYSTEM_VERITY_PARTITION := /dev/block/platform/sdhci-tegra.3/by-name/APP
