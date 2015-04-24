@@ -124,7 +124,7 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/bluetooth/bcm4350b1.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4350b1.hcd \
-    $(LOCAL_PATH)/bluetooth/BCM4354_003.001.012.0319.0675_ORC.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4350c0.hcd \
+    $(LOCAL_PATH)/bluetooth/BCM4354_003.001.012.0259.0512.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4350c0.hcd \
     $(LOCAL_PATH)/bluetooth/bcm4354.hcd:$(TARGET_COPY_OUT_VENDOR)/firmware/bcm4354.hcd \
     $(LOCAL_PATH)/bluetooth/bt_vendor.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/bluetooth/bt_vendor.conf
 
