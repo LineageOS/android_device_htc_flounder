@@ -16,11 +16,8 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <!-- no translation found for app_label (4333089353149619778) -->
-    <skip />
-    <!-- no translation found for google_folder_title (375890659159312012) -->
-    <skip />
+    <string name="app_label" msgid="4333089353149619778">"Nexus 9 ਹੋਮ ਸਕ੍ਰੀਨ"</string>
+    <string name="google_folder_title" msgid="375890659159312012">"Google"</string>
     <string name="create_folder_title" msgid="5720573466924789097">"ਬਣਾਓ"</string>
-    <!-- no translation found for play_folder_title (3260420724119064282) -->
-    <skip />
+    <string name="play_folder_title" msgid="3260420724119064282">"ਪਲੇ ਕਰੋ"</string>
 </resources>
