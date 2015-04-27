@@ -257,11 +257,6 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     af.fast_track_multiplier=1
 
-# Near-ultrasound support in the default audio and speaker paths.
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.audio.speaker.near_ultrasound=true \
-    persist.audio.mic.near_ultrasound=true
-
 # add verity dependencies
 $(call inherit-product, build/target/product/verity.mk)
 PRODUCT_SUPPORTS_BOOT_SIGNER := false
