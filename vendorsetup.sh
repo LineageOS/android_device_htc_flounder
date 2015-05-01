@@ -15,4 +15,3 @@
 #
 
 add_lunch_combo aosp_flounder-userdebug
-add_lunch_combo aosp_flounder_andromeda-userdebug
