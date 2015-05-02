@@ -1,30 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <!-- no translation found for app_label (8309373558371161520) -->
-    <skip />
+    <string name="app_label" msgid="8309373558371161520">"Tastierë Volantis"</string>
     <string name="keyboard_layouts_label" msgid="771692943642467584">"Tastiera kompakte Nexus"</string>
     <string name="keyboard_layout_volantis_english_uk_label" msgid="1425137404576186880">"anglisht (Mbretëria e Bashkuar)"</string>
-    <!-- no translation found for keyboard_layout_volantis_english_us_label (953130059365065614) -->
-    <skip />
-    <!-- no translation found for keyboard_layout_volantis_english_us_intl_label (8444053619141689693) -->
-    <skip />
-    <!-- no translation found for keyboard_layout_volantis_german_label (1115175249339065508) -->
-    <skip />
-    <!-- no translation found for keyboard_layout_volantis_french_label (7039437279465504539) -->
-    <skip />
-    <!-- no translation found for keyboard_layout_volantis_french_ca_label (773887798068625483) -->
-    <skip />
+    <string name="keyboard_layout_volantis_english_us_label" msgid="953130059365065614">"anglisht (SHBA)"</string>
+    <string name="keyboard_layout_volantis_english_us_intl_label" msgid="8444053619141689693">"anglisht (ndërkombëtare amerikane)"</string>
+    <string name="keyboard_layout_volantis_german_label" msgid="1115175249339065508">"gjermanisht"</string>
+    <string name="keyboard_layout_volantis_french_label" msgid="7039437279465504539">"frëngjisht"</string>
+    <string name="keyboard_layout_volantis_french_ca_label" msgid="773887798068625483">"Franceze (Kanada)"</string>
     <string name="keyboard_layout_volantis_italian_label" msgid="2487824389457459330">"Italisht"</string>
     <string name="keyboard_layout_volantis_japanese_label" msgid="893728776095514102">"Japonisht"</string>
-    <!-- no translation found for keyboard_layout_volantis_spanish_label (7072256682329860171) -->
-    <skip />
-    <!-- no translation found for keyboard_layout_volantis_belgian_label (8875281999639372179) -->
-    <skip />
+    <string name="keyboard_layout_volantis_spanish_label" msgid="7072256682329860171">"spanjisht"</string>
+    <string name="keyboard_layout_volantis_belgian_label" msgid="8875281999639372179">"Belge"</string>
     <string name="keyboard_layout_volantis_swedish_label" msgid="7072561947207061024">"Suedisht"</string>
     <string name="keyboard_layout_volantis_korean_label" msgid="4119892422942692947">"koreanisht"</string>
-    <!-- no translation found for keyboard_layout_volantis_zhuyin_label (1056309325803786283) -->
-    <skip />
-    <!-- no translation found for keyboard_layout_volantis_cangjie_label (4711081327905634320) -->
-    <skip />
+    <string name="keyboard_layout_volantis_zhuyin_label" msgid="1056309325803786283">"Kineze (Zhujin)"</string>
+    <string name="keyboard_layout_volantis_cangjie_label" msgid="4711081327905634320">"Kineze (Kanxhi)"</string>
 </resources>
