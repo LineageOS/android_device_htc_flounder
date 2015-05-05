@@ -74,7 +74,6 @@ BOARD_HAL_STATIC_LIBRARIES := libdumpstate.flounder libhealthd.flounder
 BOARD_VENDOR_USE_SENSOR_HAL := sensor_hub
 
 # GPS related defines
-BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := default
 TARGET_NO_RPC := true
 BOARD_USES_QCOM_HARDWARE_GPS := true
 
