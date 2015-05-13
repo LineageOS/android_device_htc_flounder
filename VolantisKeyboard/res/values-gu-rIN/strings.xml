@@ -2,7 +2,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_label" msgid="8309373558371161520">"વોલનટિઝ કીબોર્ડ"</string>
-    <string name="keyboard_layouts_label" msgid="771692943642467584">"નેક્સસ કોમ્પેક્ટ કીબોર્ડ"</string>
+    <string name="keyboard_layouts_label" msgid="771692943642467584">"Nexus કોમ્પેક્ટ કીબોર્ડ"</string>
     <string name="keyboard_layout_volantis_english_uk_label" msgid="1425137404576186880">"અંગ્રેજી (યુકે)"</string>
     <string name="keyboard_layout_volantis_english_us_label" msgid="953130059365065614">"અંગ્રેજી (યુએસ)"</string>
     <string name="keyboard_layout_volantis_english_us_intl_label" msgid="8444053619141689693">"અંગ્રેજી (યુએસ આંતરરાષ્ટ્રીય)"</string>
