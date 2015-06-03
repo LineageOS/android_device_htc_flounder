@@ -236,11 +236,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.audio.monitorRotation=true
 
-# Near-ultrasound support in the default audio and speaker paths.
-PRODUCT_PROPERTY_OVERRIDES += \
-    persist.audio.spkr.ultrasound=true \
-    persist.audio.mic.ultrasound=true
-
 # for sound trigger on DSP
 PRODUCT_PACKAGES += \
     sound_trigger.primary.flounder
