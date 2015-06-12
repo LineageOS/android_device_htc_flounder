@@ -117,6 +117,20 @@
          that can be set by the user. -->
     <integer name="config_screenBrightnessDim">2</integer>
 
+    <!-- Sets the minimum and maximum tilt tolerance for each possible rotation.
+         See comments in framework config.xml.
+
+         This has been tuned to support the shallow angle of the keyboard folio
+         with a typical tilt of 66 to 69 degrees.
+    -->
+    <integer-array name="config_autoRotationTiltTolerance">
+        <!-- rotation:   0 (natural)    --> <item>-25</item> <item>72</item>
+        <!-- rotation:  90 (rotate CCW) --> <item>-25</item> <item>72</item>
+        <!-- rotation: 180 (reverse)    --> <item>-25</item> <item>60</item>
+        <!-- rotation: 270 (rotate CW)  --> <item>-25</item> <item>72</item>
+    </integer-array>
+
+
     <!-- List of regexpressions describing the interface (if any) that represent tetherable
          USB interfaces.  If the device doesn't want to support tething over USB this should
          be empty.  An example would be "usb.*" -->
