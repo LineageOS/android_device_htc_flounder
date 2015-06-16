@@ -23,6 +23,8 @@
 #define ALOGVV(a...) do { } while(0)
 #endif
 
+#define _GNU_SOURCE
+#include <errno.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <sys/time.h>
@@ -2942,6 +2944,29 @@ static void *tfa9895_config_thread(void *context)
     return NULL;
 }
 
+static int fast_set_affinity(pid_t tid) {
+    cpu_set_t cpu_set;
+    int cpu_num;
+    const char *irq_procfs = "/proc/asound/irq_affinity";
+    FILE *fp;
+
+    if ((fp = fopen(irq_procfs, "r")) == NULL) {
+        ALOGW("Procfs node %s not found", irq_procfs);
+        return -1;
+    }
+
+    if (fscanf(fp, "%d", &cpu_num) != 1) {
+        ALOGW("Couldn't read CPU id from procfs node %s", irq_procfs);
+        fclose(fp);
+        return -1;
+    }
+    fclose(fp);
+
+    CPU_ZERO(&cpu_set);
+    CPU_SET(cpu_num, &cpu_set);
+    return sched_setaffinity(tid, sizeof(cpu_set), &cpu_set);
+}
+
 static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
                          size_t bytes)
 {
@@ -2959,8 +2984,20 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
     size_t out_frames = in_frames;
     struct stream_in *in = NULL;
 #endif
+    pid_t tid;
+    int err;
 
     lock_output_stream(out);
+
+    if (out->usecase == USECASE_AUDIO_PLAYBACK && !out->is_fastmixer_affinity_set) {
+        tid = gettid();
+        err = fast_set_affinity(tid);
+        if (err < 0) {
+            ALOGW("Couldn't set affinity for tid %d; error %d", tid, err);
+        }
+        out->is_fastmixer_affinity_set = true;
+    }
+
     if (out->standby) {
 #ifdef PREPROCESSING_ENABLED
         pthread_mutex_unlock(&out->lock);
@@ -3641,9 +3678,21 @@ static ssize_t in_read(struct audio_stream_in *stream, void *buffer,
     int read_and_process_successful = false;
 
     size_t frames_rq = bytes / audio_stream_in_frame_size(stream);
+    pid_t tid;
+    int err;
 
     /* no need to acquire adev->lock_inputs because API contract prevents a close */
     lock_input_stream(in);
+
+    if (in->usecase == USECASE_AUDIO_CAPTURE && !in->is_fastcapture_affinity_set) {
+        tid = gettid();
+        err = fast_set_affinity(tid);
+        if (err < 0) {
+            ALOGW("Couldn't set affinity for tid %d; error %d", tid, err);
+        }
+        in->is_fastcapture_affinity_set = true;
+    }
+
     if (in->standby) {
         pthread_mutex_unlock(&in->lock);
         pthread_mutex_lock(&adev->lock_inputs);
@@ -3966,6 +4015,8 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     config->channel_mask = out->stream.common.get_channels(&out->stream.common);
     config->sample_rate = out->stream.common.get_sample_rate(&out->stream.common);
 
+    out->is_fastmixer_affinity_set = false;
+
     *stream_out = &out->stream;
     ALOGV("%s: exit", __func__);
     return 0;
@@ -4282,6 +4333,8 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
 
     pthread_mutex_init(&in->lock, (const pthread_mutexattr_t *) NULL);
     pthread_mutex_init(&in->pre_lock, (const pthread_mutexattr_t *) NULL);
+
+    in->is_fastcapture_affinity_set = false;
 
     *stream_in = &in->stream;
     ALOGV("%s: exit", __func__);
