@@ -61,6 +61,7 @@ static struct pcm_device_profile pcm_device_playback = {
         .start_threshold = PLAYBACK_START_THRESHOLD,
         .stop_threshold = PLAYBACK_STOP_THRESHOLD,
         .silence_threshold = 0,
+        .silence_size = UINT_MAX,
         .avail_min = PLAYBACK_AVAILABLE_MIN,
     },
     .card = SOUND_CARD,
