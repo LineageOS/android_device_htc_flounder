@@ -188,6 +188,9 @@ on property:ro.boot.baseband=US
     setprop rild.libargs "-e wwan0"
     setprop persist.radio.snapshot_enabled 1
 
+on property:audio_hal.period_size=128
+    write /sys/devices/system/cpu/cpufreq/interactive/rt_priority 1
+
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B \
         -o /data/data/com.android.shell/files/bugreports/bugreport
