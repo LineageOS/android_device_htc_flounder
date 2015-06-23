@@ -306,6 +306,8 @@ struct stream_out {
     // always modified with audio device and stream mutex locked.
     int32_t echo_reference_generation;
 #endif
+
+    bool                         is_fastmixer_affinity_set;
 };
 
 struct stream_in {
@@ -357,6 +359,7 @@ struct stream_in {
 #endif
 
     struct audio_device*                dev;
+    bool                                is_fastcapture_affinity_set;
 };
 
 struct mixer_card {
