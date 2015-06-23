@@ -38,6 +38,7 @@
 #include <cutils/str_parms.h>
 #include <cutils/atomic.h>
 #include <cutils/sched_policy.h>
+#include <cutils/properties.h>
 
 #include <hardware/audio_effect.h>
 #include <system/thread_defs.h>
@@ -60,8 +61,8 @@ static struct pcm_device_profile pcm_device_playback = {
         .period_size = PLAYBACK_PERIOD_SIZE,
         .period_count = PLAYBACK_PERIOD_COUNT,
         .format = PCM_FORMAT_S16_LE,
-        .start_threshold = PLAYBACK_START_THRESHOLD,
-        .stop_threshold = PLAYBACK_STOP_THRESHOLD,
+        .start_threshold = PLAYBACK_START_THRESHOLD(PLAYBACK_PERIOD_SIZE, PLAYBACK_PERIOD_COUNT),
+        .stop_threshold = PLAYBACK_STOP_THRESHOLD(PLAYBACK_PERIOD_SIZE, PLAYBACK_PERIOD_COUNT),
         .silence_threshold = 0,
         .silence_size = UINT_MAX,
         .avail_min = PLAYBACK_AVAILABLE_MIN,
@@ -4573,6 +4574,24 @@ static void dummybuf_thread_close(struct audio_device *adev)
     adev->dummybuf_thread = 0;
 }
 
+/* This returns true if the input parameter looks at all plausible as a low latency period size,
+ * or false otherwise.  A return value of true doesn't mean the value is guaranteed to work,
+ * just that it _might_ work.
+ */
+static bool period_size_is_plausible_for_low_latency(int period_size)
+{
+    switch (period_size) {
+    case 64:
+    case 96:
+    case 128:
+    case 192:
+    case 256:
+        return true;
+    default:
+        return false;
+    }
+}
+
 static int adev_open(const hw_module_t *module, const char *name,
                      hw_device_t **device)
 {
@@ -4744,6 +4763,21 @@ static int adev_open(const hw_module_t *module, const char *name,
         }
     }
     audio_device_ref_count++;
+
+    char value[PROPERTY_VALUE_MAX];
+    if (property_get("audio_hal.period_size", value, NULL) > 0) {
+        int trial = atoi(value);
+        if (period_size_is_plausible_for_low_latency(trial)) {
+
+            pcm_device_playback.config.period_size = trial;
+            pcm_device_playback.config.start_threshold =
+                    PLAYBACK_START_THRESHOLD(trial, PLAYBACK_PERIOD_COUNT);
+            pcm_device_playback.config.stop_threshold =
+                    PLAYBACK_STOP_THRESHOLD(trial, PLAYBACK_PERIOD_COUNT);
+
+            pcm_device_capture.config.period_size = trial;
+        }
+    }
 
     ALOGV("%s: exit", __func__);
     return 0;
