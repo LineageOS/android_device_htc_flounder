@@ -249,8 +249,10 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.enable_boot_charger_mode=1
 
 # Reduce client buffer size for fast audio output tracks
+# and configure audio low latency for 128 frames per buffer
 PRODUCT_PROPERTY_OVERRIDES += \
-    af.fast_track_multiplier=1
+    af.fast_track_multiplier=1 \
+    audio_hal.period_size=128
 
 # add verity dependencies
 $(call inherit-product, build/target/product/verity.mk)
