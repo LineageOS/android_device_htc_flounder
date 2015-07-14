@@ -27,10 +27,6 @@ BOARD_KERNEL_CMDLINE := androidboot.selinux=enforcing
 PRODUCT_PACKAGES += \
     com.android.nfc_extras
 
-# Copy Extra Files
-PRODUCT_COPY_FILES += \
-    frameworks/av/media/libstagefright/data/media_codecs_ffmpeg.xml:system/etc/media_codecs_ffmpeg.xml
-
 # CM Overlays
 DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-cm
 
