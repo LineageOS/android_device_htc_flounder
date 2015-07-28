@@ -94,7 +94,6 @@ BOARD_SEPOLICY_DIRS += device/htc/flounder/sepolicy
 TARGET_USES_64_BIT_BCMDHD := true
 TARGET_USES_64_BIT_BINDER := true
 
-TARGET_USES_LOGD := true
 BOARD_WIDEVINE_OEMCRYPTO_LEVEL := 1
 
 # HACK: Build apps as 64b for volantis_64_only
