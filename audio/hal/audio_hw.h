@@ -163,6 +163,7 @@ enum {
 #define CAPTURE_PERIOD_SIZE 1024
 #define CAPTURE_PERIOD_SIZE_LOW_LATENCY 256
 #define CAPTURE_PERIOD_COUNT 2
+#define CAPTURE_PERIOD_COUNT_LOW_LATENCY 2
 #define CAPTURE_DEFAULT_CHANNEL_COUNT 2
 #define CAPTURE_DEFAULT_SAMPLING_RATE 48000
 #define CAPTURE_START_THRESHOLD 1
@@ -232,7 +233,8 @@ typedef enum {
     PCM_PLAYBACK = 0x1,
     PCM_CAPTURE = 0x2,
     VOICE_CALL = 0x4,
-    PCM_HOTWORD_STREAMING = 0x8
+    PCM_HOTWORD_STREAMING = 0x8,
+    PCM_CAPTURE_LOW_LATENCY = 0x10,
 } usecase_type_t;
 
 struct offload_cmd {
@@ -322,6 +324,7 @@ struct stream_in {
     audio_devices_t                     devices;
     uint32_t                            main_channels;
     audio_usecase_t                     usecase;
+    usecase_type_t                      usecase_type;
     bool                                enable_aec;
     audio_input_flags_t                 input_flags;
 
