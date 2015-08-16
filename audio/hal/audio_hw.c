@@ -92,6 +92,24 @@ static struct pcm_device_profile pcm_device_capture = {
     .devices = AUDIO_DEVICE_IN_BUILTIN_MIC|AUDIO_DEVICE_IN_WIRED_HEADSET|AUDIO_DEVICE_IN_BACK_MIC,
 };
 
+static struct pcm_device_profile pcm_device_capture_low_latency = {
+    .config = {
+        .channels = CAPTURE_DEFAULT_CHANNEL_COUNT,
+        .rate = CAPTURE_DEFAULT_SAMPLING_RATE,
+        .period_size = CAPTURE_PERIOD_SIZE_LOW_LATENCY,
+        .period_count = CAPTURE_PERIOD_COUNT_LOW_LATENCY,
+        .format = PCM_FORMAT_S16_LE,
+        .start_threshold = CAPTURE_START_THRESHOLD,
+        .stop_threshold = 0,
+        .silence_threshold = 0,
+        .avail_min = 0,
+    },
+    .card = SOUND_CARD,
+    .id = 0,
+    .type = PCM_CAPTURE_LOW_LATENCY,
+    .devices = AUDIO_DEVICE_IN_BUILTIN_MIC|AUDIO_DEVICE_IN_WIRED_HEADSET|AUDIO_DEVICE_IN_BACK_MIC,
+};
+
 static struct pcm_device_profile pcm_device_capture_loopback_aec = {
     .config = {
         .channels = CAPTURE_DEFAULT_CHANNEL_COUNT,
@@ -169,6 +187,7 @@ static struct pcm_device_profile pcm_device_hotword_streaming = {
 static struct pcm_device_profile * const pcm_devices[] = {
     &pcm_device_playback,
     &pcm_device_capture,
+    &pcm_device_capture_low_latency,
     &pcm_device_playback_sco,
     &pcm_device_capture_sco,
     &pcm_device_capture_loopback_aec,
@@ -1177,17 +1196,12 @@ static int get_hw_echo_reference(struct stream_in *in)
         adev->primary_output->devices == AUDIO_DEVICE_OUT_SPEAKER) {
         struct audio_stream *stream = &adev->primary_output->stream.common;
 
+        // TODO: currently there is no low latency mode for aec reference.
         ref_pcm_profile = get_pcm_device(PCM_CAPTURE, pcm_device_capture_loopback_aec.devices);
         if (ref_pcm_profile == NULL) {
             ALOGE("%s: Could not find PCM device id for the usecase(%d)",
                 __func__, pcm_device_capture_loopback_aec.devices);
             return -EINVAL;
-        }
-
-        if (in->input_flags & AUDIO_INPUT_FLAG_FAST) {
-            ALOGV("%s: change capture period size to low latency size %d",
-                  __func__, CAPTURE_PERIOD_SIZE_LOW_LATENCY);
-            ref_pcm_profile->config.period_size = CAPTURE_PERIOD_SIZE_LOW_LATENCY;
         }
 
         ref_device = (struct pcm_device *)calloc(1, sizeof(struct pcm_device));
@@ -1936,19 +1950,12 @@ static int start_input_stream(struct stream_in *in)
 
     ALOGV("%s: enter: usecase(%d)", __func__, in->usecase);
     adev->active_input = in;
-    pcm_profile = get_pcm_device(in->usecase == USECASE_AUDIO_CAPTURE_HOTWORD
-                                 ? PCM_HOTWORD_STREAMING : PCM_CAPTURE, in->devices);
+    pcm_profile = get_pcm_device(in->usecase_type, in->devices);
     if (pcm_profile == NULL) {
         ALOGE("%s: Could not find PCM device id for the usecase(%d)",
               __func__, in->usecase);
         ret = -EINVAL;
         goto error_config;
-    }
-
-    if (in->input_flags & AUDIO_INPUT_FLAG_FAST) {
-        ALOGV("%s: change capture period size to low latency size %d",
-              __func__, CAPTURE_PERIOD_SIZE_LOW_LATENCY);
-        pcm_profile->config.period_size = CAPTURE_PERIOD_SIZE_LOW_LATENCY;
     }
 
     uc_info = (struct audio_usecase *)calloc(1, sizeof(struct audio_usecase));
@@ -2556,6 +2563,7 @@ static int check_input_parameters(uint32_t sample_rate,
 static size_t get_input_buffer_size(uint32_t sample_rate,
                                     audio_format_t format,
                                     int channel_count,
+                                    usecase_type_t usecase_type,
                                     audio_devices_t devices)
 {
     size_t size = 0;
@@ -2564,7 +2572,7 @@ static size_t get_input_buffer_size(uint32_t sample_rate,
     if (check_input_parameters(sample_rate, format, channel_count) != 0)
         return 0;
 
-    pcm_profile = get_pcm_device(PCM_CAPTURE, devices);
+    pcm_profile = get_pcm_device(usecase_type, devices);
     if (pcm_profile == NULL)
         return 0;
 
@@ -3464,6 +3472,7 @@ static size_t in_get_buffer_size(const struct audio_stream *stream)
     return get_input_buffer_size(in->requested_rate,
                                  in_get_format(stream),
                                  audio_channel_count_from_in_mask(in->main_channels),
+                                 in->usecase_type,
                                  in->devices);
 }
 
@@ -4263,6 +4272,7 @@ static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
     return get_input_buffer_size(config->sample_rate,
                                  config->format,
                                  audio_channel_count_from_in_mask(config->channel_mask),
+                                 PCM_CAPTURE /* usecase_type */,
                                  AUDIO_DEVICE_IN_BUILTIN_MIC);
 }
 
@@ -4286,10 +4296,17 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
                                audio_channel_count_from_in_mask(config->channel_mask)) != 0)
         return -EINVAL;
 
-    if (source == AUDIO_SOURCE_HOTWORD) {
-        pcm_profile = get_pcm_device(PCM_HOTWORD_STREAMING, devices);
-    } else {
-        pcm_profile = get_pcm_device(PCM_CAPTURE, devices);
+    usecase_type_t usecase_type = source == AUDIO_SOURCE_HOTWORD ?
+                PCM_HOTWORD_STREAMING : flags & AUDIO_INPUT_FLAG_FAST ?
+                        PCM_CAPTURE_LOW_LATENCY : PCM_CAPTURE;
+    pcm_profile = get_pcm_device(usecase_type, devices);
+    if (pcm_profile == NULL && usecase_type == PCM_CAPTURE_LOW_LATENCY) {
+        // a low latency profile may not exist for that device, fall back
+        // to regular capture. the MixerThread automatically changes
+        // to non-fast capture based on the buffer size.
+        flags &= ~AUDIO_INPUT_FLAG_FAST;
+        usecase_type = PCM_CAPTURE;
+        pcm_profile = get_pcm_device(usecase_type, devices);
     }
     if (pcm_profile == NULL)
         return -EINVAL;
@@ -4331,6 +4348,7 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
     } else {
         in->usecase = USECASE_AUDIO_CAPTURE;
     }
+    in->usecase_type = usecase_type;
 
     pthread_mutex_init(&in->lock, (const pthread_mutexattr_t *) NULL);
     pthread_mutex_init(&in->pre_lock, (const pthread_mutexattr_t *) NULL);
@@ -4775,7 +4793,7 @@ static int adev_open(const hw_module_t *module, const char *name,
             pcm_device_playback.config.stop_threshold =
                     PLAYBACK_STOP_THRESHOLD(trial, PLAYBACK_PERIOD_COUNT);
 
-            pcm_device_capture.config.period_size = trial;
+            pcm_device_capture_low_latency.config.period_size = trial;
         }
     }
 
