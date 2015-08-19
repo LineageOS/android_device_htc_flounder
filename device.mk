@@ -139,18 +139,25 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/qct/gps.conf:system/etc/gps.conf \
     $(LOCAL_PATH)/gps/qct/SuplRootCert:system/etc/SuplRootCert \
-    $(LOCAL_PATH)/gps/qct/libgeofence.so:system/lib/libgeofence.so \
-    $(LOCAL_PATH)/gps/qct/libloc_api_v02.so:system/lib/libloc_api_v02.so \
-    $(LOCAL_PATH)/gps/qct/libloc_ds_api.so:system/lib/libloc_ds_api.so \
+    $(LOCAL_PATH)/gps/qct/lib/libgeofence.so:system/lib/libgeofence.so \
+    $(LOCAL_PATH)/gps/qct/lib/libgps.utils.so:system/lib/libgps.utils.so \
+    $(LOCAL_PATH)/gps/qct/lib/libloc_api_v02.so:system/lib/libloc_api_v02.so \
+    $(LOCAL_PATH)/gps/qct/lib/libloc_core.so:system/lib/libloc_core.so \
+    $(LOCAL_PATH)/gps/qct/lib/libloc_ds_api.so:system/lib/libloc_ds_api.so \
+    $(LOCAL_PATH)/gps/qct/lib/libloc_eng.so:system/lib/libloc_eng.so \
+    $(LOCAL_PATH)/gps/qct/lib/hw/gps.default.so:system/lib/hw/gps.default.so \
     $(LOCAL_PATH)/gps/qct/lib64/libgeofence.so:system/lib64/libgeofence.so \
+    $(LOCAL_PATH)/gps/qct/lib64/libgps.utils.so:system/lib64/libgps.utils.so \
     $(LOCAL_PATH)/gps/qct/lib64/libloc_api_v02.so:system/lib64/libloc_api_v02.so \
-    $(LOCAL_PATH)/gps/qct/lib64/libloc_ds_api.so:system/lib64/libloc_ds_api.so
+    $(LOCAL_PATH)/gps/qct/lib64/libloc_core.so:system/lib64/libloc_core.so \
+    $(LOCAL_PATH)/gps/qct/lib64/libloc_ds_api.so:system/lib64/libloc_ds_api.so \
+    $(LOCAL_PATH)/gps/qct/lib64/libloc_eng.so:system/lib64/libloc_eng.so \
+    $(LOCAL_PATH)/gps/qct/lib64/hw/gps.default.so:system/lib64/hw/gps.default.so \
+    $(LOCAL_PATH)/gps/qct/lib_vendor/libmdmdetect.so:vendor/lib/libmdmdetect.so \
+    $(LOCAL_PATH)/gps/qct/lib_vendor/libperipheral_client.so:vendor/lib/libperipheral_client.so \
+    $(LOCAL_PATH)/gps/qct/lib64_vendor/libmdmdetect.so:vendor/lib64/libmdmdetect.so \
+    $(LOCAL_PATH)/gps/qct/lib64_vendor/libperipheral_client.so:vendor/lib64/libperipheral_client.so
 
-PRODUCT_PACKAGES += \
-    gps.default \
-    libloc_core \
-    libloc_eng \
-    libgps.utils
 
 # NFC feature + config files
 PRODUCT_COPY_FILES += \
