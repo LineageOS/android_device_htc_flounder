@@ -176,9 +176,6 @@
     <!-- Whether UI for multi user should be shown -->
     <bool name="config_enableMultiUserUI">true</bool>
 
-    <!-- This device allows sms service. -->
-    <bool name="config_sms_capable">true</bool>
-
     <bool name="config_ui_enableFadingMarquee">true</bool>
 
     <!-- XXXXX NOTE THE FOLLOWING RESOURCES USE THE WRONG NAMING CONVENTION.
