@@ -31,8 +31,8 @@
 #include <hardware/hardware.h>
 
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
-char const* const MODE_RGB_FILE = "/sys/class/leds/indicator/ModeRGB";
-char const* const BACKLIGHT_FILE = "/sys/class/backlight/tegra-dsi-backlight.0/brightness";
+char const* const LED_FILE = "/sys/class/htc_sensorhub/sensor_hub/led_en";
+
 static int write_int(char const *path, int value)
 {
 	int fd;
@@ -53,50 +53,21 @@ static int write_int(char const *path, int value)
 	}
 }
 
-static int rgb_to_brightness(struct light_state_t const *state)
-{
-	int color = state->color & 0x00ffffff;
-	return ((77 * ((color >> 16) & 0x00ff))
-			+ (150 * ((color >> 8) & 0x00ff)) +
-			(29 * (color & 0x00ff))) >> 8;
-}
-
-static int set_light_battery(struct light_device_t* dev,
-		struct light_state_t const* state)
-{
-	int err;
-	pthread_mutex_lock(&g_lock);
-	ALOGV("set_light_battery, flashMode:%x, color:%x", state->flashMode, state->color);
-	if(state->color)
-		err = write_int(MODE_RGB_FILE, 0x1ffffff);
-	else
-		err = write_int(MODE_RGB_FILE, 0x00);
-	pthread_mutex_unlock(&g_lock);
-	return err;
-}
-
 static int set_light_notifications(struct light_device_t* dev,
 		struct light_state_t const* state)
 {
 	int err;
+
+	int on = state->color & 0x00ffffff;
+	ALOGV("set_light_notifications, on:%d (color:%x, flashMode:%x)", on ? 1 : 0, state->flashMode, state->color);
+
 	pthread_mutex_lock(&g_lock);
-	ALOGV("set_light_notifications, flashMode:%x, color:%x", state->flashMode, state->color);
-	if(state->flashMode)
-		err = write_int(MODE_RGB_FILE, 0x6ffffff);
+
+	if (on)
+		err = write_int(LED_FILE, 1);
 	else
-		err = write_int(MODE_RGB_FILE, 0x00);
-	pthread_mutex_unlock(&g_lock);
-	return err;
-}
+		err = write_int(LED_FILE, 0);
 
-static int set_light_backlight(struct light_device_t *dev,
-		struct light_state_t const *state)
-{
-	int err;
-	int brightness = rgb_to_brightness(state);
-
-	pthread_mutex_lock(&g_lock);
-	err = write_int(BACKLIGHT_FILE, brightness);
 	pthread_mutex_unlock(&g_lock);
 
 	return err;
@@ -125,11 +96,7 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 	}
 	memset(dev, 0, sizeof(*dev));
 
-	if (0 == strcmp(LIGHT_ID_BACKLIGHT, name))
-		set_light = set_light_backlight;
-	else if (0 == strcmp(LIGHT_ID_BATTERY, name))
-		set_light = set_light_battery;
-	else if (0 == strcmp(LIGHT_ID_NOTIFICATIONS, name))
+	if (0 == strcmp(LIGHT_ID_NOTIFICATIONS, name))
 		set_light = set_light_notifications;
 	else
 		return -EINVAL;

@@ -111,6 +111,10 @@ on boot
     chown system system /sys/devices/system/cpu/cpufreq/interactive/io_is_busy
     chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/io_is_busy
 
+    # white notification LED
+    chown system system /sys/class/htc_sensorhub/sensor_hub/led_en
+    chmod 664           /sys/class/htc_sensorhub/sensor_hub/led_en
+
     # Enable CC4
     write /sys/devices/system/cpu/cpu0/cpuidle/state1/disabled 0
     write /sys/devices/system/cpu/cpu1/cpuidle/state1/disabled 0
