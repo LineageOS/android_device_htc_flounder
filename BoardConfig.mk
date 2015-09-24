@@ -122,5 +122,7 @@ BOARD_CHARGER_ENABLE_SUSPEND := true
 
 MALLOC_IMPL := dlmalloc
 
+USE_CLANG_PLATFORM_BUILD := true
+
 # Use the non-open-source parts, if they're present
 -include vendor/htc/flounder/BoardConfigVendor.mk
