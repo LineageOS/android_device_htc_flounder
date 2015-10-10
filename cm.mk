@@ -37,8 +37,9 @@ ADDITIONAL_BUILD_PROPERTIES += \
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_NAME=flounder \
-    BUILD_FINGERPRINT=google/volantis/flounder:5.1.1/LMY48I/2074855:user/release-keys \
-    PRIVATE_BUILD_DESC="volantis-user 5.1.1 LMY48I 2074855 release-keys"
+    BUILD_FINGERPRINT=google/volantis/flounder:5.1.1/LMY47X/1849464:user/release-keys \
+    BUILD_ID=LMY47X
+    PRIVATE_BUILD_DESC="volantis-user 5.1.1 LMY47X 1849464 release-keys"
 
 ## Device identifier. This must come after all inclusions
 PRODUCT_NAME := cm_flounder
