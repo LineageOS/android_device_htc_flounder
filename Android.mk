@@ -28,4 +28,11 @@ LOCAL_PATH := $(call my-dir)
 # their rules should be written here.
 
 include $(call all-makefiles-under,$(LOCAL_PATH))
+
+include $(CLEAR_VARS)
+
+# This fixes the problem of nonexistent /system/etc/firmware/ which is causing
+# problems to boot at fw's load time
+$(shell mkdir -p $(TARGET_OUT)/etc/firmware)
+
 endif
