@@ -1,5 +1,5 @@
 import init.flounder.usb.rc
-#import init.flounder_svelte.rc
+import init.flounder_svelte.rc
 
 on init
     start watchdogd
