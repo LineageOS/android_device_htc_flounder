@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5f2577a7_e1e2ae01",
+        "filename": "overlay-cm/frameworks/base/core/res/res/values/config.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 9199
+      },
+      "writtenOn": "2015-10-20T11:55:27Z",
+      "side": 1,
+      "message": "need to move these uncommented configs to a separate patch",
+      "revId": "7c16efac9dc348ddbecf43bb8c1949a0f8683a8a",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f2577a7_c1efb2e7",
+        "filename": "overlay-cm/frameworks/base/core/res/res/values/config.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 9199
+      },
+      "writtenOn": "2015-10-20T11:55:27Z",
+      "side": 1,
+      "message": "here",
+      "revId": "7c16efac9dc348ddbecf43bb8c1949a0f8683a8a",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f2577a7_a1eca6f3",
+        "filename": "overlay-cm/frameworks/base/core/res/res/values/config.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 9199
+      },
+      "writtenOn": "2015-10-20T11:55:27Z",
+      "side": 1,
+      "message": "here",
+      "revId": "7c16efac9dc348ddbecf43bb8c1949a0f8683a8a",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f2577a7_81bbeae3",
+        "filename": "overlay-cm/frameworks/base/core/res/res/values/config.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 9199
+      },
+      "writtenOn": "2015-10-20T11:55:27Z",
+      "side": 1,
+      "message": "here",
+      "revId": "7c16efac9dc348ddbecf43bb8c1949a0f8683a8a",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5f2577a7_61c0fe51",
+        "filename": "overlay-cm/frameworks/base/core/res/res/values/config.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 9199
+      },
+      "writtenOn": "2015-10-20T11:55:27Z",
+      "side": 1,
+      "message": "and here",
+      "revId": "7c16efac9dc348ddbecf43bb8c1949a0f8683a8a",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
