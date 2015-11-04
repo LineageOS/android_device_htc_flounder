@@ -16,8 +16,8 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_label" msgid="4333089353149619778">"Isikrini Sasekhaya se-Nexus 9"</string>
-    <string name="google_folder_title" msgid="375890659159312012">"I-Google"</string>
-    <string name="create_folder_title" msgid="5720573466924789097">"Dala"</string>
+    <string name="app_label" msgid="4333089353149619778">"Tela inicial do Nexus 9"</string>
+    <string name="google_folder_title" msgid="375890659159312012">"Google"</string>
+    <string name="create_folder_title" msgid="5720573466924789097">"Criar"</string>
     <string name="play_folder_title" msgid="3260420724119064282">"Play"</string>
 </resources>
