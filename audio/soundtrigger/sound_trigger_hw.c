@@ -25,6 +25,7 @@
 #include <sys/prctl.h>
 #include <cutils/log.h>
 #include <cutils/uevent.h>
+#include <stdlib.h>
 
 #include <hardware/hardware.h>
 #include <system/sound_trigger.h>
