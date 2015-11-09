@@ -20,6 +20,7 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <cutils/log.h>
 

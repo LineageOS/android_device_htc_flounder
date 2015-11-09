@@ -22,6 +22,7 @@
 #include <poll.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <cutils/log.h>
 
