@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f515b1d_a05f060d",
+        "filename": "device.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 848
+      },
+      "writtenOn": "2015-11-20T09:16:59Z",
+      "side": 0,
+      "message": "This line is duped, causing your failure",
+      "range": {
+        "startLine": 273,
+        "startChar": 0,
+        "endLine": 273,
+        "endChar": 55
+      },
+      "revId": "f63db167706bb651562a262bc3169c0961769fe0",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
