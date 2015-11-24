@@ -215,7 +215,7 @@ service gpsd /system/bin/glgps -c /system/etc/gpsconfig.xml
     disabled
     user gps
     socket gps seqpacket 0660 gps system
-    group system inet sdcard_rw sdcard_r
+    group system wakelock inet sdcard_rw sdcard_r
 
 service wpa_supplicant /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
@@ -270,14 +270,14 @@ service kickstart /vendor/bin/qcks -i /vendor/firmware/mdm/image/ -r /data/qcks/
     class late_start
     disabled
     user system
-    group system
+    group system wakelock
     oneshot
 
 service qmuxd /vendor/bin/qmuxd
     class late_start
     disabled
     user system
-    group system radio
+    group system wakelock radio
 
 service netmgrd /vendor/bin/netmgrd
     class late_start
