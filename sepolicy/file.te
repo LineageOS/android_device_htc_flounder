@@ -9,3 +9,5 @@ type ramdump_data_file, file_type, data_file_type;
 
 #Didim file used by surfaceflinger
 type sysfs_didim, sysfs_type, fs_type;
+
+type sysfs_tegra_fuse, sysfs_type, fs_type;
