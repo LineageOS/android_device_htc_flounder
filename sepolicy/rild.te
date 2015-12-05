@@ -1,6 +1,8 @@
 # database for vendor RIL
 allow rild ril_db_file:file create_file_perms;
 allow rild ril_db_file:dir rw_dir_perms;
+allow rild ril_db_file:file rw_file_perms;
+allow rild ril_db_file:file { add_name remove_name unlink };
 
 # Grant access to Qualcomm MSM Interface (QMI) radio sockets to RILD
 qmux_socket(rild)
