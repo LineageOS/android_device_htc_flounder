@@ -33,4 +33,5 @@ wakelock_use(kickstart)
 
 # ro.hw.ril.baseband : to indicate which modem is used for single ROM ARCH
 # sys.current.cnv : to indicate which NV file is used for dynamical customization
+allow kickstart default_prop:property_service set;
 set_prop(kickstart, system_prop)
