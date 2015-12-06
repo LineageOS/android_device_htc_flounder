@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f91af0f_33834007",
+        "filename": "sepolicy/kickstart.te",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 8640
+      },
+      "writtenOn": "2015-12-06T10:00:08Z",
+      "side": 1,
+      "message": "What property is it trying to set?  Anything other than init should have it\u0027s own context for accessing the property.",
+      "range": {
+        "startLine": 36,
+        "startChar": 16,
+        "endLine": 36,
+        "endChar": 28
+      },
+      "revId": "bd8179a4f970e948d6dd1cc5af7889dae9669920",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
