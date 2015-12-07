@@ -69,7 +69,7 @@
 /vendor/bin/qmuxd               u:object_r:qmuxd_exec:s0
 /vendor/bin/netmgrd             u:object_r:netmgrd_exec:s0
 # database used by vendor RIL
-# /data/misc/radio(/.*)?     u:object_r:ril_db_file:s0
+/data/misc/radio(/.*)?     u:object_r:ril_db_file:s0
 # Kickstart prepend used
 /data/qcks(/.*)?                       u:object_r:kickstart_data_file:s0
 # temporary EFS file stored
