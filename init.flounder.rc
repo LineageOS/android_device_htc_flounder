@@ -33,7 +33,12 @@ on post-fs-data
     # For a remount only the flags and the target mount point are relevant.
     mount dummy dummy /data remount nosuid nodev noatime rw seclabel,background_gc=on,user_xattr,acl,errors=panic
 
-    mkdir /data/nvcam 0700 media camera
+    # Previously files in /data/nvcam are owned by media, change the owner to cameraserver so it
+    # can be accessed by Camera HAL in cameraserver.
+    chown cameraserver camera /data/nvcam/factory_copy_0.bin
+    chown cameraserver camera /data/nvcam/nvcam_cache_0.bin
+    chown cameraserver camera /data/nvcam/nvcam_cache_1.bin
+    mkdir /data/nvcam 0700 cameraserver camera
 
     # NFC: create data/nfc for nv storage
     mkdir /data/nfc 0770 nfc nfc
