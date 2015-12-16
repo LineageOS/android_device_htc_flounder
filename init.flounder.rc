@@ -1,6 +1,9 @@
 import init.flounder.usb.rc
 import init.flounder_svelte.rc
 
+on early-init
+    mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
+
 on init
     # Load persistent dm-verity state
     verity_load_state
@@ -53,12 +56,6 @@ on boot
 
     # power down interface
     write /sys/class/rfkill/rfkill0/state 0
-
-    mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
-
-    # Set up kernel tracing, but disable it by default
-    chmod 0222 /sys/kernel/debug/tracing/trace_marker
-    write /sys/kernel/debug/tracing/tracing_on 0
 
     write /sys/module/tegra3_emc/parameters/emc_enable 0
     #write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 1000000
