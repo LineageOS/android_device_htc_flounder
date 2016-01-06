@@ -120,7 +120,7 @@ ART_USE_HSPACE_COMPACT=true
 # let charger mode enter suspend
 BOARD_CHARGER_ENABLE_SUSPEND := true
 
-MALLOC_IMPL := dlmalloc
+MALLOC_SVELTE := true
 
 USE_CLANG_PLATFORM_BUILD := true
 
