@@ -268,9 +268,9 @@ PRODUCT_SYSTEM_VERITY_PARTITION := /dev/block/platform/sdhci-tegra.3/by-name/APP
 PRODUCT_VENDOR_VERITY_PARTITION := /dev/block/platform/sdhci-tegra.3/by-name/VNR
 
 # for warning
-PRODUCT_PACKAGES += \
-    slideshow \
-    verity_warning_images
+#PRODUCT_PACKAGES += \
+#    slideshow \
+#    verity_warning_images
 
 $(call inherit-product-if-exists, hardware/nvidia/tegra132/tegra132.mk)
 $(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra132/tegra132-vendor.mk)
