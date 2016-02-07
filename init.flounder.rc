@@ -198,7 +198,7 @@ on property:audio_hal.period_size=128
 
 # bugreport is triggered by holding down volume down, volume up and power
 service bugreport /system/bin/dumpstate -d -p -B -z \
-        -o /data/data/com.android.shell/files/bugreports/bugreport
+        -o /data/user_de/0/com.android.shell/files/bugreports/bugreport
     class late_start
     disabled
     oneshot
