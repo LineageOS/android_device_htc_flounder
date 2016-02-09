@@ -1,4 +1,8 @@
-allow cameraserver system_server:unix_stream_socket { read write };
-allow cameraserver self:netlink_kobject_uevent_socket create_socket_perms;
+allow cameraserver power_service:service_manager find;
 allow cameraserver sensorservice_service:service_manager find;
-allow cameraserver sysfs_gpu:file r_file_perms;
+
+allow cameraserver gpu_device:chr_file rw_file_perms;
+allow cameraserver proc:lnk_file getattr;
+allow cameraserver { sysfs sysfs_gpu sysfs_socinfo }:file r_file_perms;
+
+allow cameraserver system_server:unix_stream_socket { read write };
