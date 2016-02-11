@@ -4,6 +4,10 @@
 TARGET_SCREEN_HEIGHT := 2048
 TARGET_SCREEN_WIDTH := 1536
 
+# Camera
+PRODUCT_PACKAGES += \
+    Snap
+
 # Inherit some common CM stuff.
 $(call inherit-product, vendor/cm/config/common_full_tablet_wifionly.mk)
 
