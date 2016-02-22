@@ -195,7 +195,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     power.flounder \
     lights.flounder \
-    sensors.flounder
+    sensors.flounder \
+    hardware_properties.flounder
 
 # Filesystem management tools
 PRODUCT_PACKAGES += \
