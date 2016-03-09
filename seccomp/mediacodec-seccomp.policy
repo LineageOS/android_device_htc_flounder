@@ -1,0 +1,4 @@
+# device specific syscalls
+getdents64: 1
+gettid: 1
+geteuid32: 1
