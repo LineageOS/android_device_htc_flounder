@@ -2,3 +2,5 @@
 getdents64: 1
 gettid: 1
 geteuid32: 1
+getgid32: 1
+getegid32: 1
