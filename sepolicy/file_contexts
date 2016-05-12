@@ -40,6 +40,8 @@
 # gps
 /system/bin/glgps		u:object_r:gpsd_exec:s0
 /dev/ttyTHS1			u:object_r:gps_device:s0
+/dev/socket/gps		        u:object_r:gps_socket:s0
+/data/gps(/.*)?		        u:object_r:gps_data_file:s0
 
 # touch_fusion
 /vendor/bin/touch_fusion	u:object_r:touch_fusion_exec:s0
