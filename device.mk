@@ -263,7 +263,9 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # only include verity on user builds for CM
 ifeq ($(TARGET_BUILD_VARIANT),user)
-    PRODUCT_COPY_FILES += device/htc/flounder/fstab-verity.flounder:root/fstab.flounder
+PRODUCT_COPY_FILES += \
+    device/htc/flounder/fstab-verity.flounder:root/fstab.flounder \
+    device/htc/flounder/fstab-verity.flounder:root/fstab.flounder64
 
 # add verity dependencies
 $(call inherit-product, build/target/product/verity.mk)
