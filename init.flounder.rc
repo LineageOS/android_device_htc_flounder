@@ -19,6 +19,10 @@ on init
     write /proc/sys/vm/page-cluster 0
 
 on post-fs
+    # turn off nvmap page pool b/29389829
+    write /sys/module/nvmap_pp/parameters/pool_size 0
+    write /sys/module/nvmap_pp/parameters/enable_page_pools 0
+
     write /sys/power/gpu_power_on 1
     write /sys/module/input_cfboost/parameters/gpu_wakeup 1
     # Turn on swap
