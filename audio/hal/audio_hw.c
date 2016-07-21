@@ -2760,8 +2760,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     struct str_parms *parms;
     char value[32];
     int ret, val = 0;
-    struct audio_usecase *uc_info;
-    bool do_standby = false;
+    bool devices_changed;
     struct pcm_device *pcm_device;
     struct pcm_device_profile *pcm_profile;
 #ifdef PREPROCESSING_ENABLED
@@ -2790,24 +2789,11 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         }
 #endif
         if (val != 0) {
+            devices_changed = out->devices != (audio_devices_t)val;
             out->devices = val;
 
             if (!out->standby) {
-                uc_info = get_usecase_from_id(adev, out->usecase);
-                if (uc_info == NULL) {
-                    ALOGE("%s: Could not find the usecase (%d) in the list",
-                          __func__, out->usecase);
-                } else {
-                    list_for_each(node, &out->pcm_dev_list) {
-                        pcm_device = node_to_item(node, struct pcm_device, stream_list_node);
-                        if ((pcm_device->pcm_profile->devices & val) == 0)
-                            do_standby = true;
-                        val &= ~pcm_device->pcm_profile->devices;
-                    }
-                    if (val != 0)
-                        do_standby = true;
-                }
-                if (do_standby)
+                if (devices_changed)
                     do_out_standby_l(out);
                 else {
                     if (out->usecase == USECASE_AUDIO_PLAYBACK_OFFLOAD) {
