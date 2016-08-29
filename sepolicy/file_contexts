@@ -15,17 +15,17 @@
 # nfc
 /dev/bcm2079x			u:object_r:nfc_device:s0
 # camera devices
-/dev/camera.pcl			u:object_r:video_device:s0
-/dev/nvhost-ctrl-vi.*		u:object_r:video_device:s0
-/dev/nvhost-vi.*		u:object_r:video_device:s0
-/dev/nvhost-ctrl-isp.*		u:object_r:video_device:s0
-/dev/nvhost-isp.*		u:object_r:video_device:s0
-/dev/nvhost-msenc		u:object_r:video_device:s0
-/dev/imx219			u:object_r:video_device:s0
-/dev/focuser			u:object_r:video_device:s0
-/dev/ov9760			u:object_r:video_device:s0
-/dev/torch.*			u:object_r:video_device:s0
-/dev/mipi-cal			u:object_r:video_device:s0
+/dev/camera.pcl			u:object_r:camera_device:s0
+/dev/nvhost-ctrl-vi.*		u:object_r:camera_device:s0
+/dev/nvhost-vi.*		u:object_r:camera_device:s0
+/dev/nvhost-ctrl-isp.*		u:object_r:camera_device:s0
+/dev/nvhost-isp.*		u:object_r:camera_device:s0
+/dev/nvhost-msenc		u:object_r:camera_device:s0
+/dev/imx219			u:object_r:camera_device:s0
+/dev/focuser			u:object_r:camera_device:s0
+/dev/ov9760			u:object_r:camera_device:s0
+/dev/torch.*			u:object_r:camera_device:s0
+/dev/mipi-cal			u:object_r:camera_device:s0
 
 # rt5506 Audio device
 /dev/rt5506                     u:object_r:audio_device:s0
