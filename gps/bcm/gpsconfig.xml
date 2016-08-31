@@ -2,6 +2,7 @@
 <glgps xmlns="http://www.glpals.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.glpals.com/ glconfig.xsd" >
 
   <hal
+    AssertEnabled="false"
     PortName="/dev/ttyTHS1"
     BaudRate="921600"
     NmeaOutName="/data/gps/nmea_out"
