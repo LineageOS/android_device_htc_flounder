@@ -66,12 +66,12 @@ uint32_t get_max_virtual_display_count(hwc2_device_t* /*device*/)
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t register_callback(hwc2_device_t* /*device*/,
-        hwc2_callback_descriptor_t /*descriptor*/,
-        hwc2_callback_data_t /*callback_data*/,
-        hwc2_function_pointer_t /*pointer*/)
+hwc2_error_t register_callback(hwc2_device_t *device,
+        hwc2_callback_descriptor_t descriptor,
+        hwc2_callback_data_t callback_data, hwc2_function_pointer_t pointer)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->register_callback(descriptor, callback_data, pointer);
 }
 
 hwc2_error_t accept_display_changes(hwc2_device_t* /*device*/,

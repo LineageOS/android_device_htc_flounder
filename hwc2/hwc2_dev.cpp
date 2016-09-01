@@ -45,7 +45,8 @@ const struct adf_hwc_event_callbacks hwc2_adfhwc_callbacks = {
 };
 
 hwc2_dev::hwc2_dev()
-    : displays(),
+    : callback_handler(),
+      displays(),
       adf_helper(nullptr) { }
 
 hwc2_dev::~hwc2_dev()
@@ -53,6 +54,18 @@ hwc2_dev::~hwc2_dev()
     if (adf_helper)
         adf_hwc_close(adf_helper);
     hwc2_display::reset_ids();
+}
+
+hwc2_error_t hwc2_dev::register_callback(hwc2_callback_descriptor_t descriptor,
+        hwc2_callback_data_t callback_data, hwc2_function_pointer_t pointer)
+{
+    if (descriptor == HWC2_CALLBACK_INVALID) {
+        ALOGE("invalid callback descriptor %u", descriptor);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    return callback_handler.register_callback(descriptor, callback_data,
+            pointer);
 }
 
 int hwc2_dev::open_adf_device()

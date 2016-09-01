@@ -43,6 +43,26 @@ private:
     int32_t dpi_y;
 };
 
+class hwc2_callback {
+public:
+    hwc2_callback();
+
+    hwc2_error_t register_callback(hwc2_callback_descriptor_t descriptor,
+            hwc2_callback_data_t callback_data,
+            hwc2_function_pointer_t pointer);
+
+private:
+    /* All of the client callback functions and their data */
+    hwc2_callback_data_t hotplug_data;
+    HWC2_PFN_HOTPLUG hotplug;
+
+    hwc2_callback_data_t refresh_data;
+    HWC2_PFN_REFRESH refresh;
+
+    hwc2_callback_data_t vsync_data;
+    HWC2_PFN_VSYNC vsync;
+};
+
 class hwc2_display {
 public:
     hwc2_display(hwc2_display_t id, int adf_intf_fd,
@@ -83,9 +103,16 @@ public:
     hwc2_dev();
     ~hwc2_dev();
 
+    hwc2_error_t register_callback(hwc2_callback_descriptor_t descriptor,
+                    hwc2_callback_data_t callback_data,
+                    hwc2_function_pointer_t pointer);
+
     int open_adf_device();
 
 private:
+    /* General callback functions for all displays */
+    hwc2_callback callback_handler;
+
     /* The physical and virtual displays associated with this device */
     std::unordered_map<hwc2_display_t, hwc2_display> displays;
 
