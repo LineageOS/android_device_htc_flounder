@@ -16,6 +16,7 @@
 
 #include <fcntl.h>
 #include <cutils/log.h>
+#include <inttypes.h>
 #include <cstdlib>
 #include <vector>
 
@@ -76,17 +77,33 @@ int hwc2_dev::open_adf_device()
     if (displays.empty()) {
         ALOGE("failed to open any physical displays");
         ret = -EINVAL;
-        goto err_open;
+        goto err_dpy_open;
     }
 
     ret = adf_hwc_open(intf_fds.data(), intf_fds.size(),
             &hwc2_adfhwc_callbacks, this, &adf_helper);
     if (ret < 0) {
         ALOGE("failed to open adf helper: %s", strerror(ret));
-        displays.clear();
+        goto err_hwc_open;
     }
 
-err_open:
+    for (auto &dpy: displays) {
+        ret = dpy.second.retrieve_display_configs(adf_helper);
+        if (ret < 0) {
+            ALOGE("dpy %" PRIu64 ": failed to retrieve display configs: %s",
+                    dpy.second.get_id(), strerror(ret));
+            goto err_rtrv;
+        }
+    }
+
+    free(dev_ids);
+    return 0;
+
+err_rtrv:
+    adf_hwc_close(adf_helper);
+err_hwc_open:
+    displays.clear();
+err_dpy_open:
     free(dev_ids);
     return ret;
 }
