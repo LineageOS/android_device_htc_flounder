@@ -50,3 +50,22 @@ int hwc2_config::set_attribute(hwc2_attribute_t attribute, int32_t value)
 
     return 0;
 }
+
+int32_t hwc2_config::get_attribute(hwc2_attribute_t attribute) const
+{
+    switch (attribute) {
+    case HWC2_ATTRIBUTE_WIDTH:
+        return width;
+    case HWC2_ATTRIBUTE_HEIGHT:
+        return height;
+    case HWC2_ATTRIBUTE_VSYNC_PERIOD:
+        return vsync_period;
+    case HWC2_ATTRIBUTE_DPI_X:
+        return dpi_x;
+    case HWC2_ATTRIBUTE_DPI_Y:
+        return dpi_y;
+    default:
+        ALOGW("unknown attribute %u", attribute);
+        return -1;
+    }
+}
