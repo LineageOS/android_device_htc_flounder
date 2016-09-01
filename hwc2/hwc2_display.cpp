@@ -138,6 +138,37 @@ hwc2_error_t hwc2_display::get_display_configs(uint32_t *out_num_configs,
     return HWC2_ERROR_NONE;
 }
 
+hwc2_error_t hwc2_display::get_active_config(hwc2_config_t *out_config) const
+{
+    if (!configs.size()) {
+        ALOGE("dpy %" PRIu64 ": no active config", id);
+        return HWC2_ERROR_BAD_CONFIG;
+    }
+
+    *out_config = active_config;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::set_active_config(
+        struct adf_hwc_helper *adf_helper, hwc2_config_t config)
+{
+    if (config >= configs.size()) {
+        ALOGE("dpy %" PRIu64 ": bad config", id);
+        return HWC2_ERROR_BAD_CONFIG;
+    }
+
+    int ret = adf_set_active_config_hwc2(adf_helper, id, config);
+    if (ret < 0) {
+        ALOGE("dpy %" PRIu64 ": failed to set mode: %s", id, strerror(ret));
+        return HWC2_ERROR_BAD_CONFIG;
+    }
+
+    active_config = config;
+
+    return HWC2_ERROR_NONE;
+}
+
 hwc2_error_t hwc2_display::create_layer(hwc2_layer_t *out_layer)
 {
     hwc2_layer_t lyr_id = hwc2_layer::get_next_id();

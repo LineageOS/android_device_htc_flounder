@@ -97,6 +97,30 @@ hwc2_error_t hwc2_dev::get_display_configs(hwc2_display_t dpy_id,
     return it->second.get_display_configs(out_num_configs, out_configs);
 }
 
+hwc2_error_t hwc2_dev::get_active_config(hwc2_display_t dpy_id,
+        hwc2_config_t *out_config) const
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_active_config(out_config);
+}
+
+hwc2_error_t hwc2_dev::set_active_config(hwc2_display_t dpy_id,
+        hwc2_config_t config)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.set_active_config(adf_helper, config);
+}
+
 hwc2_error_t hwc2_dev::create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_layer)
 {
     auto it = displays.find(dpy_id);
