@@ -60,6 +60,18 @@ hwc2_dev::~hwc2_dev()
     hwc2_display::reset_ids();
 }
 
+hwc2_error_t hwc2_dev::get_display_name(hwc2_display_t dpy_id, uint32_t *out_size,
+        char *out_name) const
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_name(out_size, out_name);
+}
+
 hwc2_error_t hwc2_dev::get_display_type(hwc2_display_t dpy_id,
         hwc2_display_type_t *out_type) const
 {

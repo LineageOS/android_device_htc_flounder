@@ -137,10 +137,11 @@ hwc2_error_t get_display_configs(hwc2_device_t *device, hwc2_display_t display,
     return dev->get_display_configs(display, out_num_configs, out_configs);
 }
 
-hwc2_error_t get_display_name(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t* /*out_size*/, char* /*out_name*/)
+hwc2_error_t get_display_name(hwc2_device_t *device, hwc2_display_t display,
+        uint32_t *out_size, char *out_name)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_display_name(display, out_size, out_name);
 }
 
 hwc2_error_t get_display_requests(hwc2_device_t* /*device*/,
