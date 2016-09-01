@@ -31,9 +31,17 @@ LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE := hwcomposer.$(TARGET_BOOTLOADER_BOARD_NAME)
 
 LOCAL_SHARED_LIBRARIES := \
-	liblog
+	liblog \
+	libutils
 
-LOCAL_SRC_FILES := hwc2.cpp
+LOCAL_STATIC_LIBRARIES := \
+	libadfhwc \
+	libadf
+
+LOCAL_SRC_FILES := \
+	hwc2.cpp \
+	hwc2_dev.cpp \
+	hwc2_display.cpp
 
 LOCAL_MODLE_TAGS := optional
 
