@@ -111,11 +111,13 @@ hwc2_error_t get_changed_composition_types(hwc2_device_t *device,
             out_layers, out_types);
 }
 
-hwc2_error_t get_client_target_support(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t /*width*/, uint32_t /*height*/,
-        android_pixel_format_t /*format*/, android_dataspace_t /*dataspace*/)
+hwc2_error_t get_client_target_support(hwc2_device_t *device,
+        hwc2_display_t display, uint32_t width, uint32_t height,
+        android_pixel_format_t format, android_dataspace_t dataspace)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_client_target_support(display, width, height, format,
+            dataspace);
 }
 
 hwc2_error_t get_color_modes(hwc2_device_t* /*device*/,
@@ -199,12 +201,13 @@ hwc2_error_t set_active_config(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_active_config(display, config);
 }
 
-hwc2_error_t set_client_target(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, buffer_handle_t /*target*/,
-        int32_t /*acquire_fence*/, android_dataspace_t /*dataspace*/,
-        hwc_region_t /*damage*/)
+hwc2_error_t set_client_target(hwc2_device_t *device, hwc2_display_t display,
+        buffer_handle_t target, int32_t acquire_fence,
+        android_dataspace_t dataspace, hwc_region_t damage)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_client_target(display, target, acquire_fence, dataspace,
+            damage);
 }
 
 hwc2_error_t set_color_mode(hwc2_device_t* /*device*/,
