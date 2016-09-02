@@ -46,7 +46,10 @@ LOCAL_SRC_FILES := \
 	hwc2_callback.cpp \
 	hwc2_layer.cpp \
 	hwc2_buffer.cpp \
-	hwc2_gralloc.cpp
+	hwc2_gralloc.cpp \
+	hwc2_window.cpp
+
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 
 LOCAL_MODLE_TAGS := optional
 
