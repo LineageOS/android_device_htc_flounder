@@ -14,12 +14,41 @@
  * limitations under the License.
  */
 
+#include <inttypes.h>
+#include <cutils/log.h>
+
 #include "hwc2.h"
 
 uint64_t hwc2_layer::layer_cnt = 0;
 
 hwc2_layer::hwc2_layer(hwc2_layer_t id)
-    : id(id) { }
+    : id(id),
+      comp_type(HWC2_COMPOSITION_INVALID) { }
+
+hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
+{
+    hwc2_error_t ret = HWC2_ERROR_NONE;
+
+    switch (comp_type) {
+    case HWC2_COMPOSITION_CLIENT:
+    case HWC2_COMPOSITION_DEVICE:
+    case HWC2_COMPOSITION_CURSOR:
+    case HWC2_COMPOSITION_SOLID_COLOR:
+        break;
+
+    case HWC2_COMPOSITION_SIDEBAND:
+        ret = HWC2_ERROR_UNSUPPORTED;
+        break;
+
+    case HWC2_COMPOSITION_INVALID:
+    default:
+        ALOGE("lyr %" PRIu64 ": invalid composition type %u", id, comp_type);
+        ret = HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    this->comp_type = comp_type;
+    return ret;
+}
 
 hwc2_layer_t hwc2_layer::get_next_id()
 {

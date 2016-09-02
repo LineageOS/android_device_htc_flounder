@@ -180,6 +180,13 @@ hwc2_error_t hwc2_dev::destroy_layer(hwc2_display_t dpy_id, hwc2_layer_t lyr_id)
     return it->second.destroy_layer(lyr_id);
 }
 
+hwc2_error_t hwc2_dev::set_layer_composition_type(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, hwc2_composition_t comp_type)
+{
+    return displays.find(dpy_id)->second.set_layer_composition_type(lyr_id,
+            comp_type);
+}
+
 void hwc2_dev::hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection)
 {
     auto it = displays.find(dpy_id);
