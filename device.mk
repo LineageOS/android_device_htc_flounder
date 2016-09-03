@@ -71,7 +71,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     libwpa_client \
     hostapd \
-    dhcpcd.conf \
     wpa_supplicant \
     wpa_supplicant.conf
 
@@ -98,6 +97,7 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.audio.pro.xml:system/etc/permissions/android.hardware.audio.pro.xml \
     frameworks/native/data/etc/android.hardware.nfc.xml:system/etc/permissions/android.hardware.nfc.xml \
     frameworks/native/data/etc/android.hardware.nfc.hce.xml:system/etc/permissions/android.hardware.nfc.hce.xml \
+    frameworks/native/data/etc/android.hardware.nfc.hcef.xml:system/etc/permissions/android.hardware.nfc.hcef.xml \
     frameworks/native/data/etc/android.hardware.bluetooth.xml:system/etc/permissions/android.hardware.bluetooth.xml \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
     frameworks/native/data/etc/android.hardware.opengles.aep.xml:system/etc/permissions/android.hardware.opengles.aep.xml \
@@ -165,7 +165,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/bluetooth/bt_vendor.conf:system/etc/bluetooth/bt_vendor.conf
 
-PRODUCT_AAPT_CONFIG := normal large xlarge hdpi xhdpi xxhdpi
+PRODUCT_AAPT_CONFIG := normal large xlarge
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
 
 PRODUCT_CHARACTERISTICS := tablet,nosdcard
@@ -193,7 +193,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     power.flounder \
     lights.flounder \
-    sensors.flounder
+    sensors.flounder \
+    thermal.flounder
 
 # Filesystem management tools
 PRODUCT_PACKAGES += \
@@ -277,6 +278,17 @@ PRODUCT_SYSTEM_VERITY_PARTITION := /dev/block/platform/sdhci-tegra.3/by-name/APP
 PRODUCT_PACKAGES += \
     slideshow \
     verity_warning_images
+endif
+
+# In userdebug, add minidebug info the the boot image and the system server to support
+# diagnosing native crashes.
+ifneq (,$(filter userdebug, $(TARGET_BUILD_VARIANT)))
+    # Boot image.
+    PRODUCT_DEX_PREOPT_BOOT_FLAGS += --generate-mini-debug-info
+    # System server and some of its services.
+    # Note: we cannot use PRODUCT_SYSTEM_SERVER_JARS, as it has not been expanded at this point.
+    $(call add-product-dex-preopt-module-config,services,--generate-mini-debug-info)
+    $(call add-product-dex-preopt-module-config,wifi-service,--generate-mini-debug-info)
 endif
 
 $(call inherit-product-if-exists, hardware/nvidia/tegra132/tegra132.mk)

@@ -24,7 +24,6 @@
 # Live Wallpapers
 PRODUCT_PACKAGES += \
         LiveWallpapersPicker \
-        MagicSmokeWallpapers \
         librs_jni \
         rild
 
