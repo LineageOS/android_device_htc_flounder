@@ -36,7 +36,8 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_STATIC_LIBRARIES := \
 	libadfhwc \
-	libadf
+	libadf \
+	libbase
 
 LOCAL_SRC_FILES := \
 	hwc2.cpp \

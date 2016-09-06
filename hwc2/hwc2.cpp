@@ -181,17 +181,20 @@ hwc2_error_t get_hdr_capabilities(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t get_release_fences(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t* /*out_num_elements*/,
-        hwc2_layer_t* /*out_layers*/, int32_t* /*out_fences*/)
+hwc2_error_t get_release_fences(hwc2_device_t *device, hwc2_display_t display,
+        uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+        int32_t *out_fences)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_release_fences(display, out_num_elements, out_layers,
+            out_fences);
 }
 
-hwc2_error_t present_display(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, int32_t* /*out_present_fence*/)
+hwc2_error_t present_display(hwc2_device_t *device, hwc2_display_t display,
+        int32_t *out_present_fence)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->present_display(display, out_present_fence);
 }
 
 hwc2_error_t set_active_config(hwc2_device_t *device, hwc2_display_t display,

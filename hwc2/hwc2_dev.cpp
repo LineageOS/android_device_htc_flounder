@@ -49,7 +49,8 @@ const struct adf_hwc_event_callbacks hwc2_adfhwc_callbacks = {
 };
 
 hwc2_dev::hwc2_dev()
-    : callback_handler(),
+    : state_mutex(),
+      callback_handler(),
       displays(),
       adf_helper(nullptr) { }
 
@@ -88,6 +89,8 @@ hwc2_error_t hwc2_dev::get_display_type(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_power_mode(hwc2_display_t dpy_id,
         hwc2_power_mode_t mode)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -159,6 +162,34 @@ hwc2_error_t hwc2_dev::accept_display_changes(hwc2_display_t dpy_id)
     }
 
     return it->second.accept_display_changes();
+}
+
+hwc2_error_t hwc2_dev::present_display(hwc2_display_t dpy_id,
+        int32_t *out_present_fence)
+{
+    std::lock_guard<std::mutex> guard(state_mutex);
+
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.present_display(out_present_fence);
+}
+
+hwc2_error_t hwc2_dev::get_release_fences(hwc2_display_t dpy_id,
+        uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+        int32_t *out_fences) const
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_release_fences(out_num_elements, out_layers,
+            out_fences);
 }
 
 hwc2_error_t hwc2_dev::get_display_attribute(hwc2_display_t dpy_id,
@@ -354,16 +385,20 @@ hwc2_error_t hwc2_dev::set_cursor_position(hwc2_display_t dpy_id,
 
 void hwc2_dev::hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection)
 {
-    auto it = displays.find(dpy_id);
-    if (it == displays.end()) {
-        ALOGW("dpy %" PRIu64 ": invalid display handle preventing hotplug"
-                " callback", dpy_id);
-        return;
-    }
+    {
+        std::lock_guard<std::mutex> guard(state_mutex);
 
-    hwc2_error_t ret = it->second.set_connection(connection);
-    if (ret != HWC2_ERROR_NONE)
-        return;
+        auto it = displays.find(dpy_id);
+        if (it == displays.end()) {
+            ALOGW("dpy %" PRIu64 ": invalid display handle preventing hotplug"
+                    " callback", dpy_id);
+            return;
+        }
+
+        hwc2_error_t ret = it->second.set_connection(connection);
+        if (ret != HWC2_ERROR_NONE)
+            return;
+    }
 
     callback_handler.call_hotplug(dpy_id, connection);
 }
@@ -470,6 +505,7 @@ int hwc2_dev::open_adf_device()
                     dpy.second.get_id(), strerror(ret));
             goto err_rtrv;
         }
+        dpy.second.set_client_target_properties();
     }
 
     for (auto &dpy: displays)

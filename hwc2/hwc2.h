@@ -17,6 +17,7 @@
 #ifndef _HWC2_H
 #define _HWC2_H
 
+#include <android-base/unique_fd.h>
 #include <hardware/hwcomposer2.h>
 
 #include <unordered_map>
@@ -79,7 +80,14 @@ public:
     int      get_format(buffer_handle_t handle) const;
     void     get_surfaces(buffer_handle_t handle, const void **surf,
                  size_t *surf_cnt) const;
+    void     get_dma_buf(const void *surf, uint32_t surf_idx, int *out_fd) const;
     int32_t  get_layout(const void *surf, uint32_t surf_idx) const;
+    uint32_t get_pitch(const void *surf, uint32_t surf_idx) const;
+    uint32_t get_hmem(const void *surf, uint32_t surf_idx) const;
+    uint32_t get_offset(const void *surf, uint32_t surf_idx) const;
+    uint32_t get_block_height_log2(const void *surf, uint32_t surf_idx) const;
+    uint32_t decompress(buffer_handle_t handle, int in_fence,
+                 int *out_fence) const;
 
 private:
     hwc2_gralloc();
@@ -106,6 +114,16 @@ private:
     void (*nvgr_get_surfaces)(buffer_handle_t handle, const void **surf,
             size_t *surf_cnt);
 
+    /* The address of the NvRmMemDmaBufFdFromHandle symbol. This NVIDIA function
+     * returns the dma bufs assicated with a buffer handle */
+    void (*NvRmMemDmaBufFdFromHandle)(uint32_t hmem, int *fd);
+
+    /* The address of the nvgr_decompress symbol. This NVIDIA function
+     * decompresses the buffer and returns an out fence that fires when the
+     * buffer is done decompressing */
+     int (*nvgr_decompress)(buffer_handle_t handle, int in_fence,
+            int *out_fence);
+
     /* A symbol table handle to the NVIDIA gralloc .so file. */
     void *nvgr;
 };
@@ -114,6 +132,11 @@ class hwc2_buffer {
 public:
     hwc2_buffer();
     ~hwc2_buffer();
+
+    hwc2_error_t decompress();
+    hwc2_error_t get_adf_post_props(struct tegra_adf_flip_windowattr *win_attr,
+                    struct adf_buffer_config *adf_buf, size_t win_idx,
+                    size_t buf_idx, uint32_t z_order) const;
 
     void close_acquire_fence();
 
@@ -198,6 +221,10 @@ private:
 
     /* The buffer is modified and will force revalidation of the display */
     bool modified;
+
+    hwc2_error_t get_adf_buf_config(struct adf_buffer_config *adf_buf) const;
+    hwc2_error_t get_adf_win_attr(struct tegra_adf_flip_windowattr *win_attr,
+                        size_t win_idx, size_t buf_idx, uint32_t z_order) const;
 };
 
 class hwc2_config {
@@ -252,6 +279,14 @@ private:
 class hwc2_layer {
 public:
     hwc2_layer(hwc2_layer_t id);
+
+    hwc2_error_t decompress_buffer();
+
+    hwc2_error_t get_adf_post_props(struct tegra_adf_flip_windowattr *win_attr,
+                    struct adf_buffer_config *adf_buf, size_t win_idx,
+                    size_t buf_idx, uint32_t z_order) const;
+
+    void close_acquire_fence() { buffer.close_acquire_fence(); }
 
     /* Get properties */
     hwc2_layer_t        get_id() const { return id; }
@@ -390,11 +425,20 @@ public:
                     hwc2_layer_request_t *out_layer_requests) const;
     hwc2_error_t accept_display_changes();
 
+    hwc2_error_t present_display(int32_t *out_present_fence);
+    hwc2_error_t prepare_present_display();
+    void         close_acquire_fences();
+
+    hwc2_error_t get_release_fences(uint32_t *out_num_elements,
+                    hwc2_layer_t *out_layers, int32_t *out_fences) const;
+
     /* Window functions */
     void init_windows();
     void clear_windows();
     hwc2_error_t assign_client_target_window(uint32_t z_order);
     hwc2_error_t assign_layer_window(uint32_t z_order, hwc2_layer_t lyr_id);
+
+    hwc2_error_t  decompress_window_buffers();
 
     /* Config functions */
     int          retrieve_display_configs(struct adf_hwc_helper *adf_helper);
@@ -413,6 +457,7 @@ public:
     hwc2_error_t set_client_target(buffer_handle_t target,
                     int32_t acquire_fence, android_dataspace_t dataspace,
                     const hwc_region_t &surface_damage);
+    hwc2_error_t set_client_target_properties();
 
     /* Set layer functions */
     hwc2_error_t create_layer(hwc2_layer_t *out_layer);
@@ -500,6 +545,10 @@ private:
     /* The current power mode of the display */
     hwc2_power_mode_t power_mode;
 
+    /* Sync fence object which will be signaled after the device has finished
+     * reading from the buffer presented in the prior frame */
+    android::base::unique_fd release_fence;
+
     /* The adf interface file descriptor for the display */
     int adf_intf_fd;
 
@@ -538,6 +587,11 @@ public:
                     uint32_t *out_num_elements, hwc2_layer_t *out_layers,
                     hwc2_layer_request_t *out_layer_requests) const;
     hwc2_error_t accept_display_changes(hwc2_display_t dpy_id);
+    hwc2_error_t present_display(hwc2_display_t dpy_id,
+                    int32_t *out_present_fence);
+    hwc2_error_t get_release_fences(hwc2_display_t dpy_id,
+                    uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+                    int32_t *out_fences) const;
 
     /* Config functions */
     hwc2_error_t get_display_attribute(hwc2_display_t dpy_id,
@@ -603,6 +657,9 @@ public:
     int open_adf_device();
 
 private:
+    /* The mutex is used to protect changing the connection and power mode */
+    std::mutex state_mutex;
+
     /* General callback functions for all displays */
     hwc2_callback callback_handler;
 

@@ -15,8 +15,10 @@
  */
 
 #include <cutils/log.h>
+#include <tegra_adf.h>
 #include <inttypes.h>
 
+#include <cstdlib>
 #include <map>
 #include <vector>
 #include <array>
@@ -42,6 +44,7 @@ hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
       configs(),
       active_config(0),
       power_mode(power_mode),
+      release_fence(-1),
       adf_intf_fd(adf_intf_fd),
       adf_dev(adf_dev)
 {
@@ -306,6 +309,158 @@ hwc2_error_t hwc2_display::accept_display_changes()
     return HWC2_ERROR_NONE;
 }
 
+hwc2_error_t hwc2_display::present_display(int32_t *out_present_fence)
+{
+    std::vector<struct adf_buffer_config> adf_bufs(windows.size());
+    std::array<adf_id_t, 1> interfaces = {{0}};
+    int new_release_fence = -1, err;
+
+    hwc2_error_t ret = prepare_present_display();
+    if (ret != HWC2_ERROR_NONE) {
+        ALOGE("dpy %" PRIu64 ": failed to prepare display for presenting", id);
+        *out_present_fence = -1;
+        return ret;
+    }
+
+    tegra_adf_flip *args;
+    size_t args_size = sizeof(*args) + windows.size() * sizeof(args->win[0]);
+
+    args = static_cast<tegra_adf_flip *>(calloc(1, args_size));
+    if (!args) {
+        ALOGE("dpy %" PRIu64 ": failed to alloc tegra_adf_flip", id);
+        *out_present_fence = -1;
+        return HWC2_ERROR_NO_RESOURCES;
+    }
+
+    args->win_num = windows.size();
+
+    size_t win_idx = 0, buf_idx = 0;
+    for (auto &win: windows) {
+        if (win.contains_client_target()) {
+
+            ret = client_target.get_adf_post_props(&args->win[win_idx],
+                    &adf_bufs[buf_idx], win_idx, buf_idx, win.get_z_order());
+            if (ret != HWC2_ERROR_NONE) {
+                ALOGE("dpy %" PRIu64 ": failed to get client target adf props", id);
+                goto done;
+            }
+            buf_idx++;
+
+        } else if (win.contains_layer()) {
+            hwc2_layer_t lyr_id = win.get_layer();
+
+            ret = layers.find(lyr_id)->second.get_adf_post_props(
+                    &args->win[win_idx], &adf_bufs[buf_idx], win_idx,
+                    buf_idx, win.get_z_order());
+            if (ret != HWC2_ERROR_NONE) {
+                ALOGE("dpy %" PRIu64 " lyr %" PRIu64 ": failed to get layer adf"
+                        " props", id, lyr_id);
+                goto done;
+            }
+            buf_idx++;
+
+        } else {
+            struct tegra_adf_flip_windowattr *win_attr = &args->win[win_idx];
+            win_attr->win_index = win_idx;
+            win_attr->buf_index = -1;
+            win_attr->z = win.get_z_order();
+            win_attr->blend = TEGRA_ADF_BLEND_NONE;
+            win_attr->flags = 0;
+        }
+
+        win_idx++;
+    }
+
+    err = adf_device_post_v2(&adf_dev, interfaces.data(), interfaces.size(),
+            adf_bufs.data(), buf_idx, args, args_size, ADF_COMPLETE_FENCE_PRESENT,
+            &new_release_fence);
+    if (err < 0) {
+        ALOGE("dpy %" PRIu64 ": adf_device_post_v2 failed %s", id, strerror(err));
+        err = HWC2_ERROR_NO_RESOURCES;
+        new_release_fence = -1;
+    }
+
+    release_fence.reset(new_release_fence);
+
+    close_acquire_fences();
+
+    for (size_t idx = 0; idx < buf_idx; idx++)
+        if (adf_bufs[idx].fd[0] >= 0)
+            close(adf_bufs[idx].fd[0]);
+
+done:
+    free(args);
+    *out_present_fence = dup(release_fence.get());
+    return ret;
+}
+
+hwc2_error_t hwc2_display::prepare_present_display()
+{
+    if (display_state != valid) {
+        ALOGE("dpy %" PRIu64 ": display not validated: %d", id, display_state);
+        return HWC2_ERROR_NOT_VALIDATED;
+    }
+
+    if (connection != HWC2_CONNECTION_CONNECTED) {
+        ALOGW("dpy %" PRIu64 ": invalid connection: %d", id, connection);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    if (power_mode == HWC2_POWER_MODE_OFF) {
+        ALOGW("dpy %" PRIu64 ": invalid power mode: %d", id, power_mode);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    hwc2_error_t ret = decompress_window_buffers();
+    if (ret != HWC2_ERROR_NONE) {
+        ALOGE("dpy %" PRIu64 ": failed to decompress buffers", id);
+        return ret;
+    }
+
+    return HWC2_ERROR_NONE;
+}
+
+
+void hwc2_display::close_acquire_fences()
+{
+    for (auto &lyr: layers)
+        lyr.second.close_acquire_fence();
+
+    if (client_target_used)
+        client_target.close_acquire_fence();
+}
+
+hwc2_error_t hwc2_display::get_release_fences(uint32_t *out_num_elements,
+        hwc2_layer_t *out_layers, int32_t *out_fences) const
+{
+    if (release_fence.get() < 0) {
+        *out_num_elements = 0;
+        return HWC2_ERROR_NONE;
+    }
+
+    size_t num = 0;
+
+    if (!out_layers || !out_fences) {
+        for (auto &window: windows)
+            if (window.contains_layer())
+                num++;
+        *out_num_elements = num;
+        return HWC2_ERROR_NONE;
+    }
+
+    for (auto it = windows.begin(); num < *out_num_elements,
+            it != windows.end(); it++) {
+        if (it->contains_layer()) {
+            out_layers[num] = it->get_layer();
+            out_fences[num] = dup(release_fence.get());
+            num++;
+        }
+    }
+
+    *out_num_elements = num;
+    return HWC2_ERROR_NONE;
+}
+
 void hwc2_display::init_windows()
 {
     for (auto it = windows.begin(); it != windows.end(); it++)
@@ -340,6 +495,30 @@ hwc2_error_t hwc2_display::assign_layer_window(uint32_t z_order,
             return HWC2_ERROR_NONE;
 
     return HWC2_ERROR_NO_RESOURCES;
+}
+
+hwc2_error_t hwc2_display::decompress_window_buffers()
+{
+    hwc2_error_t ret;
+
+    for (auto &win: windows) {
+        if (win.contains_client_target()) {
+            ret = client_target.decompress();
+            if (ret != HWC2_ERROR_NONE) {
+                ALOGE("dpy %" PRIu64 ": failed to decompress client target"
+                        " buffer", id);
+                return ret;
+            }
+        } else if (win.contains_layer()) {
+            ret = layers.at(win.get_layer()).decompress_buffer();
+            if (ret != HWC2_ERROR_NONE) {
+                ALOGE("dpy %" PRIu64 " lyr %" PRIu64 ": failed to decompress"
+                        " layer buffer", id, win.get_layer());
+                return ret;
+            }
+        }
+    }
+    return HWC2_ERROR_NONE;
 }
 
 int hwc2_display::retrieve_display_configs(struct adf_hwc_helper *adf_helper)
@@ -454,6 +633,7 @@ hwc2_error_t hwc2_display::set_active_config(
     }
 
     active_config = config;
+    set_client_target_properties();
 
     return HWC2_ERROR_NONE;
 }
@@ -508,6 +688,31 @@ hwc2_error_t hwc2_display::set_client_target(buffer_handle_t handle,
         return ret;
 
     return client_target.set_surface_damage(surface_damage);
+}
+
+hwc2_error_t hwc2_display::set_client_target_properties()
+{
+    int32_t width = configs.at(active_config).get_attribute(HWC2_ATTRIBUTE_WIDTH);
+    int32_t height = configs.at(active_config).get_attribute(HWC2_ATTRIBUTE_HEIGHT);
+
+    hwc_rect_t frame;
+    frame.left = 0;
+    frame.top = 0;
+    frame.right = width;
+    frame.bottom = height;
+    client_target.set_display_frame(frame);
+
+    hwc_frect_t crop;
+    crop.left = 0.0;
+    crop.top = 0.0;
+    crop.right = static_cast<float>(width);
+    crop.bottom = static_cast<float>(height);
+    client_target.set_source_crop(crop);
+
+    client_target.set_blend_mode(HWC2_BLEND_MODE_PREMULTIPLIED);
+    client_target.set_z_order(UINT32_MAX);
+
+    return HWC2_ERROR_NONE;
 }
 
 hwc2_error_t hwc2_display::create_layer(hwc2_layer_t *out_layer)
