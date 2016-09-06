@@ -18,6 +18,36 @@
 
 #include "hwc2.h"
 
+static bool operator==(const hwc_rect_t &r1, const hwc_rect_t &r2)
+{
+    return r1.left == r2.left && r1.top == r2.top && r1.right == r2.right
+            && r1.bottom == r2.bottom;
+}
+
+static bool operator!=(const hwc_rect_t &r1, const hwc_rect_t &r2)
+{
+    return !(r1 == r2);
+}
+
+static bool operator==(const hwc_frect_t &r1, const hwc_frect_t &r2)
+{
+    return r1.left == r2.left && r1.top == r2.top && r1.right == r2.right
+            && r1.bottom == r2.bottom;
+}
+
+static bool operator!=(const hwc_frect_t &r1, const hwc_frect_t &r2)
+{
+    return !(r1 == r2);
+}
+
+static bool cmp_region(std::vector<hwc_rect_t> &r1, const hwc_region_t &r2)
+{
+    if (r1.size() != r2.numRects)
+        return false;
+
+    return std::equal(r1.begin(), r1.end(), r2.rects);
+}
+
 hwc2_buffer::hwc2_buffer()
     : handle(),
       acquire_fence(-1),
@@ -29,7 +59,9 @@ hwc2_buffer::hwc2_buffer()
       blend_mode(HWC2_BLEND_MODE_NONE),
       plane_alpha(1.0),
       transform(),
-      visible_region() { }
+      visible_region(),
+      previous_format(0),
+      modified(true) { }
 
 hwc2_buffer::~hwc2_buffer()
 {
@@ -136,6 +168,20 @@ bool hwc2_buffer::is_yuv() const
     return hwc2_gralloc::get_instance().is_yuv(handle);
 }
 
+bool hwc2_buffer::is_overlapped() const
+{
+    if (visible_region.size() != 1)
+        return true;
+
+    if (visible_region.at(0).left != display_frame.left
+            || visible_region.at(0).top != display_frame.top
+            || visible_region.at(0).right != display_frame.right
+            || visible_region.at(0).bottom != display_frame.bottom)
+        return true;
+
+    return false;
+}
+
 hwc2_error_t hwc2_buffer::set_buffer(buffer_handle_t handle,
         int32_t acquire_fence)
 {
@@ -152,11 +198,16 @@ hwc2_error_t hwc2_buffer::set_buffer(buffer_handle_t handle,
     this->handle = handle;
     this->acquire_fence = acquire_fence;
 
+    uint32_t format = get_adf_buffer_format();
+    modified = modified || format != previous_format;
+    previous_format = format;
+
     return HWC2_ERROR_NONE;
 }
 
 hwc2_error_t hwc2_buffer::set_dataspace(android_dataspace_t dataspace)
 {
+    modified = modified || dataspace != this->dataspace;
     this->dataspace = dataspace;
 
     return HWC2_ERROR_NONE;
@@ -164,6 +215,7 @@ hwc2_error_t hwc2_buffer::set_dataspace(android_dataspace_t dataspace)
 
 hwc2_error_t hwc2_buffer::set_display_frame(const hwc_rect_t &display_frame)
 {
+    modified = modified || display_frame != this->display_frame;
     this->display_frame = display_frame;
 
     return HWC2_ERROR_NONE;
@@ -171,6 +223,7 @@ hwc2_error_t hwc2_buffer::set_display_frame(const hwc_rect_t &display_frame)
 
 hwc2_error_t hwc2_buffer::set_source_crop(const hwc_frect_t &source_crop)
 {
+    modified = modified || source_crop != this->source_crop;
     this->source_crop = source_crop;
 
     return HWC2_ERROR_NONE;
@@ -178,6 +231,7 @@ hwc2_error_t hwc2_buffer::set_source_crop(const hwc_frect_t &source_crop)
 
 hwc2_error_t hwc2_buffer::set_z_order(uint32_t z_order)
 {
+    modified = modified || z_order != this->z_order;
     this->z_order = z_order;
 
     return HWC2_ERROR_NONE;
@@ -199,6 +253,7 @@ hwc2_error_t hwc2_buffer::set_blend_mode(hwc2_blend_mode_t blend_mode)
         return HWC2_ERROR_BAD_PARAMETER;
     }
 
+    modified = modified || blend_mode != this->blend_mode;
     this->blend_mode = blend_mode;
 
     return HWC2_ERROR_NONE;
@@ -206,6 +261,7 @@ hwc2_error_t hwc2_buffer::set_blend_mode(hwc2_blend_mode_t blend_mode)
 
 hwc2_error_t hwc2_buffer::set_plane_alpha(float plane_alpha)
 {
+    modified = modified || plane_alpha != this->plane_alpha;
     this->plane_alpha = plane_alpha;
 
     return HWC2_ERROR_NONE;
@@ -213,6 +269,7 @@ hwc2_error_t hwc2_buffer::set_plane_alpha(float plane_alpha)
 
 hwc2_error_t hwc2_buffer::set_transform(const hwc_transform_t transform)
 {
+    modified = modified || transform != this->transform;
     this->transform = transform;
 
     return HWC2_ERROR_NONE;
@@ -220,6 +277,8 @@ hwc2_error_t hwc2_buffer::set_transform(const hwc_transform_t transform)
 
 hwc2_error_t hwc2_buffer::set_visible_region(const hwc_region_t &visible_region)
 {
+    modified = modified || !cmp_region(this->visible_region, visible_region);
+
     this->visible_region.clear();
     for (size_t idx = 0; idx < visible_region.numRects; idx++)
         this->visible_region.push_back(visible_region.rects[idx]);

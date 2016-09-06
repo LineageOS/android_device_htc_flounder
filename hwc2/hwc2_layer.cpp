@@ -24,7 +24,8 @@ uint64_t hwc2_layer::layer_cnt = 0;
 hwc2_layer::hwc2_layer(hwc2_layer_t id)
     : id(id),
       buffer(),
-      comp_type(HWC2_COMPOSITION_INVALID) { }
+      comp_type(HWC2_COMPOSITION_INVALID),
+      modified(true) { }
 
 buffer_handle_t hwc2_layer::get_buffer_handle() const
 {
@@ -96,6 +97,11 @@ bool hwc2_layer::is_yuv() const
     return buffer.is_yuv();
 }
 
+bool hwc2_layer::is_overlapped() const
+{
+    return buffer.is_overlapped();
+}
+
 hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
 {
     hwc2_error_t ret = HWC2_ERROR_NONE;
@@ -117,6 +123,7 @@ hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
         ret = HWC2_ERROR_BAD_PARAMETER;
     }
 
+    modified = modified || comp_type != this->comp_type;
     this->comp_type = comp_type;
     return ret;
 }

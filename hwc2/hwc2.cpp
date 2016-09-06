@@ -237,11 +237,11 @@ hwc2_error_t set_vsync_enabled(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_vsync_enabled(display, static_cast<hwc2_vsync_t>(enabled));
 }
 
-hwc2_error_t validate_display(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t* /*out_num_types*/,
-        uint32_t* /*out_num_requests*/)
+hwc2_error_t validate_display(hwc2_device_t *device, hwc2_display_t display,
+        uint32_t *out_num_types, uint32_t *out_num_requests)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->validate_display(display, out_num_types, out_num_requests);
 }
 
 hwc2_error_t set_cursor_position(hwc2_device_t *device, hwc2_display_t display,
