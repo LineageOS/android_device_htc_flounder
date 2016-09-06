@@ -74,10 +74,11 @@ hwc2_error_t register_callback(hwc2_device_t *device,
     return dev->register_callback(descriptor, callback_data, pointer);
 }
 
-hwc2_error_t accept_display_changes(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/)
+hwc2_error_t accept_display_changes(hwc2_device_t *device,
+        hwc2_display_t display)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->accept_display_changes(display);
 }
 
 hwc2_error_t create_layer(hwc2_device_t *device, hwc2_display_t display,
@@ -101,11 +102,13 @@ hwc2_error_t get_active_config(hwc2_device_t *device, hwc2_display_t display,
     return dev->get_active_config(display, out_config);
 }
 
-hwc2_error_t get_changed_composition_types(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t* /*out_num_elements*/,
-        hwc2_layer_t* /*out_layers*/, hwc2_composition_t* /*out_types*/)
+hwc2_error_t get_changed_composition_types(hwc2_device_t *device,
+        hwc2_display_t display, uint32_t *out_num_elements,
+        hwc2_layer_t *out_layers, hwc2_composition_t *out_types)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_changed_composition_types(display, out_num_elements,
+            out_layers, out_types);
 }
 
 hwc2_error_t get_client_target_support(hwc2_device_t* /*device*/,
@@ -144,13 +147,14 @@ hwc2_error_t get_display_name(hwc2_device_t *device, hwc2_display_t display,
     return dev->get_display_name(display, out_size, out_name);
 }
 
-hwc2_error_t get_display_requests(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/,
-        hwc2_display_request_t* /*out_display_requests*/,
-        uint32_t* /*out_num_elements*/, hwc2_layer_t* /*out_layers*/,
-        hwc2_layer_request_t* /*out_layer_requests*/)
+hwc2_error_t get_display_requests(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_display_request_t *out_display_requests,
+        uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+        hwc2_layer_request_t *out_layer_requests)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_display_requests(display, out_display_requests,
+            out_num_elements, out_layers, out_layer_requests);
 }
 
 hwc2_error_t get_display_type(hwc2_device_t *device, hwc2_display_t display,

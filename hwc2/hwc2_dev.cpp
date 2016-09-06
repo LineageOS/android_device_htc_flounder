@@ -121,6 +121,46 @@ hwc2_error_t hwc2_dev::validate_display(hwc2_display_t dpy_id,
     return it->second.validate_display(out_num_types, out_num_requests);
 }
 
+hwc2_error_t hwc2_dev::get_changed_composition_types(hwc2_display_t dpy_id,
+        uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+        hwc2_composition_t *out_types) const
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_changed_composition_types(out_num_elements,
+            out_layers, out_types);
+}
+
+hwc2_error_t hwc2_dev::get_display_requests(hwc2_display_t dpy_id,
+        hwc2_display_request_t *out_display_requests,
+        uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+        hwc2_layer_request_t *out_layer_requests) const
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_display_requests(out_display_requests,
+            out_num_elements, out_layers, out_layer_requests);
+}
+
+hwc2_error_t hwc2_dev::accept_display_changes(hwc2_display_t dpy_id)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.accept_display_changes();
+}
+
 hwc2_error_t hwc2_dev::get_display_attribute(hwc2_display_t dpy_id,
         hwc2_config_t config, hwc2_attribute_t attribute, int32_t *out_value)
         const

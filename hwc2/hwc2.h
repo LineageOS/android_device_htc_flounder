@@ -381,6 +381,14 @@ public:
                     uint32_t *out_num_requests);
     void         assign_composition();
 
+    hwc2_error_t get_changed_composition_types(uint32_t *out_num_elements,
+                    hwc2_layer_t *out_layers, hwc2_composition_t *out_types)
+                    const;
+    hwc2_error_t get_display_requests(
+                    hwc2_display_request_t *out_display_requests,
+                    uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+                    hwc2_layer_request_t *out_layer_requests) const;
+    hwc2_error_t accept_display_changes();
 
     /* Window functions */
     void init_windows();
@@ -511,6 +519,14 @@ public:
     /* Display present functions */
     hwc2_error_t validate_display(hwc2_display_t dpy_id,
                     uint32_t *out_num_types, uint32_t *out_num_requests);
+    hwc2_error_t get_changed_composition_types(hwc2_display_t dpy_id,
+                    uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+                    hwc2_composition_t *out_types) const;
+    hwc2_error_t get_display_requests(hwc2_display_t dpy_id,
+                    hwc2_display_request_t *out_display_requests,
+                    uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+                    hwc2_layer_request_t *out_layer_requests) const;
+    hwc2_error_t accept_display_changes(hwc2_display_t dpy_id);
 
     /* Config functions */
     hwc2_error_t get_display_attribute(hwc2_display_t dpy_id,
