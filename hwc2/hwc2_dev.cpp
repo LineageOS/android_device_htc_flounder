@@ -17,6 +17,8 @@
 #include <fcntl.h>
 #include <cutils/log.h>
 #include <inttypes.h>
+
+#include <sstream>
 #include <cstdlib>
 #include <vector>
 
@@ -52,6 +54,7 @@ hwc2_dev::hwc2_dev()
     : state_mutex(),
       callback_handler(),
       displays(),
+      dump_str(),
       adf_helper(nullptr) { }
 
 hwc2_dev::~hwc2_dev()
@@ -61,9 +64,38 @@ hwc2_dev::~hwc2_dev()
     hwc2_display::reset_ids();
 }
 
-hwc2_error_t hwc2_dev::get_display_name(hwc2_display_t dpy_id, uint32_t *out_size,
-        char *out_name) const
+std::string hwc2_dev::dump() const
 {
+    std::stringstream dmp;
+
+    dmp << "NVIDIA HWC2:\n";
+    for (auto &dpy: displays)
+        dmp << dpy.second.dump() << "\n";
+
+    return dmp.str();
+}
+
+void hwc2_dev::dump_hwc2(uint32_t *out_size, char *out_buffer)
+{
+    std::lock_guard<std::mutex> guard(state_mutex);
+
+    if (!out_buffer) {
+        dump_str.clear();
+        dump_str.append(dump());
+        *out_size = dump_str.length();
+        return;
+    }
+
+    *out_size = (*out_size > dump_str.length())? dump_str.length(): *out_size;
+    dump_str.copy(out_buffer, *out_size);
+    dump_str.clear();
+}
+
+hwc2_error_t hwc2_dev::get_display_name(hwc2_display_t dpy_id, uint32_t *out_size,
+        char *out_name)
+{
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -74,8 +106,10 @@ hwc2_error_t hwc2_dev::get_display_name(hwc2_display_t dpy_id, uint32_t *out_siz
 }
 
 hwc2_error_t hwc2_dev::get_display_type(hwc2_display_t dpy_id,
-        hwc2_display_type_t *out_type) const
+        hwc2_display_type_t *out_type)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -86,7 +120,7 @@ hwc2_error_t hwc2_dev::get_display_type(hwc2_display_t dpy_id,
     return HWC2_ERROR_NONE;
 }
 
-uint32_t hwc2_dev::get_max_virtual_display_count() const
+uint32_t hwc2_dev::get_max_virtual_display_count()
 {
     return 0;
 }
@@ -130,8 +164,10 @@ hwc2_error_t hwc2_dev::set_power_mode(hwc2_display_t dpy_id,
 }
 
 hwc2_error_t hwc2_dev::get_doze_support(hwc2_display_t dpy_id,
-        int32_t *out_support) const
+        int32_t *out_support)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -144,6 +180,8 @@ hwc2_error_t hwc2_dev::get_doze_support(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::validate_display(hwc2_display_t dpy_id,
         uint32_t *out_num_types, uint32_t *out_num_requests)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -155,8 +193,10 @@ hwc2_error_t hwc2_dev::validate_display(hwc2_display_t dpy_id,
 
 hwc2_error_t hwc2_dev::get_changed_composition_types(hwc2_display_t dpy_id,
         uint32_t *out_num_elements, hwc2_layer_t *out_layers,
-        hwc2_composition_t *out_types) const
+        hwc2_composition_t *out_types)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -170,8 +210,10 @@ hwc2_error_t hwc2_dev::get_changed_composition_types(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::get_display_requests(hwc2_display_t dpy_id,
         hwc2_display_request_t *out_display_requests,
         uint32_t *out_num_elements, hwc2_layer_t *out_layers,
-        hwc2_layer_request_t *out_layer_requests) const
+        hwc2_layer_request_t *out_layer_requests)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -184,6 +226,8 @@ hwc2_error_t hwc2_dev::get_display_requests(hwc2_display_t dpy_id,
 
 hwc2_error_t hwc2_dev::accept_display_changes(hwc2_display_t dpy_id)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -209,8 +253,10 @@ hwc2_error_t hwc2_dev::present_display(hwc2_display_t dpy_id,
 
 hwc2_error_t hwc2_dev::get_release_fences(hwc2_display_t dpy_id,
         uint32_t *out_num_elements, hwc2_layer_t *out_layers,
-        int32_t *out_fences) const
+        int32_t *out_fences)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -223,8 +269,9 @@ hwc2_error_t hwc2_dev::get_release_fences(hwc2_display_t dpy_id,
 
 hwc2_error_t hwc2_dev::get_display_attribute(hwc2_display_t dpy_id,
         hwc2_config_t config, hwc2_attribute_t attribute, int32_t *out_value)
-        const
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -235,8 +282,10 @@ hwc2_error_t hwc2_dev::get_display_attribute(hwc2_display_t dpy_id,
 }
 
 hwc2_error_t hwc2_dev::get_display_configs(hwc2_display_t dpy_id,
-        uint32_t *out_num_configs, hwc2_config_t *out_configs) const
+        uint32_t *out_num_configs, hwc2_config_t *out_configs)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -247,8 +296,10 @@ hwc2_error_t hwc2_dev::get_display_configs(hwc2_display_t dpy_id,
 }
 
 hwc2_error_t hwc2_dev::get_active_config(hwc2_display_t dpy_id,
-        hwc2_config_t *out_config) const
+        hwc2_config_t *out_config)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -261,6 +312,8 @@ hwc2_error_t hwc2_dev::get_active_config(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_active_config(hwc2_display_t dpy_id,
         hwc2_config_t config)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -271,8 +324,10 @@ hwc2_error_t hwc2_dev::set_active_config(hwc2_display_t dpy_id,
 }
 
 hwc2_error_t hwc2_dev::get_color_modes(hwc2_display_t dpy_id,
-        uint32_t *out_num_modes, android_color_mode_t *out_modes) const
+        uint32_t *out_num_modes, android_color_mode_t *out_modes)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -285,6 +340,8 @@ hwc2_error_t hwc2_dev::get_color_modes(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_color_mode(hwc2_display_t dpy_id,
         android_color_mode_t mode)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -297,8 +354,10 @@ hwc2_error_t hwc2_dev::set_color_mode(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::get_hdr_capabilities(hwc2_display_t dpy_id,
         uint32_t *out_num_types, android_hdr_t *out_types,
         float *out_max_luminance, float *out_max_average_luminance,
-        float *out_min_luminance) const
+        float *out_min_luminance)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -313,6 +372,8 @@ hwc2_error_t hwc2_dev::get_hdr_capabilities(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_color_transform(hwc2_display_t dpy_id,
         const float *color_matrix, android_color_transform_t color_hint)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -326,6 +387,8 @@ hwc2_error_t hwc2_dev::get_client_target_support(hwc2_display_t dpy_id,
         uint32_t width, uint32_t height, android_pixel_format_t format,
         android_dataspace_t dataspace)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -340,6 +403,8 @@ hwc2_error_t hwc2_dev::set_client_target(hwc2_display_t dpy_id,
         buffer_handle_t target, int32_t acquire_fence,
         android_dataspace_t dataspace, const hwc_region_t &surface_damage)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -352,6 +417,8 @@ hwc2_error_t hwc2_dev::set_client_target(hwc2_display_t dpy_id,
 
 hwc2_error_t hwc2_dev::create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_layer)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -363,6 +430,8 @@ hwc2_error_t hwc2_dev::create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_lay
 
 hwc2_error_t hwc2_dev::destroy_layer(hwc2_display_t dpy_id, hwc2_layer_t lyr_id)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -375,6 +444,7 @@ hwc2_error_t hwc2_dev::destroy_layer(hwc2_display_t dpy_id, hwc2_layer_t lyr_id)
 hwc2_error_t hwc2_dev::set_layer_composition_type(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, hwc2_composition_t comp_type)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_composition_type(lyr_id,
             comp_type);
 }
@@ -382,6 +452,7 @@ hwc2_error_t hwc2_dev::set_layer_composition_type(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_layer_buffer(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, buffer_handle_t handle, int32_t acquire_fence)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_buffer(lyr_id, handle,
             acquire_fence);
 }
@@ -389,12 +460,14 @@ hwc2_error_t hwc2_dev::set_layer_buffer(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_layer_dataspace(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, android_dataspace_t dataspace)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_dataspace(lyr_id, dataspace);
 }
 
 hwc2_error_t hwc2_dev::set_layer_display_frame(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, const hwc_rect_t &display_frame)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_display_frame(lyr_id,
             display_frame);
 }
@@ -402,6 +475,7 @@ hwc2_error_t hwc2_dev::set_layer_display_frame(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_layer_source_crop(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, const hwc_frect_t &source_crop)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_source_crop(lyr_id,
             source_crop);
 }
@@ -409,12 +483,14 @@ hwc2_error_t hwc2_dev::set_layer_source_crop(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_layer_z_order(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, uint32_t z_order)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_z_order(lyr_id, z_order);
 }
 
 hwc2_error_t hwc2_dev::set_layer_surface_damage(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, const hwc_region_t &surface_damage)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_surface_damage(lyr_id,
             surface_damage);
 }
@@ -422,6 +498,7 @@ hwc2_error_t hwc2_dev::set_layer_surface_damage(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_layer_blend_mode(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_blend_mode(lyr_id,
             blend_mode);
 }
@@ -429,6 +506,7 @@ hwc2_error_t hwc2_dev::set_layer_blend_mode(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_layer_plane_alpha(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, float plane_alpha)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_plane_alpha(lyr_id,
             plane_alpha);
 }
@@ -436,12 +514,14 @@ hwc2_error_t hwc2_dev::set_layer_plane_alpha(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::set_layer_transform(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, const hwc_transform_t transform)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_transform(lyr_id, transform);
 }
 
 hwc2_error_t hwc2_dev::set_layer_visible_region(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, const hwc_region_t &visible_region)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
     return displays.find(dpy_id)->second.set_layer_visible_region(lyr_id,
             visible_region);
 }
@@ -486,11 +566,15 @@ void hwc2_dev::hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection)
 
 void hwc2_dev::vsync(hwc2_display_t dpy_id, uint64_t timestamp)
 {
-    auto it = displays.find(dpy_id);
-    if (it == displays.end()) {
-        ALOGW("dpy %" PRIu64 ": invalid display handle preventing vsync"
-                " callback", dpy_id);
-        return;
+    {
+        std::lock_guard<std::mutex> guard(state_mutex);
+
+        auto it = displays.find(dpy_id);
+        if (it == displays.end()) {
+            ALOGW("dpy %" PRIu64 ": invalid display handle preventing vsync"
+                    " callback", dpy_id);
+            return;
+        }
     }
 
     callback_handler.call_vsync(dpy_id, timestamp);
@@ -499,6 +583,8 @@ void hwc2_dev::vsync(hwc2_display_t dpy_id, uint64_t timestamp)
 hwc2_error_t hwc2_dev::set_vsync_enabled(hwc2_display_t dpy_id,
         hwc2_vsync_t enabled)
 {
+    std::lock_guard<std::mutex> guard(state_mutex);
+
     auto it = displays.find(dpy_id);
     if (it == displays.end()) {
         ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
@@ -551,6 +637,8 @@ int hwc2_dev::open_adf_device()
 {
     adf_id_t *dev_ids = nullptr;
     int ret;
+
+    std::lock_guard<std::mutex> guard(state_mutex);
 
     ssize_t n_devs = adf_devices(&dev_ids);
     if (n_devs < 0) {

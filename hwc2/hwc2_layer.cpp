@@ -17,6 +17,8 @@
 #include <inttypes.h>
 #include <cutils/log.h>
 
+#include <sstream>
+
 #include "hwc2.h"
 
 uint64_t hwc2_layer::layer_cnt = 0;
@@ -26,6 +28,16 @@ hwc2_layer::hwc2_layer(hwc2_layer_t id)
       buffer(),
       comp_type(HWC2_COMPOSITION_INVALID),
       modified(true) { }
+
+std::string hwc2_layer::dump() const
+{
+    std::stringstream dmp;
+
+    dmp << "    Composition Type: " << getCompositionName(comp_type) << "\n";
+    dmp << buffer.dump();
+
+    return dmp.str();
+}
 
 hwc2_error_t hwc2_layer::decompress_buffer()
 {

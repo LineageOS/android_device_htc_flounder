@@ -56,10 +56,10 @@ hwc2_error_t destroy_virtual_display(hwc2_device_t *device,
     return dev->destroy_virtual_display(display);
 }
 
-void dump(hwc2_device_t* /*device*/, uint32_t* /*out_size*/,
-        char* /*out_buffer*/)
+void dump(hwc2_device_t *device, uint32_t *out_size, char *out_buffer)
 {
-    return;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    dev->dump_hwc2(out_size, out_buffer);
 }
 
 uint32_t get_max_virtual_display_count(hwc2_device_t *device)
