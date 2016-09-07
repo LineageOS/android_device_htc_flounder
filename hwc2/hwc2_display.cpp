@@ -44,6 +44,8 @@ hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
       configs(),
       active_config(0),
       power_mode(power_mode),
+      color_matrix(),
+      color_hint(HAL_COLOR_TRANSFORM_IDENTITY),
       release_fence(-1),
       adf_intf_fd(adf_intf_fd),
       adf_dev(adf_dev)
@@ -149,7 +151,10 @@ hwc2_error_t hwc2_display::validate_display(uint32_t *out_num_types,
     clear_windows();
     changed_comp_types.clear();
 
-    assign_composition();
+    if (color_hint != HAL_COLOR_TRANSFORM_IDENTITY)
+        force_client_composition();
+    else
+        assign_composition();
 
     *out_num_requests = 0;
     *out_num_types = changed_comp_types.size();
@@ -164,6 +169,15 @@ hwc2_error_t hwc2_display::validate_display(uint32_t *out_num_types,
 
     display_state = valid;
     return HWC2_ERROR_NONE;
+}
+
+void hwc2_display::force_client_composition()
+{
+    for (auto &lyr: layers) {
+        hwc2_composition_t comp_type = lyr.second.get_comp_type();
+        if (comp_type != HWC2_COMPOSITION_CLIENT)
+            changed_comp_types.emplace(lyr.second.get_id(), comp_type);
+    }
 }
 
 void hwc2_display::assign_composition()
@@ -636,6 +650,68 @@ hwc2_error_t hwc2_display::set_active_config(
     set_client_target_properties();
 
     return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::get_color_modes(uint32_t *out_num_modes,
+        android_color_mode_t *out_modes) const
+{
+    *out_num_modes = 1;
+    if (out_modes)
+        *out_modes = HAL_COLOR_MODE_NATIVE;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::set_color_mode(android_color_mode_t mode)
+{
+    switch (mode) {
+    case HAL_COLOR_MODE_NATIVE:
+        return HWC2_ERROR_NONE;
+    case HAL_COLOR_MODE_STANDARD_BT601_625:
+    case HAL_COLOR_MODE_STANDARD_BT601_625_UNADJUSTED:
+    case HAL_COLOR_MODE_STANDARD_BT601_525:
+    case HAL_COLOR_MODE_STANDARD_BT601_525_UNADJUSTED:
+    case HAL_COLOR_MODE_STANDARD_BT709:
+    case HAL_COLOR_MODE_DCI_P3:
+    case HAL_COLOR_MODE_SRGB:
+    case HAL_COLOR_MODE_ADOBE_RGB:
+        ALOGE("dpy %" PRIu64 ": unsupported color mode", id);
+        return HWC2_ERROR_UNSUPPORTED;
+    default:
+        ALOGE("dpy %" PRIu64 ": invalid color mode", id);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+}
+
+hwc2_error_t hwc2_display::get_hdr_capabilities(uint32_t *out_num_types,
+        android_hdr_t* /*out_types*/, float* /*out_max_luminance*/,
+        float* /*out_max_average_luminance*/,
+        float* /*out_min_luminance*/) const
+{
+    *out_num_types = 0;
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::set_color_transform(const float *color_matrix,
+        android_color_transform_t color_hint)
+{
+    switch (color_hint) {
+    case HAL_COLOR_TRANSFORM_IDENTITY:
+    case HAL_COLOR_TRANSFORM_ARBITRARY_MATRIX:
+    case HAL_COLOR_TRANSFORM_VALUE_INVERSE:
+    case HAL_COLOR_TRANSFORM_GRAYSCALE:
+    case HAL_COLOR_TRANSFORM_CORRECT_PROTANOPIA:
+    case HAL_COLOR_TRANSFORM_CORRECT_DEUTERANOPIA:
+    case HAL_COLOR_TRANSFORM_CORRECT_TRITANOPIA:
+        memcpy(this->color_matrix.data(), color_matrix,
+                this->color_matrix.size());
+        this->color_hint = color_hint;
+        return HWC2_ERROR_NONE;
+    default:
+        ALOGE("dpy %" PRIu64 ": invalid color transform hint", id);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
 }
 
 hwc2_error_t hwc2_display::get_client_target_support(uint32_t width,
