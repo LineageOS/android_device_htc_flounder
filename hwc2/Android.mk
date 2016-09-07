@@ -32,7 +32,8 @@ LOCAL_MODULE := hwcomposer.$(TARGET_BOOTLOADER_BOARD_NAME)
 
 LOCAL_SHARED_LIBRARIES := \
 	liblog \
-	libutils
+	libutils \
+	libcutils
 
 LOCAL_STATIC_LIBRARIES := \
 	libadfhwc \

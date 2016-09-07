@@ -24,6 +24,9 @@
 
 #include "hwc2.h"
 
+#define ATRACE_TAG ATRACE_TAG_GRAPHICS
+#include "cutils/trace.h"
+
 static void hwc2_vsync(void *data, int dpy_id, uint64_t timestamp)
 {
     hwc2_dev *dev = static_cast<hwc2_dev *>(data);
@@ -180,6 +183,8 @@ hwc2_error_t hwc2_dev::get_doze_support(hwc2_display_t dpy_id,
 hwc2_error_t hwc2_dev::validate_display(hwc2_display_t dpy_id,
         uint32_t *out_num_types, uint32_t *out_num_requests)
 {
+    ATRACE_BEGIN(__func__);
+
     std::lock_guard<std::mutex> guard(state_mutex);
 
     auto it = displays.find(dpy_id);
@@ -188,7 +193,12 @@ hwc2_error_t hwc2_dev::validate_display(hwc2_display_t dpy_id,
         return HWC2_ERROR_BAD_DISPLAY;
     }
 
-    return it->second.validate_display(out_num_types, out_num_requests);
+    hwc2_error_t ret = it->second.validate_display(out_num_types,
+            out_num_requests);
+
+    ATRACE_END();
+
+    return ret;
 }
 
 hwc2_error_t hwc2_dev::get_changed_composition_types(hwc2_display_t dpy_id,
@@ -240,6 +250,8 @@ hwc2_error_t hwc2_dev::accept_display_changes(hwc2_display_t dpy_id)
 hwc2_error_t hwc2_dev::present_display(hwc2_display_t dpy_id,
         int32_t *out_present_fence)
 {
+    ATRACE_BEGIN(__func__);
+
     std::lock_guard<std::mutex> guard(state_mutex);
 
     auto it = displays.find(dpy_id);
@@ -248,7 +260,11 @@ hwc2_error_t hwc2_dev::present_display(hwc2_display_t dpy_id,
         return HWC2_ERROR_BAD_DISPLAY;
     }
 
-    return it->second.present_display(out_present_fence);
+    hwc2_error_t ret = it->second.present_display(out_present_fence);
+
+    ATRACE_END();
+
+    return ret;
 }
 
 hwc2_error_t hwc2_dev::get_release_fences(hwc2_display_t dpy_id,
