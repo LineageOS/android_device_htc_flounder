@@ -22,17 +22,19 @@ extern int denver_uid_check(void);
 
 void dumpstate_board()
 {
+    Dumpstate& ds = Dumpstate::GetInstance();
+
 #ifdef HAS_DENVER_UID_CHECK
     denver_uid_check();
 #endif
 
-    dump_file("soc revision", "/sys/devices/soc0/revision");
-    dump_file("soc die_id", "/sys/devices/soc0/soc_id");
-    dump_file("bq2419x charger regs", "/d/bq2419x-regs");
-    dump_file("max17050 fuel gauge regs", "/d/max17050-regs");
-    dump_file("shrinkers", "/d/shrinker");
-    dump_file("wlan", "/sys/module/bcmdhd/parameters/info_string");
-    dump_file("display controller", "/d/tegradc.0/stats");
-    dump_file("sensor_hub version", "/sys/devices/virtual/htc_sensorhub/sensor_hub/firmware_version");
-    dump_file("audio nvavp", "/d/nvavp/refs");
+    ds.DumpFile("soc revision", "/sys/devices/soc0/revision");
+    ds.DumpFile("soc die_id", "/sys/devices/soc0/soc_id");
+    ds.DumpFile("bq2419x charger regs", "/d/bq2419x-regs");
+    ds.DumpFile("max17050 fuel gauge regs", "/d/max17050-regs");
+    ds.DumpFile("shrinkers", "/d/shrinker");
+    ds.DumpFile("wlan", "/sys/module/bcmdhd/parameters/info_string");
+    ds.DumpFile("display controller", "/d/tegradc.0/stats");
+    ds.DumpFile("sensor_hub version", "/sys/devices/virtual/htc_sensorhub/sensor_hub/firmware_version");
+    ds.DumpFile("audio nvavp", "/d/nvavp/refs");
 };
