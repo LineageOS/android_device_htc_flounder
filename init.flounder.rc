@@ -60,10 +60,6 @@ on post-fs-data
     setprop vold.post_fs_data_done 1
 
 on boot
-  # bluetooth
-    # change back to bluetooth from system
-    chown bluetooth net_bt_stack /data/misc/bluetooth
-
     # power down interface
     write /sys/class/rfkill/rfkill0/state 0
 
