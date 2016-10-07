@@ -226,6 +226,10 @@ PRODUCT_PACKAGES += \
     android.hardware.light@2.0-impl \
     lights.flounder
 
+# Memtrack HAL
+PRODUCT_PACKAGES += \
+    android.hardware.memtrack@1.0-impl
+
 # RenderScript HAL
 PRODUCT_PACKAGES += \
     android.hardware.renderscript@1.0-impl
