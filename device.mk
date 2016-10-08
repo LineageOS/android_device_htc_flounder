@@ -200,6 +200,10 @@ PRODUCT_PACKAGES += \
     android.hardware.thermal@1.0-impl \
     hwcomposer.flounder
 
+# Vibrator
+PRODUCT_PACKAGES += \
+    android.hardware.vibrator@1.0-impl
+
 # Filesystem management tools
 PRODUCT_PACKAGES += \
     fsck.f2fs mkfs.f2fs
