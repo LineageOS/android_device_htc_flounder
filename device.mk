@@ -189,9 +189,6 @@ PRODUCT_PACKAGES += \
     librs_jni \
     com.android.future.usb.accessory
 
-PRODUCT_PACKAGES += \
-    power.flounder
-
 # Camera HAL
 PRODUCT_PACKAGES += \
     camera.device@3.2-impl \
@@ -229,6 +226,11 @@ PRODUCT_PACKAGES += \
 # Memtrack HAL
 PRODUCT_PACKAGES += \
     android.hardware.memtrack@1.0-impl
+
+# Power HAL
+PRODUCT_PACKAGES += \
+    android.hardware.power@1.0-impl \
+    power.flounder
 
 # RenderScript HAL
 PRODUCT_PACKAGES += \
