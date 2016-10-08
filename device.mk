@@ -190,7 +190,6 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
 PRODUCT_PACKAGES += \
-    power.flounder \
     hwcomposer.flounder
 
 # Camera HAL
@@ -218,6 +217,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.light@2.0-impl \
     lights.flounder
+
+# Power HAL
+PRODUCT_PACKAGES += \
+    android.hardware.power@1.0-impl \
+    power.flounder
 
 # Sensors HAL
 PRODUCT_PACKAGES += \
