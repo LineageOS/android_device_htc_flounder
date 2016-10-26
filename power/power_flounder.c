@@ -238,7 +238,7 @@ static int flounder_power_open(const hw_module_t* module, const char* name,
             /* Common hw_device_t fields */
             dev->common.tag = HARDWARE_DEVICE_TAG;
             dev->common.module_api_version = POWER_MODULE_API_VERSION_0_2;
-            dev->common.module_api_version = HARDWARE_HAL_API_VERSION;
+            dev->common.hal_api_version = HARDWARE_HAL_API_VERSION;
             dev->init = power_init;
             dev->setInteractive = power_set_interactive;
             dev->powerHint = flounder_power_hint;
