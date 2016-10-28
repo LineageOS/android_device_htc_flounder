@@ -192,8 +192,12 @@ PRODUCT_PACKAGES += \
     power.flounder \
     lights.flounder \
     sensors.flounder \
-    thermal.flounder \
     hwcomposer.flounder
+
+# Thermal HAL
+PRODUCT_PACKAGES += \
+    android.hardware.thermal@1.0-impl \
+    thermal.flounder
 
 # Filesystem management tools
 PRODUCT_PACKAGES += \
