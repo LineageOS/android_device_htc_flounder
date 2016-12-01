@@ -328,10 +328,11 @@ hwc2_error_t set_layer_visible_region(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t set_layer_z_order(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/, uint32_t /*z*/)
+hwc2_error_t set_layer_z_order(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_layer_t layer, uint32_t z)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_z_order(display, layer, z);
 }
 
 /* Indexed using the hwc2_function_descriptor_t enum to find the corresponding

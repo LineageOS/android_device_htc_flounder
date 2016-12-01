@@ -33,6 +33,7 @@ public:
 
     /* Set properties */
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
+    hwc2_error_t set_z_order(uint32_t z_order);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
     hwc2_error_t set_transform(hwc_transform_t transform);
@@ -41,6 +42,10 @@ private:
     /* Provides more info on how to interpret the buffer contents such as
      * the encoding standard and color transformation */
     android_dataspace_t dataspace;
+
+    /* The height of a given buffer. A buffer with a greater Z value occludes
+     * a buffer with a lesser Z value */
+    uint32_t z_order;
 
     /* The blend mode of the buffer */
     hwc2_blend_mode_t blend_mode;
@@ -113,6 +118,7 @@ public:
     /* Set properties */
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
+    hwc2_error_t set_z_order(uint32_t z_order);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
     hwc2_error_t set_transform(hwc_transform_t transform);
@@ -174,6 +180,7 @@ public:
                     hwc2_composition_t comp_type);
     hwc2_error_t set_layer_dataspace(hwc2_layer_t lyr_id,
                     android_dataspace_t dataspace);
+    hwc2_error_t set_layer_z_order(hwc2_layer_t lyr_id, uint32_t z_order);
     hwc2_error_t set_layer_blend_mode(hwc2_layer_t lyr_id,
                     hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_layer_plane_alpha(hwc2_layer_t lyr_id, float plane_alpha);
@@ -257,6 +264,8 @@ public:
                     hwc2_layer_t lyr_id, hwc2_composition_t comp_type);
     hwc2_error_t set_layer_dataspace(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     android_dataspace_t dataspace);
+    hwc2_error_t set_layer_z_order(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
+                    uint32_t z_order);
     hwc2_error_t set_layer_blend_mode(hwc2_display_t dpy_id,
                     hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_layer_plane_alpha(hwc2_display_t dpy_id,
