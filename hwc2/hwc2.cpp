@@ -265,11 +265,11 @@ hwc2_error_t set_layer_surface_damage(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t set_layer_blend_mode(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/,
-        hwc2_blend_mode_t /*mode*/)
+hwc2_error_t set_layer_blend_mode(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_layer_t layer, hwc2_blend_mode_t mode)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_blend_mode(display, layer, mode);
 }
 
 hwc2_error_t set_layer_color(hwc2_device_t* /*device*/,

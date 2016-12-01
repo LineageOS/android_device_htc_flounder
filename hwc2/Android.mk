@@ -44,7 +44,8 @@ LOCAL_SRC_FILES := \
 	hwc2_display.cpp \
 	hwc2_config.cpp \
 	hwc2_callback.cpp \
-	hwc2_layer.cpp
+	hwc2_layer.cpp \
+	hwc2_buffer.cpp
 
 LOCAL_MODLE_TAGS := optional
 
