@@ -32,9 +32,14 @@ public:
     hwc2_buffer();
 
     /* Set properties */
+    hwc2_error_t set_dataspace(android_dataspace_t dataspace);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
 
 private:
+    /* Provides more info on how to interpret the buffer contents such as
+     * the encoding standard and color transformation */
+    android_dataspace_t dataspace;
+
     /* The blend mode of the buffer */
     hwc2_blend_mode_t blend_mode;
 };
@@ -98,6 +103,7 @@ public:
 
     /* Set properties */
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
+    hwc2_error_t set_dataspace(android_dataspace_t dataspace);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
 
     static hwc2_layer_t get_next_id();
@@ -155,6 +161,8 @@ public:
 
     hwc2_error_t set_layer_composition_type(hwc2_layer_t lyr_id,
                     hwc2_composition_t comp_type);
+    hwc2_error_t set_layer_dataspace(hwc2_layer_t lyr_id,
+                    android_dataspace_t dataspace);
     hwc2_error_t set_layer_blend_mode(hwc2_layer_t lyr_id,
                     hwc2_blend_mode_t blend_mode);
 
@@ -233,6 +241,8 @@ public:
 
     hwc2_error_t set_layer_composition_type(hwc2_display_t dpy_id,
                     hwc2_layer_t lyr_id, hwc2_composition_t comp_type);
+    hwc2_error_t set_layer_dataspace(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
+                    android_dataspace_t dataspace);
     hwc2_error_t set_layer_blend_mode(hwc2_display_t dpy_id,
                     hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode);
 
