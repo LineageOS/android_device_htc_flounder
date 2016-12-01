@@ -207,6 +207,12 @@ hwc2_error_t hwc2_dev::set_layer_plane_alpha(hwc2_display_t dpy_id,
             plane_alpha);
 }
 
+hwc2_error_t hwc2_dev::set_layer_transform(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, const hwc_transform_t transform)
+{
+    return displays.find(dpy_id)->second.set_layer_transform(lyr_id, transform);
+}
+
 void hwc2_dev::hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection)
 {
     auto it = displays.find(dpy_id);

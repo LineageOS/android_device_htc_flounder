@@ -21,7 +21,8 @@
 hwc2_buffer::hwc2_buffer()
     : dataspace(),
       blend_mode(HWC2_BLEND_MODE_NONE),
-      plane_alpha(1.0) { }
+      plane_alpha(1.0),
+      transform() { }
 
 hwc2_error_t hwc2_buffer::set_dataspace(android_dataspace_t dataspace)
 {
@@ -45,6 +46,13 @@ hwc2_error_t hwc2_buffer::set_blend_mode(hwc2_blend_mode_t blend_mode)
 hwc2_error_t hwc2_buffer::set_plane_alpha(float plane_alpha)
 {
     this->plane_alpha = plane_alpha;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::set_transform(const hwc_transform_t transform)
+{
+    this->transform = transform;
 
     return HWC2_ERROR_NONE;
 }
