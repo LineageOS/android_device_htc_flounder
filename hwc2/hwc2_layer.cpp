@@ -51,6 +51,22 @@ hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
     return ret;
 }
 
+hwc2_error_t hwc2_layer::set_buffer(buffer_handle_t handle, int32_t acquire_fence)
+{
+    if (comp_type == HWC2_COMPOSITION_SOLID_COLOR
+            || comp_type == HWC2_COMPOSITION_SIDEBAND
+            || comp_type == HWC2_COMPOSITION_CLIENT) {
+        return HWC2_ERROR_NONE;
+    }
+
+    if (!handle) {
+        ALOGE("lyr %" PRIu64 ": layer buffers cannot be null", id);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    return buffer.set_buffer(handle, acquire_fence);
+}
+
 hwc2_error_t hwc2_layer::set_dataspace(android_dataspace_t dataspace)
 {
     return buffer.set_dataspace(dataspace);
