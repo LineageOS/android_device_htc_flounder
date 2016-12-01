@@ -71,6 +71,11 @@ hwc2_error_t hwc2_layer::set_z_order(uint32_t z_order)
     return buffer.set_z_order(z_order);
 }
 
+hwc2_error_t hwc2_layer::set_surface_damage(const hwc_region_t &surface_damage)
+{
+    return buffer.set_surface_damage(surface_damage);
+}
+
 hwc2_error_t hwc2_layer::set_blend_mode(hwc2_blend_mode_t blend_mode)
 {
     return buffer.set_blend_mode(blend_mode);

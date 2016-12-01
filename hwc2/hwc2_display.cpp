@@ -323,6 +323,18 @@ hwc2_error_t hwc2_display::set_layer_z_order(hwc2_layer_t lyr_id, uint32_t z_ord
     return it->second.set_z_order(z_order);
 }
 
+hwc2_error_t hwc2_display::set_layer_surface_damage(hwc2_layer_t lyr_id,
+        const hwc_region_t &surface_damage)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    return it->second.set_surface_damage(surface_damage);
+}
+
 hwc2_error_t hwc2_display::set_layer_blend_mode(hwc2_layer_t lyr_id,
         hwc2_blend_mode_t blend_mode)
 {

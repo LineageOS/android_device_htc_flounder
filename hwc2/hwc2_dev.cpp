@@ -213,6 +213,13 @@ hwc2_error_t hwc2_dev::set_layer_z_order(hwc2_display_t dpy_id,
     return displays.find(dpy_id)->second.set_layer_z_order(lyr_id, z_order);
 }
 
+hwc2_error_t hwc2_dev::set_layer_surface_damage(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, const hwc_region_t &surface_damage)
+{
+    return displays.find(dpy_id)->second.set_layer_surface_damage(lyr_id,
+            surface_damage);
+}
+
 hwc2_error_t hwc2_dev::set_layer_blend_mode(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode)
 {
