@@ -294,11 +294,11 @@ hwc2_error_t set_layer_dataspace(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_layer_dataspace(display, layer, dataspace);
 }
 
-hwc2_error_t set_layer_display_frame(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/,
-        hwc_rect_t /*frame*/)
+hwc2_error_t set_layer_display_frame(hwc2_device_t *device,
+        hwc2_display_t display, hwc2_layer_t layer, hwc_rect_t frame)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_display_frame(display, layer, frame);
 }
 
 hwc2_error_t set_layer_plane_alpha(hwc2_device_t *device,

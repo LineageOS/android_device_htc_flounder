@@ -33,6 +33,7 @@ public:
 
     /* Set properties */
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
+    hwc2_error_t set_display_frame(const hwc_rect_t &display_frame);
     hwc2_error_t set_z_order(uint32_t z_order);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
@@ -43,6 +44,8 @@ private:
      * the encoding standard and color transformation */
     android_dataspace_t dataspace;
 
+    /* The portion of the display covered by the buffer */
+    hwc_rect_t display_frame;
     /* The height of a given buffer. A buffer with a greater Z value occludes
      * a buffer with a lesser Z value */
     uint32_t z_order;
@@ -118,6 +121,7 @@ public:
     /* Set properties */
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
+    hwc2_error_t set_display_frame(const hwc_rect_t &display_frame);
     hwc2_error_t set_z_order(uint32_t z_order);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
@@ -180,6 +184,8 @@ public:
                     hwc2_composition_t comp_type);
     hwc2_error_t set_layer_dataspace(hwc2_layer_t lyr_id,
                     android_dataspace_t dataspace);
+    hwc2_error_t set_layer_display_frame(hwc2_layer_t lyr_id,
+                    const hwc_rect_t &display_frame);
     hwc2_error_t set_layer_z_order(hwc2_layer_t lyr_id, uint32_t z_order);
     hwc2_error_t set_layer_blend_mode(hwc2_layer_t lyr_id,
                     hwc2_blend_mode_t blend_mode);
@@ -265,6 +271,8 @@ public:
                     hwc2_layer_t lyr_id, hwc2_composition_t comp_type);
     hwc2_error_t set_layer_dataspace(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     android_dataspace_t dataspace);
+    hwc2_error_t set_layer_display_frame(hwc2_display_t dpy_id,
+                    hwc2_layer_t lyr_id, const hwc_rect_t &display_frame);
     hwc2_error_t set_layer_z_order(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     uint32_t z_order);
     hwc2_error_t set_layer_blend_mode(hwc2_display_t dpy_id,
