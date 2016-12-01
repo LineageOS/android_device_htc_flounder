@@ -219,6 +219,12 @@ hwc2_error_t hwc2_dev::set_layer_transform(hwc2_display_t dpy_id,
     return displays.find(dpy_id)->second.set_layer_transform(lyr_id, transform);
 }
 
+hwc2_error_t hwc2_dev::set_layer_color(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, const hwc_color_t &color)
+{
+    return displays.find(dpy_id)->second.set_layer_color(lyr_id, color);
+}
+
 void hwc2_dev::hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection)
 {
     auto it = displays.find(dpy_id);

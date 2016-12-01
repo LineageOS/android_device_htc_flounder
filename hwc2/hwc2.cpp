@@ -272,11 +272,12 @@ hwc2_error_t set_layer_blend_mode(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_layer_blend_mode(display, layer, mode);
 }
 
-hwc2_error_t set_layer_color(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/,
-        hwc_color_t /*color*/)
+hwc2_error_t set_layer_color(hwc2_device_t *device,
+        hwc2_display_t display, hwc2_layer_t layer,
+        hwc_color_t color)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_color(display, layer, color);
 }
 
 hwc2_error_t set_layer_composition_type(hwc2_device_t *device,

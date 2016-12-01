@@ -186,6 +186,7 @@ public:
     hwc2_error_t set_layer_plane_alpha(hwc2_layer_t lyr_id, float plane_alpha);
     hwc2_error_t set_layer_transform(hwc2_layer_t lyr_id,
                     hwc_transform_t transform);
+    hwc2_error_t set_layer_color(hwc2_layer_t lyr_id, const hwc_color_t &color);
 
     static hwc2_display_t get_next_id();
 
@@ -272,6 +273,8 @@ public:
                     hwc2_layer_t lyr_id, float plane_alpha);
     hwc2_error_t set_layer_transform(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     hwc_transform_t transform);
+    hwc2_error_t set_layer_color(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
+                    const hwc_color_t &color);
 
     /* Callback functions */
     void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);

@@ -334,6 +334,21 @@ hwc2_error_t hwc2_display::set_layer_transform(hwc2_layer_t lyr_id,
     return it->second.set_transform(transform);
 }
 
+hwc2_error_t hwc2_display::set_layer_color(hwc2_layer_t lyr_id,
+        const hwc_color_t& /*color*/)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    /* Layer colors are not supported on flounder. During validate, any layers
+     * marked HWC2_COMPOSITION_SOLID_COLOR will be changed to
+     * HWC2_COMPOSITION_CLIENT. No need to store the layer color. */
+    return HWC2_ERROR_NONE;
+}
+
 hwc2_display_t hwc2_display::get_next_id()
 {
     return display_cnt++;
