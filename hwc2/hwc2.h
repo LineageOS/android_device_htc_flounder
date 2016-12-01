@@ -201,6 +201,7 @@ public:
     hwc2_error_t set_layer_transform(hwc2_layer_t lyr_id,
                     hwc_transform_t transform);
     hwc2_error_t set_layer_color(hwc2_layer_t lyr_id, const hwc_color_t &color);
+    hwc2_error_t set_cursor_position(hwc2_layer_t lyr_id, int32_t x, int32_t y);
 
     static hwc2_display_t get_next_id();
 
@@ -293,6 +294,8 @@ public:
                     hwc_transform_t transform);
     hwc2_error_t set_layer_color(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     const hwc_color_t &color);
+    hwc2_error_t set_cursor_position(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
+                    int32_t x, int32_t y);
 
     /* Callback functions */
     void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
