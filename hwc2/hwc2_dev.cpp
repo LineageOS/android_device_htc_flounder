@@ -247,6 +247,13 @@ hwc2_error_t hwc2_dev::set_layer_transform(hwc2_display_t dpy_id,
     return displays.find(dpy_id)->second.set_layer_transform(lyr_id, transform);
 }
 
+hwc2_error_t hwc2_dev::set_layer_visible_region(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, const hwc_region_t &visible_region)
+{
+    return displays.find(dpy_id)->second.set_layer_visible_region(lyr_id,
+            visible_region);
+}
+
 hwc2_error_t hwc2_dev::set_layer_color(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, const hwc_color_t &color)
 {

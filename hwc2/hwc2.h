@@ -63,6 +63,7 @@ public:
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
     hwc2_error_t set_transform(hwc_transform_t transform);
+    hwc2_error_t set_visible_region(const hwc_region_t &visible_region);
 
 private:
     /* A handle to the buffer */
@@ -100,6 +101,10 @@ private:
 
     /* The rotation or flip of the buffer */
     hwc_transform_t transform;
+
+    /* The portion of the layer that is visible including portions under
+     * translucent areas of other buffers */
+    std::vector<hwc_rect_t> visible_region;
 };
 
 class hwc2_config {
@@ -170,6 +175,7 @@ public:
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
     hwc2_error_t set_transform(hwc_transform_t transform);
+    hwc2_error_t set_visible_region(const hwc_region_t &visible_region);
 
     static hwc2_layer_t get_next_id();
 
@@ -242,6 +248,8 @@ public:
     hwc2_error_t set_layer_plane_alpha(hwc2_layer_t lyr_id, float plane_alpha);
     hwc2_error_t set_layer_transform(hwc2_layer_t lyr_id,
                     hwc_transform_t transform);
+    hwc2_error_t set_layer_visible_region(hwc2_layer_t lyr_id,
+                    const hwc_region_t &visible_region);
     hwc2_error_t set_layer_color(hwc2_layer_t lyr_id, const hwc_color_t &color);
     hwc2_error_t set_cursor_position(hwc2_layer_t lyr_id, int32_t x, int32_t y);
 
@@ -338,6 +346,8 @@ public:
                     hwc2_layer_t lyr_id, float plane_alpha);
     hwc2_error_t set_layer_transform(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     hwc_transform_t transform);
+    hwc2_error_t set_layer_visible_region(hwc2_display_t dpy_id,
+                    hwc2_layer_t lyr_id, const hwc_region_t &visible_region);
     hwc2_error_t set_layer_color(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     const hwc_color_t &color);
     hwc2_error_t set_cursor_position(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
