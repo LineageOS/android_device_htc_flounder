@@ -61,6 +61,11 @@ hwc2_error_t hwc2_layer::set_blend_mode(hwc2_blend_mode_t blend_mode)
     return buffer.set_blend_mode(blend_mode);
 }
 
+hwc2_error_t hwc2_layer::set_plane_alpha(float plane_alpha)
+{
+    return buffer.set_plane_alpha(plane_alpha);
+}
+
 hwc2_layer_t hwc2_layer::get_next_id()
 {
     return layer_cnt++;
