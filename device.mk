@@ -145,7 +145,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/qct/lib64/libloc_eng.so:system/lib64/libloc_eng.so \
     $(LOCAL_PATH)/gps/qct/lib64/hw/gps.default.so:system/lib64/hw/gps.default.so
 
-
 # NFC feature + config files
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.nfc.xml:system/etc/permissions/android.hardware.nfc.xml \
@@ -195,6 +194,10 @@ PRODUCT_PACKAGES += \
 # DRM HAL
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.0-impl
+
+# GNSS HAL
+PRODUCT_PACKAGES += \
+    android.hardware.gnss@1.0-impl
 
 # Light HAL
 PRODUCT_PACKAGES += \
