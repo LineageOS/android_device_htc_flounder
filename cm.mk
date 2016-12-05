@@ -43,9 +43,9 @@ DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-cm
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_NAME=flounder \
-    BUILD_FINGERPRINT=google/volantis/flounder:7.0/NRD91N/3318108:user/release-keys \
-    PRIVATE_BUILD_DESC="volantis-user 7.0 NRD91N 3318108 release-keys" \
-    BUILD_ID=NRD91N
+    BUILD_FINGERPRINT=google/volantis/flounder:7.1.1/NMF26F/3425388:user/release-keys \
+    PRIVATE_BUILD_DESC="volantis-user 7.1.1 NMF26F 3425388 release-keys" \
+    BUILD_ID=NMF26F
 
 ## Device identifier. This must come after all inclusions
 PRODUCT_NAME := cm_flounder
