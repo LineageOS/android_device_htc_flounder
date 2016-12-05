@@ -2,10 +2,11 @@
 <glgps xmlns="http://www.glpals.com/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.glpals.com/ glconfig.xsd" >
 
   <hal
+    AssertEnabled="false"
     PortName="/dev/ttyTHS1"
     BaudRate="921600"
     NmeaOutName="/data/gps/nmea_out"
-    CtrlPipe=""
+    CtrlPipe="/data/gps/glgpsctrl"
     GpioNStdbyPath="/sys/class/gps/bcm47521/gps_onoff/value"
     GpioDelayMs="130"
     NvStorageDir="/data/gps/"
@@ -19,7 +20,7 @@
     LogPriMask="LOG_INFO"
     LogFacMask="LOG_GLLAPI | LOG_NMEA "
     FrqPlan="FRQ_PLAN_26MHZ_2PPM"
-    RfType="GL_RF_47521_BRCM_EXT_LNA"
+    RfType="GL_RF_4752_BRCM_EXT_LNA"
   />
 
 </glgps>
