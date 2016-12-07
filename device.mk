@@ -237,8 +237,7 @@ PRODUCT_PACKAGES += \
     audio.a2dp.default \
     audio.usb.default \
     audio.r_submix.default \
-    libhtcacoustic \
-    libnvvisualizer
+    libhtcacoustic
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.audio.monitorRotation=true
 
