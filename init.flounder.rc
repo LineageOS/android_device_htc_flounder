@@ -120,6 +120,9 @@ on boot
     write /proc/sys/net/core/rmem_max 1048576
     write /proc/sys/net/core/wmem_max 1048576
 
+    # Wifi firmware reload path
+    chown wifi wifi /sys/module/bcmdhd/parameters/firmware_path
+
 on fs
     mount_all /fstab.flounder
     # Update dm-verity state and set partition.*.verified properties
