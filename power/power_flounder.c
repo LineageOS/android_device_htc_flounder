@@ -211,12 +211,12 @@ static void flounder_power_hint(struct power_module *module, power_hint_t hint,
 
     case POWER_HINT_LOW_POWER:
         pthread_mutex_lock(&flounder->lock);
-        if (data) {
+        if (*(int32_t *)data) {
             sysfs_write(CPU_MAX_FREQ_PATH, low_power_max_cpu_freq);
         } else {
             sysfs_write(CPU_MAX_FREQ_PATH, max_cpu_freq);
         }
-        low_power_mode = data;
+        low_power_mode = (*(int32_t *)data);
         pthread_mutex_unlock(&flounder->lock);
         break;
 
