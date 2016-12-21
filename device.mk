@@ -220,6 +220,7 @@ PRODUCT_PROPERTY_OVERRIDES := \
     ro.hwui.disable_scissor_opt=true \
     ro.bt.bdaddr_path=/sys/module/flounder_bdaddress/parameters/bdaddress \
     ro.frp.pst=/dev/block/platform/sdhci-tegra.3/by-name/PST \
+    ro.product.first_api_level=23 \
     ro.ril.def.agps.mode=1 \
     persist.tegra.compositor=glcomposer
 
