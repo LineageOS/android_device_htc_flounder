@@ -29,7 +29,7 @@ BOARD_NEEDS_VENDORIMAGE_SYMLINK := true
 KERNEL_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/$(HOST_OS)-x86/aarch64/aarch64-linux-android-4.9/bin
 KERNEL_TOOLCHAIN_PREFIX := aarch64-linux-android-
 TARGET_KERNEL_SOURCE := kernel/htc/flounder
-TARGET_KERNEL_CONFIG := cyanogenmod_flounder_defconfig
+TARGET_KERNEL_CONFIG := lineage_flounder_defconfig
 BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb
 BOARD_KERNEL_CMDLINE := androidboot.selinux=enforcing
 TARGET_PREBUILT_KERNEL := false
@@ -47,6 +47,6 @@ PRODUCT_BUILD_PROP_OVERRIDES += \
     PRIVATE_BUILD_DESC="volantis-user 7.1.1 NMF26F 3425388 release-keys"
 
 ## Device identifier. This must come after all inclusions
-PRODUCT_NAME := cm_flounder
+PRODUCT_NAME := lineage_flounder
 PRODUCT_BRAND := google
 PRODUCT_MODEL := Nexus 9
