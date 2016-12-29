@@ -121,3 +121,6 @@
 
 # label the wifi MAC address
 /sys/devices/platform/sdhci-tegra\.0/mmc_host/mmc1/mmc1:0001/mmc1:0001:2/net/wlan0/address u:object_r:sysfs_mac_address:s0
+
+# dumpstate
+/vendor/bin/hw/android\.hardware\.dumpstate@1\.0-service.flounder      u:object_r:hal_dumpstate_impl_exec:s0
