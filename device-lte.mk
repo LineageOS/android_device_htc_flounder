@@ -26,8 +26,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # LTE, CDMA, GSM/WCDMA
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.telephony.default_network=9 \
-    telephony.lteOnCdmaDevice=1
+    ro.telephony.default_network=9
 
 DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/lte_only_overlay
