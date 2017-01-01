@@ -193,6 +193,10 @@ PRODUCT_PACKAGES += \
     lights.flounder \
     hwcomposer.flounder
 
+# DRM HAL
+PRODUCT_PACKAGES += \
+    android.hardware.drm@1.0-impl
+
 # Sensors HAL
 PRODUCT_PACKAGES += \
     android.hardware.sensors@1.0-impl \
