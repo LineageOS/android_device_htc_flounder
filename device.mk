@@ -190,8 +190,7 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
 PRODUCT_PACKAGES += \
-    power.flounder \
-    hwcomposer.flounder
+    power.flounder
 
 # Camera HAL
 PRODUCT_PACKAGES += \
@@ -209,6 +208,12 @@ PRODUCT_PACKAGES += \
 # GNSS HAL
 PRODUCT_PACKAGES += \
     android.hardware.gnss@1.0-impl
+
+# Graphics HAL
+PRODUCT_PACKAGES += \
+    android.hardware.graphics.allocator@2.0-impl \
+    android.hardware.graphics.mapper@2.0-impl \
+    hwcomposer.flounder
 
 # Keymaster HAL
 PRODUCT_PACKAGES += \
