@@ -195,6 +195,10 @@ PRODUCT_PACKAGES += \
     android.hardware.nfc@1.0-service
 endif
 
+# Bluetooth HAL
+PRODUCT_PACKAGES += \
+    android.hardware.bluetooth@1.0-impl
+
 PRODUCT_PACKAGES += \
     librs_jni \
     com.android.future.usb.accessory
