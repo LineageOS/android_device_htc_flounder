@@ -241,6 +241,17 @@ PRODUCT_PACKAGES += \
 #PRODUCT_PACKAGES += \
 #    VolantisLayout
 
+# drmservice prop
+PRODUCT_PROPERTY_OVERRIDES += \
+    drm.service.enabled=true
+
+# facelock properties
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.facelock.black_timeout=700 \
+    ro.facelock.det_timeout=2500 \
+    ro.facelock.rec_timeout=3500 \
+    ro.facelock.est_max_time=500
+
 # Allows healthd to boot directly from charger mode rather than initiating a reboot.
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.enable_boot_charger_mode=1
