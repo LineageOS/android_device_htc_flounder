@@ -95,7 +95,6 @@ WIFI_DRIVER_FW_PATH_STA     := "/vendor/firmware/fw_bcmdhd.bin"
 WIFI_DRIVER_FW_PATH_AP      := "/vendor/firmware/fw_bcmdhd_apsta.bin"
 
 BOARD_SEPOLICY_DIRS += device/htc/flounder/sepolicy
-BOARD_SECCOMP_POLICY += device/htc/flounder/seccomp
 
 TARGET_USES_64_BIT_BCMDHD := true
 TARGET_USES_64_BIT_BINDER := true
