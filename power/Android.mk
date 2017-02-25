@@ -24,4 +24,6 @@ LOCAL_SHARED_LIBRARIES := liblog libcutils
 LOCAL_SRC_FILES := power_flounder.c
 LOCAL_MODULE := power.flounder
 LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_OWNER := htc
+LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_SHARED_LIBRARY)

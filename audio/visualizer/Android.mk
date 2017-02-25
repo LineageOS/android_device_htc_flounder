@@ -14,6 +14,10 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_MODULE_RELATIVE_PATH := soundfx
 LOCAL_MODULE := libnvvisualizer
 
+LOCAL_MODULE_OWNER := htc
+
+LOCAL_PROPRIETARY_MODULE := true
+
 LOCAL_C_INCLUDES := \
 	external/tinyalsa/include \
 	$(call include-path-for, audio-effects)

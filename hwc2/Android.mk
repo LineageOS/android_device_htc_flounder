@@ -57,6 +57,10 @@ LOCAL_MODLE_TAGS := optional
 
 LOCAL_CFLAGS += -DLOG_TAG=\"hwcomposer\"
 
+LOCAL_MODULE_OWNER := htc
+
+LOCAL_PROPRIETARY_MODULE := true
+
 # The liboemcrypto.a prebuilt was built before we introduced the workaround for
 # -Bsymbolic, so it was built without -fPIC. Work around this by using
 # -Bsymbolic for projects that depend on it.
