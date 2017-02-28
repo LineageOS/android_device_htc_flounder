@@ -53,13 +53,13 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/touch/touch_fusion.cfg:$(TARGET_COPY_OUT_VENDOR)/firmware/touch_fusion.cfg \
     $(LOCAL_PATH)/touch/maxim_fp35.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/maxim_fp35.bin \
-    $(LOCAL_PATH)/touch/touch_fusion.idc:system/usr/idc/touch_fusion.idc \
+    $(LOCAL_PATH)/touch/touch_fusion.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/touch_fusion.idc \
     $(LOCAL_PATH)/touch/touch_fusion:$(TARGET_COPY_OUT_VENDOR)/bin/touch_fusion \
-    $(LOCAL_PATH)/touch/synaptics_dsx.idc:system/usr/idc/synaptics_dsx.idc
+    $(LOCAL_PATH)/touch/synaptics_dsx.idc:$(TARGET_COPY_OUT_VENDOR)/usr/idc/synaptics_dsx.idc
 
 # headset keylayout
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl
+    $(LOCAL_PATH)/h2w_headset.kl:$(TARGET_COPY_OUT_VENDOR)/usr/keylayout/h2w_headset.kl
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
