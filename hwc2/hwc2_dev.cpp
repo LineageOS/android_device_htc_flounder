@@ -210,6 +210,34 @@ hwc2_error_t hwc2_dev::set_active_config(hwc2_display_t dpy_id,
     return it->second.set_active_config(adf_helper, config);
 }
 
+hwc2_error_t hwc2_dev::get_client_target_support(hwc2_display_t dpy_id,
+        uint32_t width, uint32_t height, android_pixel_format_t format,
+        android_dataspace_t dataspace)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_client_target_support(width, height, format,
+            dataspace);
+}
+
+hwc2_error_t hwc2_dev::set_client_target(hwc2_display_t dpy_id,
+        buffer_handle_t target, int32_t acquire_fence,
+        android_dataspace_t dataspace, const hwc_region_t &surface_damage)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.set_client_target(target, acquire_fence, dataspace,
+            surface_damage);
+}
+
 hwc2_error_t hwc2_dev::create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_layer)
 {
     auto it = displays.find(dpy_id);

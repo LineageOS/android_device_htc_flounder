@@ -35,6 +35,7 @@ hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
       display_state(modified),
       client_target_used(false),
       windows(),
+      client_target(),
       layers(),
       vsync_enabled(HWC2_VSYNC_DISABLE),
       changed_comp_types(),
@@ -455,6 +456,58 @@ hwc2_error_t hwc2_display::set_active_config(
     active_config = config;
 
     return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::get_client_target_support(uint32_t width,
+        uint32_t height, android_pixel_format_t format,
+        android_dataspace_t dataspace)
+{
+    if (active_config >= configs.size()) {
+        ALOGE("dpy %" PRIu64 ": no active_config", id);
+        return HWC2_ERROR_UNSUPPORTED;
+    }
+
+    int32_t cnfg_width = configs[active_config].get_attribute(
+            HWC2_ATTRIBUTE_WIDTH);
+    int32_t cnfg_height = configs[active_config].get_attribute(
+            HWC2_ATTRIBUTE_HEIGHT);
+
+    if (cnfg_width < 0 || width != static_cast<uint32_t>(cnfg_width)) {
+        ALOGE("dpy %" PRIu64 ": unsupported client target width", id);
+        return HWC2_ERROR_UNSUPPORTED;
+    }
+
+    if (cnfg_height < 0 || height != static_cast<uint32_t>(cnfg_height)) {
+        ALOGE("dpy %" PRIu64 ": unsupported client target height", id);
+        return HWC2_ERROR_UNSUPPORTED;
+    }
+
+    if (format != HAL_PIXEL_FORMAT_RGBA_8888) {
+        ALOGE("dpy %" PRIu64 ": unsupported client target format", id);
+        return HWC2_ERROR_UNSUPPORTED;
+    }
+
+    if (dataspace != HAL_DATASPACE_UNKNOWN) {
+        ALOGE("dpy %" PRIu64 ": unsupported client target dataspace", id);
+        return HWC2_ERROR_UNSUPPORTED;
+    }
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::set_client_target(buffer_handle_t handle,
+        int32_t acquire_fence, android_dataspace_t dataspace,
+        const hwc_region_t &surface_damage)
+{
+    hwc2_error_t ret = client_target.set_buffer(handle, acquire_fence);
+    if (ret != HWC2_ERROR_NONE)
+        return ret;
+
+    ret = client_target.set_dataspace(dataspace);
+    if (ret != HWC2_ERROR_NONE)
+        return ret;
+
+    return client_target.set_surface_damage(surface_damage);
 }
 
 hwc2_error_t hwc2_display::create_layer(hwc2_layer_t *out_layer)

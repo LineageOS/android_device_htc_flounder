@@ -406,6 +406,14 @@ public:
     hwc2_error_t set_active_config(struct adf_hwc_helper *adf_helper,
                     hwc2_config_t config);
 
+    /* Client target functions */
+    hwc2_error_t get_client_target_support(uint32_t width, uint32_t height,
+                    android_pixel_format_t format,
+                    android_dataspace_t dataspace);
+    hwc2_error_t set_client_target(buffer_handle_t target,
+                    int32_t acquire_fence, android_dataspace_t dataspace,
+                    const hwc_region_t &surface_damage);
+
     /* Set layer functions */
     hwc2_error_t create_layer(hwc2_layer_t *out_layer);
     hwc2_error_t destroy_layer(hwc2_layer_t lyr_id);
@@ -469,6 +477,9 @@ private:
 
     /* The display windows */
     std::array<hwc2_window, HWC2_WINDOW_COUNT> windows;
+
+    /* Recieves the output of the client composition */
+    hwc2_buffer client_target;
 
     /* The layers currently in use */
     std::unordered_map<hwc2_layer_t, hwc2_layer> layers;
@@ -537,6 +548,16 @@ public:
     hwc2_error_t get_active_config(hwc2_display_t dpy_id,
                     hwc2_config_t *out_config) const;
     hwc2_error_t set_active_config(hwc2_display_t dpy_id, hwc2_config_t config);
+
+    /* Client target functions */
+    hwc2_error_t get_client_target_support(hwc2_display_t dpy_id,
+                    uint32_t width, uint32_t height,
+                    android_pixel_format_t format,
+                    android_dataspace_t dataspace);
+    hwc2_error_t set_client_target(hwc2_display_t dpy_id,
+                    buffer_handle_t target, int32_t acquire_fence,
+                    android_dataspace_t dataspace,
+                    const hwc_region_t &surface_damage);
 
     /* Layer functions */
     hwc2_error_t create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_layer);
