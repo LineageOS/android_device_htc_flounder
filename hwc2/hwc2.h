@@ -24,6 +24,25 @@
 #include <adf/adf.h>
 #include <adfhwc/adfhwc.h>
 
+class hwc2_config {
+public:
+    hwc2_config();
+
+    int set_attribute(hwc2_attribute_t attribute, int32_t value);
+
+private:
+    /* Dimensions in pixels */
+    int32_t width;
+    int32_t height;
+
+    /* Vsync period in nanoseconds */
+    int32_t vsync_period;
+
+    /* Dots per thousand inches (DPI * 1000) */
+    int32_t dpi_x;
+    int32_t dpi_y;
+};
+
 class hwc2_display {
 public:
     hwc2_display(hwc2_display_t id, int adf_intf_fd,
@@ -32,6 +51,8 @@ public:
 
     hwc2_display_t get_id() const { return id; }
 
+    int retrieve_display_configs(struct adf_hwc_helper *adf_helper);
+
     static hwc2_display_t get_next_id();
 
     static void reset_ids() { display_cnt = 0; }
@@ -39,6 +60,12 @@ public:
 private:
     /* Identifies the display to the client */
     hwc2_display_t id;
+
+    /* All the valid configurations for the display */
+    std::unordered_map<hwc2_config_t, hwc2_config> configs;
+
+    /* The id of the current active configuration of the display */
+    hwc2_config_t active_config;
 
     /* The adf interface file descriptor for the display */
     int adf_intf_fd;

@@ -41,7 +41,8 @@ LOCAL_STATIC_LIBRARIES := \
 LOCAL_SRC_FILES := \
 	hwc2.cpp \
 	hwc2_dev.cpp \
-	hwc2_display.cpp
+	hwc2_display.cpp \
+	hwc2_config.cpp
 
 LOCAL_MODLE_TAGS := optional
 

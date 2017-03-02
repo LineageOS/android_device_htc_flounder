@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+#include <cutils/log.h>
+#include <inttypes.h>
+
+#include <vector>
+#include <array>
+
 #include "hwc2.h"
 
 uint64_t hwc2_display::display_cnt = 0;
@@ -21,6 +27,8 @@ uint64_t hwc2_display::display_cnt = 0;
 hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
         const struct adf_device &adf_dev)
     : id(id),
+      configs(),
+      active_config(0),
       adf_intf_fd(adf_intf_fd),
       adf_dev(adf_dev) { }
 
@@ -28,6 +36,61 @@ hwc2_display::~hwc2_display()
 {
     close(adf_intf_fd);
     adf_device_close(&adf_dev);
+}
+
+int hwc2_display::retrieve_display_configs(struct adf_hwc_helper *adf_helper)
+{
+    size_t num_configs = 0;
+
+    int ret = adf_getDisplayConfigs(adf_helper, id, nullptr, &num_configs);
+    if (ret < 0 || num_configs == 0) {
+        ALOGE("dpy %" PRIu64 ": failed to get display configs: %s", id,
+                strerror(ret));
+        return ret;
+    }
+
+    std::vector<uint32_t> config_handles(num_configs);
+
+    ret = adf_getDisplayConfigs(adf_helper, id, config_handles.data(),
+            &num_configs);
+    if (ret < 0) {
+        ALOGE("dpy %" PRIu64 ": failed to get display configs: %s", id,
+                strerror(ret));
+        return ret;
+    }
+
+    active_config = config_handles[0];
+
+    std::array<uint32_t, 6> attributes = {{
+            HWC2_ATTRIBUTE_WIDTH,
+            HWC2_ATTRIBUTE_HEIGHT,
+            HWC2_ATTRIBUTE_VSYNC_PERIOD,
+            HWC2_ATTRIBUTE_DPI_X,
+            HWC2_ATTRIBUTE_DPI_Y,
+            HWC2_ATTRIBUTE_INVALID }};
+    std::array<int32_t, 5> values;
+
+    for (auto config_handle: config_handles) {
+        ret = adf_getDisplayAttributes_v2(adf_helper, id, config_handle,
+                attributes.data(), values.data());
+        if (ret < 0) {
+            ALOGW("dpy %" PRIu64 ": failed to get display attributes for config"
+                    " %u: %s", id, config_handle, strerror(ret));
+            continue;
+        }
+
+        configs.emplace(config_handle, hwc2_config());
+
+        for (size_t attr = 0; attr < attributes.size() - 1; attr++) {
+            ret = configs[config_handle].set_attribute(
+                    static_cast<hwc2_attribute_t>(attributes[attr]),
+                    values[attr]);
+            if (ret < 0)
+                ALOGW("dpy %" PRIu64 ": failed to set attribute", id);
+        }
+    }
+
+    return ret;
 }
 
 hwc2_display_t hwc2_display::get_next_id()
