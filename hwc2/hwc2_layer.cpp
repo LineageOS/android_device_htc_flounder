@@ -23,6 +23,7 @@ uint64_t hwc2_layer::layer_cnt = 0;
 
 hwc2_layer::hwc2_layer(hwc2_layer_t id)
     : id(id),
+      buffer(),
       comp_type(HWC2_COMPOSITION_INVALID) { }
 
 hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
@@ -48,6 +49,11 @@ hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
 
     this->comp_type = comp_type;
     return ret;
+}
+
+hwc2_error_t hwc2_layer::set_blend_mode(hwc2_blend_mode_t blend_mode)
+{
+    return buffer.set_blend_mode(blend_mode);
 }
 
 hwc2_layer_t hwc2_layer::get_next_id()

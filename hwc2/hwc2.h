@@ -27,6 +27,18 @@
 #include <adf/adf.h>
 #include <adfhwc/adfhwc.h>
 
+class hwc2_buffer {
+public:
+    hwc2_buffer();
+
+    /* Set properties */
+    hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
+
+private:
+    /* The blend mode of the buffer */
+    hwc2_blend_mode_t blend_mode;
+};
+
 class hwc2_config {
 public:
     hwc2_config();
@@ -86,12 +98,16 @@ public:
 
     /* Set properties */
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
+    hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
 
     static hwc2_layer_t get_next_id();
 
 private:
     /* Identifies the layer to the client */
     hwc2_layer_t id;
+
+    /* The buffer containing the data to be displayed */
+    hwc2_buffer buffer;
 
     /* Composition type of the layer */
     hwc2_composition_t comp_type;
@@ -139,6 +155,8 @@ public:
 
     hwc2_error_t set_layer_composition_type(hwc2_layer_t lyr_id,
                     hwc2_composition_t comp_type);
+    hwc2_error_t set_layer_blend_mode(hwc2_layer_t lyr_id,
+                    hwc2_blend_mode_t blend_mode);
 
     static hwc2_display_t get_next_id();
 
@@ -215,6 +233,8 @@ public:
 
     hwc2_error_t set_layer_composition_type(hwc2_display_t dpy_id,
                     hwc2_layer_t lyr_id, hwc2_composition_t comp_type);
+    hwc2_error_t set_layer_blend_mode(hwc2_display_t dpy_id,
+                    hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode);
 
     /* Callback functions */
     void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
