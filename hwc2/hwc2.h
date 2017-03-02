@@ -31,6 +31,7 @@ public:
     hwc2_config();
 
     int set_attribute(hwc2_attribute_t attribute, int32_t value);
+    int32_t get_attribute(hwc2_attribute_t attribute) const;
 
 private:
     /* Dimensions in pixels */
@@ -103,7 +104,12 @@ public:
 
     hwc2_error_t set_connection(hwc2_connection_t connection);
 
-    int retrieve_display_configs(struct adf_hwc_helper *adf_helper);
+    /* Config functions */
+    int          retrieve_display_configs(struct adf_hwc_helper *adf_helper);
+    hwc2_error_t get_display_attribute(hwc2_config_t config,
+                    hwc2_attribute_t attribute, int32_t *out_value) const;
+    hwc2_error_t get_display_configs(uint32_t *out_num_configs,
+                    hwc2_config_t *out_configs) const;
 
     /* Set layer functions */
     hwc2_error_t create_layer(hwc2_layer_t *out_layer);
@@ -150,6 +156,13 @@ public:
 
     hwc2_error_t get_display_type(hwc2_display_t dpy_id,
                     hwc2_display_type_t *out_type) const;
+
+    /* Config functions */
+    hwc2_error_t get_display_attribute(hwc2_display_t dpy_id,
+                    hwc2_config_t config, hwc2_attribute_t attribute,
+                    int32_t *out_value) const;
+    hwc2_error_t get_display_configs(hwc2_display_t dpy_id,
+                    uint32_t *out_num_configs, hwc2_config_t *out_configs) const;
 
     /* Layer functions */
     hwc2_error_t create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_layer);

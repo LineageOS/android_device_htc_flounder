@@ -86,7 +86,7 @@ int hwc2_display::retrieve_display_configs(struct adf_hwc_helper *adf_helper)
     std::array<int32_t, 5> values;
 
     for (auto config_handle: config_handles) {
-        ret = adf_getDisplayAttributes_v2(adf_helper, id, config_handle,
+        ret = adf_getDisplayAttributes_hwc2(adf_helper, id, config_handle,
                 attributes.data(), values.data());
         if (ret < 0) {
             ALOGW("dpy %" PRIu64 ": failed to get display attributes for config"
@@ -106,6 +106,36 @@ int hwc2_display::retrieve_display_configs(struct adf_hwc_helper *adf_helper)
     }
 
     return ret;
+}
+
+hwc2_error_t hwc2_display::get_display_attribute(hwc2_config_t config,
+        hwc2_attribute_t attribute, int32_t *out_value) const
+{
+    auto it = configs.find(config);
+    if (it == configs.end()) {
+        ALOGE("dpy %" PRIu64 ": bad config", id);
+        return HWC2_ERROR_BAD_CONFIG;
+    }
+
+    *out_value = it->second.get_attribute(attribute);
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::get_display_configs(uint32_t *out_num_configs,
+        hwc2_config_t *out_configs) const
+{
+    if (!out_configs) {
+        *out_num_configs = configs.size();
+        return HWC2_ERROR_NONE;
+    }
+
+    size_t idx = 0;
+    for (auto it = configs.begin(); it != configs.end()
+            && idx < *out_num_configs; it++, idx++)
+        out_configs[idx] = it->first;
+
+    *out_num_configs = idx;
+    return HWC2_ERROR_NONE;
 }
 
 hwc2_error_t hwc2_display::create_layer(hwc2_layer_t *out_layer)

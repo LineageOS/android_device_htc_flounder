@@ -121,18 +121,19 @@ hwc2_error_t get_color_modes(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t get_display_attribute(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_config_t /*config*/,
-        hwc2_attribute_t /*attribute*/, int32_t* /*out_value*/)
+hwc2_error_t get_display_attribute(hwc2_device_t *device,
+        hwc2_display_t display, hwc2_config_t config,
+        hwc2_attribute_t attribute, int32_t *out_value)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_display_attribute(display, config, attribute, out_value);
 }
 
-hwc2_error_t get_display_configs(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t* /*out_num_configs*/,
-        hwc2_config_t* /*out_configs*/)
+hwc2_error_t get_display_configs(hwc2_device_t *device, hwc2_display_t display,
+        uint32_t *out_num_configs, hwc2_config_t *out_configs)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_display_configs(display, out_num_configs, out_configs);
 }
 
 hwc2_error_t get_display_name(hwc2_device_t* /*device*/,
