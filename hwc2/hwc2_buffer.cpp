@@ -20,6 +20,7 @@
 
 hwc2_buffer::hwc2_buffer()
     : dataspace(),
+      display_frame(),
       z_order(0),
       blend_mode(HWC2_BLEND_MODE_NONE),
       plane_alpha(1.0),
@@ -28,6 +29,13 @@ hwc2_buffer::hwc2_buffer()
 hwc2_error_t hwc2_buffer::set_dataspace(android_dataspace_t dataspace)
 {
     this->dataspace = dataspace;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::set_display_frame(const hwc_rect_t &display_frame)
+{
+    this->display_frame = display_frame;
 
     return HWC2_ERROR_NONE;
 }
