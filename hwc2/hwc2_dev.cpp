@@ -200,6 +200,13 @@ hwc2_error_t hwc2_dev::set_layer_display_frame(hwc2_display_t dpy_id,
             display_frame);
 }
 
+hwc2_error_t hwc2_dev::set_layer_source_crop(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, const hwc_frect_t &source_crop)
+{
+    return displays.find(dpy_id)->second.set_layer_source_crop(lyr_id,
+            source_crop);
+}
+
 hwc2_error_t hwc2_dev::set_layer_z_order(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, uint32_t z_order)
 {

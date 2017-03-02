@@ -61,6 +61,11 @@ hwc2_error_t hwc2_layer::set_display_frame(const hwc_rect_t &display_frame)
     return buffer.set_display_frame(display_frame);
 }
 
+hwc2_error_t hwc2_layer::set_source_crop(const hwc_frect_t &source_crop)
+{
+    return buffer.set_source_crop(source_crop);
+}
+
 hwc2_error_t hwc2_layer::set_z_order(uint32_t z_order)
 {
     return buffer.set_z_order(z_order);
