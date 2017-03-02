@@ -373,6 +373,21 @@ hwc2_error_t hwc2_display::set_layer_color(hwc2_layer_t lyr_id,
     return HWC2_ERROR_NONE;
 }
 
+hwc2_error_t hwc2_display::set_cursor_position(hwc2_layer_t lyr_id,
+        int32_t /*x*/, int32_t /*y*/)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    /* Cursors are not supported on flounder. During validate, any layers marked
+     * HWC2_COMPOSITION_CURSOR will be changed to HWC2_COMPOSITION_CLIENT.
+     * No need to store the cursor position. */
+    return HWC2_ERROR_NONE;
+}
+
 hwc2_display_t hwc2_display::get_next_id()
 {
     return display_cnt++;

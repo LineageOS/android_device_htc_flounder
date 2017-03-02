@@ -239,6 +239,18 @@ hwc2_error_t hwc2_dev::set_layer_color(hwc2_display_t dpy_id,
     return displays.find(dpy_id)->second.set_layer_color(lyr_id, color);
 }
 
+hwc2_error_t hwc2_dev::set_cursor_position(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, int32_t x, int32_t y)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return displays.find(dpy_id)->second.set_cursor_position(lyr_id, x, y);
+}
+
 void hwc2_dev::hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection)
 {
     auto it = displays.find(dpy_id);
