@@ -23,6 +23,7 @@ hwc2_buffer::hwc2_buffer()
       display_frame(),
       source_crop(),
       z_order(0),
+      surface_damage(),
       blend_mode(HWC2_BLEND_MODE_NONE),
       plane_alpha(1.0),
       transform() { }
@@ -51,6 +52,15 @@ hwc2_error_t hwc2_buffer::set_source_crop(const hwc_frect_t &source_crop)
 hwc2_error_t hwc2_buffer::set_z_order(uint32_t z_order)
 {
     this->z_order = z_order;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::set_surface_damage(const hwc_region_t &surface_damage)
+{
+    this->surface_damage.clear();
+    for (size_t idx = 0; idx < surface_damage.numRects; idx++)
+        this->surface_damage.push_back(surface_damage.rects[idx]);
 
     return HWC2_ERROR_NONE;
 }

@@ -36,6 +36,7 @@ public:
     hwc2_error_t set_display_frame(const hwc_rect_t &display_frame);
     hwc2_error_t set_source_crop(const hwc_frect_t &source_crop);
     hwc2_error_t set_z_order(uint32_t z_order);
+    hwc2_error_t set_surface_damage(const hwc_region_t &surface_damage);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
     hwc2_error_t set_transform(hwc_transform_t transform);
@@ -54,6 +55,10 @@ private:
     /* The height of a given buffer. A buffer with a greater Z value occludes
      * a buffer with a lesser Z value */
     uint32_t z_order;
+
+    /* The region of the source buffer which has been modified since the
+     * last frame */
+    std::vector<hwc_rect_t> surface_damage;
 
     /* The blend mode of the buffer */
     hwc2_blend_mode_t blend_mode;
@@ -129,6 +134,7 @@ public:
     hwc2_error_t set_display_frame(const hwc_rect_t &display_frame);
     hwc2_error_t set_source_crop(const hwc_frect_t &source_crop);
     hwc2_error_t set_z_order(uint32_t z_order);
+    hwc2_error_t set_surface_damage(const hwc_region_t &surface_damage);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_plane_alpha(float plane_alpha);
     hwc2_error_t set_transform(hwc_transform_t transform);
@@ -195,6 +201,8 @@ public:
     hwc2_error_t set_layer_source_crop(hwc2_layer_t lyr_id,
                     const hwc_frect_t &source_crop);
     hwc2_error_t set_layer_z_order(hwc2_layer_t lyr_id, uint32_t z_order);
+    hwc2_error_t set_layer_surface_damage(hwc2_layer_t lyr_id,
+                    const hwc_region_t &surface_damage);
     hwc2_error_t set_layer_blend_mode(hwc2_layer_t lyr_id,
                     hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_layer_plane_alpha(hwc2_layer_t lyr_id, float plane_alpha);
@@ -286,6 +294,8 @@ public:
                     hwc2_layer_t lyr_id, const hwc_frect_t &source_crop);
     hwc2_error_t set_layer_z_order(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     uint32_t z_order);
+    hwc2_error_t set_layer_surface_damage(hwc2_display_t dpy_id,
+                    hwc2_layer_t lyr_id, const hwc_region_t &surface_damage);
     hwc2_error_t set_layer_blend_mode(hwc2_display_t dpy_id,
                     hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode);
     hwc2_error_t set_layer_plane_alpha(hwc2_display_t dpy_id,
