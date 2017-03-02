@@ -393,6 +393,7 @@ void get_capabilities(struct hwc2_device* /*device*/, uint32_t *out_count,
 static int32_t hwc2_device_close(struct hw_device_t *device)
 {
     hwc2_context *ctx = reinterpret_cast<hwc2_context *>(device);
+    delete ctx->hwc2_dev;
     delete ctx;
     return 0;
 }
@@ -415,6 +416,21 @@ static int hwc2_device_open(const struct hw_module_t *module, const char *name,
     ctx->hwc2_device.common.close = hwc2_device_close;
     ctx->hwc2_device.getFunction = get_function;
     ctx->hwc2_device.getCapabilities = get_capabilities;
+
+    ctx->hwc2_dev = new hwc2_dev();
+    if (!ctx->hwc2_dev) {
+        ALOGE("failed to allocate hwc2_dev");
+        delete ctx;
+        return -ENOMEM;
+    }
+
+    int ret = ctx->hwc2_dev->open_adf_device();
+    if (ret < 0) {
+        ALOGE("failed to open adf device: %s", strerror(ret));
+        delete ctx->hwc2_dev;
+        delete ctx;
+        return ret;
+    }
 
     *hw_device = &ctx->hwc2_device.common;
 
