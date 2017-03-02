@@ -110,6 +110,9 @@ public:
                     hwc2_attribute_t attribute, int32_t *out_value) const;
     hwc2_error_t get_display_configs(uint32_t *out_num_configs,
                     hwc2_config_t *out_configs) const;
+    hwc2_error_t get_active_config(hwc2_config_t *out_config) const;
+    hwc2_error_t set_active_config(struct adf_hwc_helper *adf_helper,
+                    hwc2_config_t config);
 
     /* Set layer functions */
     hwc2_error_t create_layer(hwc2_layer_t *out_layer);
@@ -163,6 +166,9 @@ public:
                     int32_t *out_value) const;
     hwc2_error_t get_display_configs(hwc2_display_t dpy_id,
                     uint32_t *out_num_configs, hwc2_config_t *out_configs) const;
+    hwc2_error_t get_active_config(hwc2_display_t dpy_id,
+                    hwc2_config_t *out_config) const;
+    hwc2_error_t set_active_config(hwc2_display_t dpy_id, hwc2_config_t config);
 
     /* Layer functions */
     hwc2_error_t create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_layer);

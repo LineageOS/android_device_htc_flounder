@@ -94,10 +94,11 @@ hwc2_error_t destroy_layer(hwc2_device_t *device, hwc2_display_t display,
     return dev->destroy_layer(display, layer);
 }
 
-hwc2_error_t get_active_config(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_config_t* /*out_config*/)
+hwc2_error_t get_active_config(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_config_t *out_config)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_active_config(display, out_config);
 }
 
 hwc2_error_t get_changed_composition_types(hwc2_device_t* /*device*/,
@@ -185,10 +186,11 @@ hwc2_error_t present_display(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t set_active_config(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_config_t /*config*/)
+hwc2_error_t set_active_config(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_config_t config)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_active_config(display, config);
 }
 
 hwc2_error_t set_client_target(hwc2_device_t* /*device*/,
