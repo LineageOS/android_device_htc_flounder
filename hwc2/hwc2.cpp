@@ -286,11 +286,11 @@ hwc2_error_t set_layer_composition_type(hwc2_device_t *device,
     return dev->set_layer_composition_type(display, layer, type);
 }
 
-hwc2_error_t set_layer_dataspace(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/,
-        android_dataspace_t /*dataspace*/)
+hwc2_error_t set_layer_dataspace(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_layer_t layer, android_dataspace_t dataspace)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_dataspace(display, layer, dataspace);
 }
 
 hwc2_error_t set_layer_display_frame(hwc2_device_t* /*device*/,

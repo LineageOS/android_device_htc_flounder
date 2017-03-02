@@ -276,6 +276,18 @@ hwc2_error_t hwc2_display::set_layer_composition_type(hwc2_layer_t lyr_id,
     return it->second.set_comp_type(comp_type);
 }
 
+hwc2_error_t hwc2_display::set_layer_dataspace(hwc2_layer_t lyr_id,
+        android_dataspace_t dataspace)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    return it->second.set_dataspace(dataspace);
+}
+
 hwc2_error_t hwc2_display::set_layer_blend_mode(hwc2_layer_t lyr_id,
         hwc2_blend_mode_t blend_mode)
 {

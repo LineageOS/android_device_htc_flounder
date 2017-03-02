@@ -51,6 +51,11 @@ hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
     return ret;
 }
 
+hwc2_error_t hwc2_layer::set_dataspace(android_dataspace_t dataspace)
+{
+    return buffer.set_dataspace(dataspace);
+}
+
 hwc2_error_t hwc2_layer::set_blend_mode(hwc2_blend_mode_t blend_mode)
 {
     return buffer.set_blend_mode(blend_mode);

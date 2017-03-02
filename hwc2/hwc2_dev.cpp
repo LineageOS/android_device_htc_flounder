@@ -187,6 +187,12 @@ hwc2_error_t hwc2_dev::set_layer_composition_type(hwc2_display_t dpy_id,
             comp_type);
 }
 
+hwc2_error_t hwc2_dev::set_layer_dataspace(hwc2_display_t dpy_id,
+        hwc2_layer_t lyr_id, android_dataspace_t dataspace)
+{
+    return displays.find(dpy_id)->second.set_layer_dataspace(lyr_id, dataspace);
+}
+
 hwc2_error_t hwc2_dev::set_layer_blend_mode(hwc2_display_t dpy_id,
         hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode)
 {

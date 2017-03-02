@@ -19,7 +19,15 @@
 #include "hwc2.h"
 
 hwc2_buffer::hwc2_buffer()
-    : blend_mode(HWC2_BLEND_MODE_NONE) { }
+    : dataspace(),
+      blend_mode(HWC2_BLEND_MODE_NONE) { }
+
+hwc2_error_t hwc2_buffer::set_dataspace(android_dataspace_t dataspace)
+{
+    this->dataspace = dataspace;
+
+    return HWC2_ERROR_NONE;
+}
 
 hwc2_error_t hwc2_buffer::set_blend_mode(hwc2_blend_mode_t blend_mode)
 {
