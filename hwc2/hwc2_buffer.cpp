@@ -20,6 +20,7 @@
 
 hwc2_buffer::hwc2_buffer()
     : dataspace(),
+      z_order(0),
       blend_mode(HWC2_BLEND_MODE_NONE),
       plane_alpha(1.0),
       transform() { }
@@ -27,6 +28,13 @@ hwc2_buffer::hwc2_buffer()
 hwc2_error_t hwc2_buffer::set_dataspace(android_dataspace_t dataspace)
 {
     this->dataspace = dataspace;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::set_z_order(uint32_t z_order)
+{
+    this->z_order = z_order;
 
     return HWC2_ERROR_NONE;
 }

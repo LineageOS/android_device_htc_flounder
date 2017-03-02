@@ -56,6 +56,11 @@ hwc2_error_t hwc2_layer::set_dataspace(android_dataspace_t dataspace)
     return buffer.set_dataspace(dataspace);
 }
 
+hwc2_error_t hwc2_layer::set_z_order(uint32_t z_order)
+{
+    return buffer.set_z_order(z_order);
+}
+
 hwc2_error_t hwc2_layer::set_blend_mode(hwc2_blend_mode_t blend_mode)
 {
     return buffer.set_blend_mode(blend_mode);
