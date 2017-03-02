@@ -26,13 +26,14 @@ uint64_t hwc2_display::display_cnt = 0;
 
 hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
         const struct adf_device &adf_dev, hwc2_connection_t connection,
-        hwc2_display_type_t type)
+        hwc2_display_type_t type, hwc2_power_mode_t power_mode)
     : id(id),
       connection(connection),
       type(type),
       layers(),
       configs(),
       active_config(0),
+      power_mode(power_mode),
       adf_intf_fd(adf_intf_fd),
       adf_dev(adf_dev) { }
 
@@ -50,6 +51,38 @@ hwc2_error_t hwc2_display::set_connection(hwc2_connection_t connection)
     }
 
     this->connection = connection;
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::set_power_mode(hwc2_power_mode_t mode)
+{
+    int drm_mode;
+
+    switch (mode) {
+    case HWC2_POWER_MODE_ON:
+        drm_mode = DRM_MODE_DPMS_ON;
+        break;
+    case HWC2_POWER_MODE_OFF:
+        drm_mode = DRM_MODE_DPMS_OFF;
+        break;
+    case HWC2_POWER_MODE_DOZE:
+    case HWC2_POWER_MODE_DOZE_SUSPEND:
+        ALOGE("dpy %" PRIu64 ": unsupported power mode: %u", id, mode);
+        return HWC2_ERROR_UNSUPPORTED;
+    default:
+        ALOGE("dpy %" PRIu64 ": invalid power mode: %u", id, mode);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    adf_interface_blank(adf_intf_fd, drm_mode);
+    power_mode = mode;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::get_doze_support(int32_t *out_support) const
+{
+    *out_support = 0;
     return HWC2_ERROR_NONE;
 }
 

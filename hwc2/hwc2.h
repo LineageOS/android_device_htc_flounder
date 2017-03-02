@@ -95,7 +95,7 @@ class hwc2_display {
 public:
     hwc2_display(hwc2_display_t id, int adf_intf_fd,
                 const struct adf_device &adf_dev, hwc2_connection_t connection,
-                hwc2_display_type_t type);
+                hwc2_display_type_t type, hwc2_power_mode_t power_mode);
     ~hwc2_display();
 
     hwc2_display_t get_id() const { return id; }
@@ -103,6 +103,10 @@ public:
     hwc2_connection_t get_connection() const { return connection; }
 
     hwc2_error_t set_connection(hwc2_connection_t connection);
+
+    /* Power modes */
+    hwc2_error_t set_power_mode(hwc2_power_mode_t mode);
+    hwc2_error_t get_doze_support(int32_t *out_support) const;
 
     /* Config functions */
     int          retrieve_display_configs(struct adf_hwc_helper *adf_helper);
@@ -141,6 +145,9 @@ private:
     /* The id of the current active configuration of the display */
     hwc2_config_t active_config;
 
+    /* The current power mode of the display */
+    hwc2_power_mode_t power_mode;
+
     /* The adf interface file descriptor for the display */
     int adf_intf_fd;
 
@@ -159,6 +166,11 @@ public:
 
     hwc2_error_t get_display_type(hwc2_display_t dpy_id,
                     hwc2_display_type_t *out_type) const;
+
+    /* Power modes */
+    hwc2_error_t set_power_mode(hwc2_display_t dpy_id, hwc2_power_mode_t mode);
+    hwc2_error_t get_doze_support(hwc2_display_t dpy_id, int32_t *out_support)
+                    const;
 
     /* Config functions */
     hwc2_error_t get_display_attribute(hwc2_display_t dpy_id,

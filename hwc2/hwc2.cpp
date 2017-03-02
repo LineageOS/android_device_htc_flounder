@@ -159,10 +159,11 @@ hwc2_error_t get_display_type(hwc2_device_t *device, hwc2_display_t display,
     return dev->get_display_type(display, out_type);
 }
 
-hwc2_error_t get_doze_support(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, int32_t* /*out_support*/)
+hwc2_error_t get_doze_support(hwc2_device_t *device, hwc2_display_t display,
+        int32_t *out_support)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_doze_support(display, out_support);
 }
 
 hwc2_error_t get_hdr_capabilities(hwc2_device_t* /*device*/,
@@ -221,10 +222,11 @@ hwc2_error_t set_output_buffer(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t set_power_mode(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_power_mode_t /*mode*/)
+hwc2_error_t set_power_mode(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_power_mode_t mode)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_power_mode(display, mode);
 }
 
 hwc2_error_t set_vsync_enabled(hwc2_device_t* /*device*/,
