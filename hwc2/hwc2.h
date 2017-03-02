@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <queue>
 #include <array>
+#include <vector>
 #include <mutex>
 #include <string>
 
@@ -117,6 +118,7 @@ public:
     void close_acquire_fence();
 
     /* Get properties */
+    uint32_t         get_z_order() const { return z_order; }
     buffer_handle_t  get_buffer_handle() const { return handle; }
     hwc_transform_t  get_transform() const { return transform; }
     uint32_t         get_adf_buffer_format() const;
@@ -131,6 +133,9 @@ public:
     bool    is_source_crop_int_aligned() const;
     bool    is_stereo() const;
     bool    is_yuv() const;
+    bool    is_overlapped() const;
+
+    bool    get_modified() const { return modified; }
 
     /* Set properties */
     hwc2_error_t set_buffer(buffer_handle_t handle, int32_t acquire_fence);
@@ -143,6 +148,8 @@ public:
     hwc2_error_t set_plane_alpha(float plane_alpha);
     hwc2_error_t set_transform(hwc_transform_t transform);
     hwc2_error_t set_visible_region(const hwc_region_t &visible_region);
+
+    void set_modified(bool modified) { this->modified = modified; }
 
 private:
     /* A handle to the buffer */
@@ -184,6 +191,13 @@ private:
     /* The portion of the layer that is visible including portions under
      * translucent areas of other buffers */
     std::vector<hwc_rect_t> visible_region;
+
+    /* Used to determine if the current buffer has a different format than the
+     * previous buffer */
+    uint32_t previous_format;
+
+    /* The buffer is modified and will force revalidation of the display */
+    bool modified;
 };
 
 class hwc2_config {
@@ -242,6 +256,7 @@ public:
     /* Get properties */
     hwc2_layer_t        get_id() const { return id; }
     hwc2_composition_t  get_comp_type() const { return comp_type; }
+    uint32_t            get_z_order() const { return buffer.get_z_order(); }
     buffer_handle_t     get_buffer_handle() const;
     hwc_transform_t     get_transform() const;
     uint32_t            get_adf_buffer_format() const;
@@ -256,6 +271,9 @@ public:
     bool    is_source_crop_int_aligned() const;
     bool    is_stereo() const;
     bool    is_yuv() const;
+    bool    is_overlapped() const;
+
+    bool    get_modified() const { return modified || buffer.get_modified(); }
 
     /* Set properties */
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
@@ -270,6 +288,9 @@ public:
     hwc2_error_t set_transform(hwc_transform_t transform);
     hwc2_error_t set_visible_region(const hwc_region_t &visible_region);
 
+    void set_modified(bool modified) { this->modified = modified;
+                        buffer.set_modified(modified); }
+
     static hwc2_layer_t get_next_id();
 
 private:
@@ -281,6 +302,9 @@ private:
 
     /* Composition type of the layer */
     hwc2_composition_t comp_type;
+
+    /* The layer is modified and will force revalidation of the display */
+    bool modified;
 
     /* Keep track to total number of layers so new layer ids can be
      * generated */
@@ -352,6 +376,12 @@ public:
     hwc2_error_t set_power_mode(hwc2_power_mode_t mode);
     hwc2_error_t get_doze_support(int32_t *out_support) const;
 
+    /* Display present functions */
+    hwc2_error_t validate_display(uint32_t *out_num_types,
+                    uint32_t *out_num_requests);
+    void         assign_composition();
+
+
     /* Window functions */
     void init_windows();
     void clear_windows();
@@ -412,6 +442,23 @@ private:
     /* Physical or virtual */
     hwc2_display_type_t type;
 
+    /* The current state of the display */
+    enum display_state_t {
+        /* The display has been modified since the last validate_display or
+         * accept_display_changes call */
+        modified = 0,
+        /* The display failed the last validate_display attempt and has not been
+         * modified since and has not called accept_display_changes*/
+        invalid = 1,
+        /* The display passed the last validate_display attempt or has called
+         * accept_display_changes */
+        valid = 2,
+    } display_state;
+
+    /* The last call to validate determined that the client target buffer is
+     * necessary */
+    bool client_target_used;
+
     /* The display windows */
     std::array<hwc2_window, HWC2_WINDOW_COUNT> windows;
 
@@ -420,6 +467,10 @@ private:
 
     /* Is vsync enabled */
     hwc2_vsync_t vsync_enabled;
+
+    /* The layers that need a composition change. The list is populated during
+     * validate_display. */
+    std::unordered_map<hwc2_layer_t, hwc2_composition_t> changed_comp_types;
 
     /* All the valid configurations for the display */
     std::unordered_map<hwc2_config_t, hwc2_config> configs;
@@ -456,6 +507,10 @@ public:
     hwc2_error_t set_power_mode(hwc2_display_t dpy_id, hwc2_power_mode_t mode);
     hwc2_error_t get_doze_support(hwc2_display_t dpy_id, int32_t *out_support)
                     const;
+
+    /* Display present functions */
+    hwc2_error_t validate_display(hwc2_display_t dpy_id,
+                    uint32_t *out_num_types, uint32_t *out_num_requests);
 
     /* Config functions */
     hwc2_error_t get_display_attribute(hwc2_display_t dpy_id,

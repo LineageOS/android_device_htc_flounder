@@ -109,6 +109,18 @@ hwc2_error_t hwc2_dev::get_doze_support(hwc2_display_t dpy_id,
     return it->second.get_doze_support(out_support);
 }
 
+hwc2_error_t hwc2_dev::validate_display(hwc2_display_t dpy_id,
+        uint32_t *out_num_types, uint32_t *out_num_requests)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.validate_display(out_num_types, out_num_requests);
+}
+
 hwc2_error_t hwc2_dev::get_display_attribute(hwc2_display_t dpy_id,
         hwc2_config_t config, hwc2_attribute_t attribute, int32_t *out_value)
         const

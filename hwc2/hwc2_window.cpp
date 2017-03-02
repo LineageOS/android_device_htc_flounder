@@ -129,6 +129,9 @@ bool hwc2_window::is_supported(const hwc2_layer &lyr)
     if (lyr.is_stereo())
         return false;
 
+    if (lyr.is_overlapped())
+        return false;
+
     if (lyr.get_display_frame_width() < HWC2_WINDOW_MIN_DISPLAY_FRAME_WIDTH
             || lyr.get_display_frame_height() < HWC2_WINDOW_MIN_DISPLAY_FRAME_HEIGHT)
         return false;
