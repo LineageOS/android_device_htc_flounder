@@ -21,18 +21,64 @@
 
 #include <unordered_map>
 #include <queue>
+#include <array>
 #include <mutex>
 #include <string>
 
 #include <adf/adf.h>
 #include <adfhwc/adfhwc.h>
 
+#define HWC2_WINDOW_COUNT         4
+
+#define HWC2_WINDOW_MIN_SOURCE_CROP_WIDTH       1.0
+#define HWC2_WINDOW_MIN_SOURCE_CROP_HEIGHT      1.0
+#define HWC2_WINDOW_MIN_DISPLAY_FRAME_WIDTH     4
+#define HWC2_WINDOW_MIN_DISPLAY_FRAME_HEIGHT    4
+#define HWC2_WINDOW_MIN_DISPLAY_FRAME_SCALE     0.5
+
+#define HWC2_WINDOW_MAX_ROT_SRC_HEIGHT            2560
+#define HWC2_WINDOW_MAX_ROT_SRC_HEIGHT_NO_SCALE   3600
+
+#define HWC2_WINDOW_CAP_YUV                  0x001
+#define HWC2_WINDOW_CAP_SCALE                0x002
+#define HWC2_WINDOW_CAP_FLIP                 0x004
+#define HWC2_WINDOW_CAP_ROTATE_PACKED        0x008
+#define HWC2_WINDOW_CAP_ROTATE_PLANAR        0x010
+#define HWC2_WINDOW_CAP_PITCH                0x020
+#define HWC2_WINDOW_CAP_TILED                0x040
+#define HWC2_WINDOW_CAP_BLOCK_LINEAR         0x080
+
+#define HWC2_WINDOW_CAP_LAYOUTS (HWC2_WINDOW_CAP_PITCH \
+                               | HWC2_WINDOW_CAP_TILED \
+                               | HWC2_WINDOW_CAP_BLOCK_LINEAR)
+
+#define HWC2_WINDOW_CAP_COMMON (HWC2_WINDOW_CAP_YUV   \
+                               | HWC2_WINDOW_CAP_SCALE \
+                               | HWC2_WINDOW_CAP_FLIP  \
+                               | HWC2_WINDOW_CAP_ROTATE_PACKED \
+                               | HWC2_WINDOW_CAP_PITCH \
+                               | HWC2_WINDOW_CAP_TILED \
+                               | HWC2_WINDOW_CAP_BLOCK_LINEAR)
+
+static const std::array<uint32_t, HWC2_WINDOW_COUNT> window_capabilities = {{
+    HWC2_WINDOW_CAP_COMMON | HWC2_WINDOW_CAP_ROTATE_PLANAR,
+    HWC2_WINDOW_CAP_COMMON,
+    HWC2_WINDOW_CAP_COMMON,
+    HWC2_WINDOW_CAP_PITCH
+}};
+
 class hwc2_gralloc {
 public:
     /* hwc2_gralloc follows the singleton design pattern */
     static const hwc2_gralloc &get_instance();
 
-    bool is_valid(buffer_handle_t handle) const;
+    bool     is_valid(buffer_handle_t handle) const;
+    bool     is_stereo(buffer_handle_t handle) const;
+    bool     is_yuv(buffer_handle_t handle) const;
+    int      get_format(buffer_handle_t handle) const;
+    void     get_surfaces(buffer_handle_t handle, const void **surf,
+                 size_t *surf_cnt) const;
+    int32_t  get_layout(const void *surf, uint32_t surf_idx) const;
 
 private:
     hwc2_gralloc();
@@ -41,6 +87,23 @@ private:
     /* The address of the nvgr_is_valid symbol. This NVIDIA function checks if a
      * buffer is valid */
     bool (*nvgr_is_valid)(buffer_handle_t handle);
+
+    /* The address of the nvgr_is_stereo symbol. This NVIDIA function checks if
+     * a buffer is stereo */
+    bool (*nvgr_is_stereo)(buffer_handle_t handle);
+
+    /* The address of the nvgr_is_yuv symbol. This NVIDIA function checks if a
+     * buffer is yuv */
+    bool (*nvgr_is_yuv)(buffer_handle_t handle);
+
+    /* The address of the nvgr_get_format symbol. This NVIDIA function returns
+     * the format of a buffer */
+    int (*nvgr_get_format)(buffer_handle_t handle);
+
+    /* The address of the nvgr_get_surfaces symbol. This NVIDIA function returns
+     * the surfaces associated with a buffer handle */
+    void (*nvgr_get_surfaces)(buffer_handle_t handle, const void **surf,
+            size_t *surf_cnt);
 
     /* A symbol table handle to the NVIDIA gralloc .so file. */
     void *nvgr;
@@ -52,6 +115,22 @@ public:
     ~hwc2_buffer();
 
     void close_acquire_fence();
+
+    /* Get properties */
+    buffer_handle_t  get_buffer_handle() const { return handle; }
+    hwc_transform_t  get_transform() const { return transform; }
+    uint32_t         get_adf_buffer_format() const;
+    uint32_t         get_layout() const;
+    int     get_display_frame_width() const;
+    int     get_display_frame_height() const;
+    float   get_source_crop_width() const;
+    float   get_source_crop_height() const;
+    float   get_scale_width() const;
+    float   get_scale_height() const;
+    void    get_surfaces(const void **surf, size_t *surf_cnt) const;
+    bool    is_source_crop_int_aligned() const;
+    bool    is_stereo() const;
+    bool    is_yuv() const;
 
     /* Set properties */
     hwc2_error_t set_buffer(buffer_handle_t handle, int32_t acquire_fence);
@@ -163,6 +242,20 @@ public:
     /* Get properties */
     hwc2_layer_t        get_id() const { return id; }
     hwc2_composition_t  get_comp_type() const { return comp_type; }
+    buffer_handle_t     get_buffer_handle() const;
+    hwc_transform_t     get_transform() const;
+    uint32_t            get_adf_buffer_format() const;
+    uint32_t            get_layout() const;
+    int     get_display_frame_width() const;
+    int     get_display_frame_height() const;
+    float   get_source_crop_width() const;
+    float   get_source_crop_height() const;
+    float   get_scale_width() const;
+    float   get_scale_height() const;
+    void    get_surfaces(const void **surf, size_t *surf_cnt) const;
+    bool    is_source_crop_int_aligned() const;
+    bool    is_stereo() const;
+    bool    is_yuv() const;
 
     /* Set properties */
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
@@ -194,6 +287,49 @@ private:
     static uint64_t layer_cnt;
 };
 
+class hwc2_window {
+public:
+    hwc2_window();
+
+    void clear();
+    hwc2_error_t assign_client_target(uint32_t z_order);
+    hwc2_error_t assign_layer(uint32_t z_order, const hwc2_layer &lyr);
+
+    bool is_empty() const;
+    bool contains_client_target() const;
+    bool contains_layer() const;
+
+    uint32_t     get_z_order() const { return z_order; }
+    hwc2_layer_t get_layer() const { return lyr_id; }
+
+    bool has_layer_requirements(const hwc2_layer &lyr) const;
+    bool has_requirements(uint32_t required_capabilities) const;
+    void set_capabilities(uint32_t capabilities);
+
+    static bool is_supported(const hwc2_layer &lyr);
+
+private:
+    /* Each window can contain the client target, a layer or nothing */
+    enum hwc2_window_content_t {
+        HWC2_WINDOW_CONTENT_EMPTY,
+        HWC2_WINDOW_CONTENT_CLIENT_TARGET,
+        HWC2_WINDOW_CONTENT_LAYER
+    } content;
+
+    /* If the content is not HWC2_WINDOW_EMPTY, the z_order corresponds to the
+     * display controller z order. The display controller z order is the reverse
+     * of the SurfaceFlinger z order. In the display controller z order, a
+     * window with lower z order occludes a window with higher z order */
+    uint32_t z_order;
+
+    /* If the content is HWC2_WINDOW_LAYER, lyr_id is the layer it contains */
+    hwc2_layer_t lyr_id;
+
+    /* The capabilities the underlying hardware window can support such as
+     * rotation, scaling, flipping, yuv, and surface layouts */
+    uint32_t capabilities;
+};
+
 class hwc2_display {
 public:
     hwc2_display(hwc2_display_t id, int adf_intf_fd,
@@ -215,6 +351,12 @@ public:
     /* Power modes */
     hwc2_error_t set_power_mode(hwc2_power_mode_t mode);
     hwc2_error_t get_doze_support(int32_t *out_support) const;
+
+    /* Window functions */
+    void init_windows();
+    void clear_windows();
+    hwc2_error_t assign_client_target_window(uint32_t z_order);
+    hwc2_error_t assign_layer_window(uint32_t z_order, hwc2_layer_t lyr_id);
 
     /* Config functions */
     int          retrieve_display_configs(struct adf_hwc_helper *adf_helper);
@@ -269,6 +411,9 @@ private:
 
     /* Physical or virtual */
     hwc2_display_type_t type;
+
+    /* The display windows */
+    std::array<hwc2_window, HWC2_WINDOW_COUNT> windows;
 
     /* The layers currently in use */
     std::unordered_map<hwc2_layer_t, hwc2_layer> layers;

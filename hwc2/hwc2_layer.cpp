@@ -26,6 +26,76 @@ hwc2_layer::hwc2_layer(hwc2_layer_t id)
       buffer(),
       comp_type(HWC2_COMPOSITION_INVALID) { }
 
+buffer_handle_t hwc2_layer::get_buffer_handle() const
+{
+    return buffer.get_buffer_handle();
+}
+
+hwc_transform_t hwc2_layer::get_transform() const
+{
+    return buffer.get_transform();
+}
+
+uint32_t hwc2_layer::get_adf_buffer_format() const
+{
+    return buffer.get_adf_buffer_format();
+}
+
+uint32_t hwc2_layer::get_layout() const
+{
+    return buffer.get_layout();
+}
+
+int hwc2_layer::get_display_frame_width() const
+{
+    return buffer.get_display_frame_width();
+}
+
+int hwc2_layer::get_display_frame_height() const
+{
+    return buffer.get_display_frame_height();
+}
+
+float hwc2_layer::get_source_crop_width() const
+{
+    return buffer.get_source_crop_width();
+}
+
+float hwc2_layer::get_source_crop_height() const
+{
+    return buffer.get_source_crop_height();
+}
+
+float hwc2_layer::get_scale_width() const
+{
+    return buffer.get_scale_width();
+}
+
+float hwc2_layer::get_scale_height() const
+{
+    return buffer.get_scale_height();
+}
+
+void hwc2_layer::get_surfaces(const void **surf, size_t *surf_cnt) const
+{
+    buffer.get_surfaces(surf, surf_cnt);
+}
+
+bool hwc2_layer::is_source_crop_int_aligned() const
+{
+    return buffer.is_source_crop_int_aligned();
+}
+
+bool hwc2_layer::is_stereo() const
+{
+    return buffer.is_stereo();
+}
+
+bool hwc2_layer::is_yuv() const
+{
+    return buffer.is_yuv();
+}
+
 hwc2_error_t hwc2_layer::set_comp_type(hwc2_composition_t comp_type)
 {
     hwc2_error_t ret = HWC2_ERROR_NONE;

@@ -44,6 +44,98 @@ void hwc2_buffer::close_acquire_fence()
     }
 }
 
+uint32_t hwc2_buffer::get_adf_buffer_format() const
+{
+    if (!handle)
+        return 0;
+
+    return hwc2_gralloc::get_instance().get_format(handle);
+}
+
+uint32_t hwc2_buffer::get_layout() const
+{
+    const hwc2_gralloc &gralloc = hwc2_gralloc::get_instance();
+    const void *surf;
+    size_t surf_cnt;
+
+    if (!handle)
+        return 0;
+
+    gralloc.get_surfaces(handle, &surf, &surf_cnt);
+
+    return gralloc.get_layout(surf, 0);
+}
+
+int hwc2_buffer::get_display_frame_width() const
+{
+    return display_frame.right - display_frame.left;
+}
+
+int hwc2_buffer::get_display_frame_height() const
+{
+    return display_frame.bottom - display_frame.top;
+}
+
+float hwc2_buffer::get_source_crop_width() const
+{
+    return source_crop.right - source_crop.left;
+}
+
+float hwc2_buffer::get_source_crop_height() const
+{
+    return source_crop.bottom - source_crop.top;
+}
+
+float hwc2_buffer::get_scale_width() const
+{
+    float source_crop_width = get_source_crop_width();
+    if (source_crop_width == 0)
+        return -1.0;
+
+    return get_display_frame_width() / source_crop_width;
+}
+
+float hwc2_buffer::get_scale_height() const
+{
+    float source_crop_height = get_source_crop_height();
+    if (source_crop_height == 0)
+        return -1.0;
+
+    return get_display_frame_height() / source_crop_height;
+}
+
+void hwc2_buffer::get_surfaces(const void **surf, size_t *surf_cnt) const
+{
+    if (!handle)
+        *surf_cnt = 0;
+    else
+        hwc2_gralloc::get_instance().get_surfaces(handle, surf, surf_cnt);
+}
+
+bool hwc2_buffer::is_source_crop_int_aligned() const
+{
+    return (source_crop.left == ceil(source_crop.left)
+            && source_crop.top == ceil(source_crop.top)
+            && source_crop.right == ceil(source_crop.right)
+            && source_crop.bottom == ceil(source_crop.bottom));
+}
+
+bool hwc2_buffer::is_stereo() const
+{
+    if (!handle)
+        return false;
+
+    return hwc2_gralloc::get_instance().is_stereo(handle);
+}
+
+bool hwc2_buffer::is_yuv() const
+{
+    if (!handle)
+        return false;
+
+    return hwc2_gralloc::get_instance().is_yuv(handle);
+}
+
 hwc2_error_t hwc2_buffer::set_buffer(buffer_handle_t handle,
         int32_t acquire_fence)
 {
