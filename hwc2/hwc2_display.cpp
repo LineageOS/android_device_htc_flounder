@@ -246,6 +246,65 @@ void hwc2_display::assign_composition()
     } while (retry_assignment);
 }
 
+hwc2_error_t hwc2_display::get_changed_composition_types(
+        uint32_t *out_num_elements, hwc2_layer_t *out_layers,
+        hwc2_composition_t *out_types) const
+{
+    if (display_state == modified) {
+        ALOGE("dpy %" PRIu64 ": display has been modified since last call to"
+                " validate_display", id);
+        return HWC2_ERROR_NOT_VALIDATED;
+    }
+
+    if (!out_layers || !out_types) {
+        *out_num_elements = changed_comp_types.size();
+        return HWC2_ERROR_NONE;
+    }
+
+    size_t idx = 0;
+    for (auto &changed: changed_comp_types) {
+        out_layers[idx] = changed.first;
+        out_types[idx] = changed.second;
+        idx++;
+    }
+
+    *out_num_elements = changed_comp_types.size();
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::get_display_requests(
+        hwc2_display_request_t *out_display_requests,
+        uint32_t *out_num_elements, hwc2_layer_t* /*out_layers*/,
+        hwc2_layer_request_t* /*out_layer_requests*/) const
+{
+    if (display_state == modified) {
+        ALOGE("dpy %" PRIu64 ": display has been modified since last call to"
+                " validate_display", id);
+        return HWC2_ERROR_NOT_VALIDATED;
+    }
+
+    *out_display_requests = static_cast<hwc2_display_request_t>(0);
+    *out_num_elements = 0;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::accept_display_changes()
+{
+    if (display_state == modified) {
+        ALOGE("dpy %" PRIu64 ": display has been modified since last call to"
+                " validate_display", id);
+        return HWC2_ERROR_NOT_VALIDATED;
+    }
+
+    for (auto &changed: changed_comp_types)
+        layers.find(changed.first)->second.set_comp_type(changed.second);
+
+    display_state = valid;
+
+    return HWC2_ERROR_NONE;
+}
+
 void hwc2_display::init_windows()
 {
     for (auto it = windows.begin(); it != windows.end(); it++)
