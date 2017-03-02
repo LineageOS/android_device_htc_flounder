@@ -241,6 +241,58 @@ hwc2_error_t hwc2_dev::set_active_config(hwc2_display_t dpy_id,
     return it->second.set_active_config(adf_helper, config);
 }
 
+hwc2_error_t hwc2_dev::get_color_modes(hwc2_display_t dpy_id,
+        uint32_t *out_num_modes, android_color_mode_t *out_modes) const
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_color_modes(out_num_modes, out_modes);
+}
+
+hwc2_error_t hwc2_dev::set_color_mode(hwc2_display_t dpy_id,
+        android_color_mode_t mode)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.set_color_mode(mode);
+}
+
+hwc2_error_t hwc2_dev::get_hdr_capabilities(hwc2_display_t dpy_id,
+        uint32_t *out_num_types, android_hdr_t *out_types,
+        float *out_max_luminance, float *out_max_average_luminance,
+        float *out_min_luminance) const
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.get_hdr_capabilities(out_num_types, out_types,
+            out_max_luminance, out_max_average_luminance,
+            out_min_luminance);
+}
+
+hwc2_error_t hwc2_dev::set_color_transform(hwc2_display_t dpy_id,
+        const float *color_matrix, android_color_transform_t color_hint)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    return it->second.set_color_transform(color_matrix, color_hint);
+}
+
 hwc2_error_t hwc2_dev::get_client_target_support(hwc2_display_t dpy_id,
         uint32_t width, uint32_t height, android_pixel_format_t format,
         android_dataspace_t dataspace)

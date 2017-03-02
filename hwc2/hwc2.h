@@ -414,6 +414,7 @@ public:
     /* Display present functions */
     hwc2_error_t validate_display(uint32_t *out_num_types,
                     uint32_t *out_num_requests);
+    void         force_client_composition();
     void         assign_composition();
 
     hwc2_error_t get_changed_composition_types(uint32_t *out_num_elements,
@@ -449,6 +450,17 @@ public:
     hwc2_error_t get_active_config(hwc2_config_t *out_config) const;
     hwc2_error_t set_active_config(struct adf_hwc_helper *adf_helper,
                     hwc2_config_t config);
+
+    /* Color/hdr functions */
+    hwc2_error_t get_color_modes(uint32_t *out_num_modes,
+                    android_color_mode_t *out_modes) const;
+    hwc2_error_t set_color_mode(android_color_mode_t mode);
+    hwc2_error_t get_hdr_capabilities(uint32_t *out_num_types,
+                    android_hdr_t *out_types, float *out_max_luminance,
+                    float *out_max_average_luminance,
+                    float *out_min_luminance) const;
+    hwc2_error_t set_color_transform(const float *color_matrix,
+                    android_color_transform_t color_hint);
 
     /* Client target functions */
     hwc2_error_t get_client_target_support(uint32_t width, uint32_t height,
@@ -545,6 +557,13 @@ private:
     /* The current power mode of the display */
     hwc2_power_mode_t power_mode;
 
+    /* Color transform which will be applied after composition */
+    std::array<float, 16> color_matrix;
+
+    /* A hit value which may be used instead of the given matrix unless it is
+     * HAL_COLOR_TRANSFORM_ARBITRARY */
+    android_color_transform_t color_hint;
+
     /* Sync fence object which will be signaled after the device has finished
      * reading from the buffer presented in the prior frame */
     android::base::unique_fd release_fence;
@@ -602,6 +621,19 @@ public:
     hwc2_error_t get_active_config(hwc2_display_t dpy_id,
                     hwc2_config_t *out_config) const;
     hwc2_error_t set_active_config(hwc2_display_t dpy_id, hwc2_config_t config);
+
+    /* Color/hdr functions */
+    hwc2_error_t get_color_modes(hwc2_display_t dpy_id, uint32_t *out_num_modes,
+                    android_color_mode_t *out_modes) const;
+    hwc2_error_t set_color_mode(hwc2_display_t dpy_id,
+                    android_color_mode_t mode);
+    hwc2_error_t get_hdr_capabilities(hwc2_display_t dpy_id,
+                    uint32_t *out_num_types, android_hdr_t *out_types,
+                    float *out_max_luminance, float *out_max_average_luminance,
+                    float *out_min_luminance) const;
+    hwc2_error_t set_color_transform(hwc2_display_t dpy_id,
+                    const float *color_matrix,
+                    android_color_transform_t color_hint);
 
     /* Client target functions */
     hwc2_error_t get_client_target_support(hwc2_display_t dpy_id,

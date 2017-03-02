@@ -120,11 +120,11 @@ hwc2_error_t get_client_target_support(hwc2_device_t *device,
             dataspace);
 }
 
-hwc2_error_t get_color_modes(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t* /*out_num_modes*/,
-        android_color_mode_t* /*out_modes*/)
+hwc2_error_t get_color_modes(hwc2_device_t *device, hwc2_display_t display,
+        uint32_t *out_num_modes, android_color_mode_t *out_modes)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_color_modes(display, out_num_modes, out_modes);
 }
 
 hwc2_error_t get_display_attribute(hwc2_device_t *device,
@@ -173,12 +173,14 @@ hwc2_error_t get_doze_support(hwc2_device_t *device, hwc2_display_t display,
     return dev->get_doze_support(display, out_support);
 }
 
-hwc2_error_t get_hdr_capabilities(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, uint32_t* /*out_num_types*/,
-        android_hdr_t* /*out_types*/, float* /*out_max_luminance*/,
-        float* /*out_max_average_luminance*/, float* /*out_min_luminance*/)
+hwc2_error_t get_hdr_capabilities(hwc2_device_t *device, hwc2_display_t display,
+        uint32_t *out_num_types, android_hdr_t *out_types,
+        float *out_max_luminance, float *out_max_average_luminance,
+        float *out_min_luminance)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_hdr_capabilities(display, out_num_types, out_types,
+            out_max_luminance, out_max_average_luminance, out_min_luminance);
 }
 
 hwc2_error_t get_release_fences(hwc2_device_t *device, hwc2_display_t display,
@@ -213,17 +215,18 @@ hwc2_error_t set_client_target(hwc2_device_t *device, hwc2_display_t display,
             damage);
 }
 
-hwc2_error_t set_color_mode(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, android_color_mode_t /*mode*/)
+hwc2_error_t set_color_mode(hwc2_device_t *device, hwc2_display_t display,
+        android_color_mode_t mode)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_color_mode(display, mode);
 }
 
-hwc2_error_t set_color_transform(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, const float* /*matrix*/,
-        android_color_transform_t /*hint*/)
+hwc2_error_t set_color_transform(hwc2_device_t *device, hwc2_display_t display,
+        const float *matrix, android_color_transform_t hint)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_color_transform(display, matrix, hint);
 }
 
 hwc2_error_t set_output_buffer(hwc2_device_t* /*device*/,
