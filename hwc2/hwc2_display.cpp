@@ -18,6 +18,7 @@
 #include <tegra_adf.h>
 #include <inttypes.h>
 
+#include <sstream>
 #include <cstdlib>
 #include <map>
 #include <vector>
@@ -58,6 +59,46 @@ hwc2_display::~hwc2_display()
 {
     close(adf_intf_fd);
     adf_device_close(&adf_dev);
+}
+
+std::string hwc2_display::dump() const
+{
+    std::stringstream dmp;
+
+    dmp << "Display [" << id << "] " << getDisplayTypeName(type) << ":\n";
+
+    dmp << "  Power Mode: " << getPowerModeName(power_mode) << "\n";
+
+    dmp << "  Active Config:";
+
+    auto it = configs.begin();
+    if (configs.size() > 0 || it != configs.end())
+        dmp << "\n" << configs.at(active_config).dump();
+    else
+        dmp << " None\n";
+
+    if (power_mode == HWC2_POWER_MODE_OFF)
+        return dmp.str();
+
+    size_t idx = 0;
+    for (auto &win: windows) {
+        dmp << "  Window [" << idx << "]:";
+
+        if (win.contains_layer()) {
+            dmp << " Layer\n";
+            dmp << layers.at(win.get_layer()).dump();
+
+        } else if (win.contains_client_target()) {
+            dmp << " Client Target\n";
+            dmp << client_target.dump();
+
+        } else
+            dmp << " Unused\n";
+
+        idx++;
+    }
+
+    return dmp.str();
 }
 
 hwc2_error_t hwc2_display::set_connection(hwc2_connection_t connection)

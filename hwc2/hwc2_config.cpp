@@ -16,6 +16,9 @@
 
 #include <cutils/log.h>
 
+#include <iomanip>
+#include <sstream>
+
 #include "hwc2.h"
 
 hwc2_config::hwc2_config()
@@ -24,6 +27,22 @@ hwc2_config::hwc2_config()
       vsync_period(-1),
       dpi_x(-1),
       dpi_y(-1) { }
+
+std::string hwc2_config::dump() const
+{
+    std::stringstream dmp;
+
+    dmp << std::fixed << std::setprecision(1);
+
+    dmp << "    Resolution: " << width << " x " << height;
+
+    if (vsync_period != 0)
+        dmp << " @ " << 1e9 / vsync_period << " Hz";
+
+    dmp << "\n    DPI: " << dpi_x / 1000.0f << " x " << dpi_y / 1000.0f << "\n";
+
+    return dmp.str();
+}
 
 int hwc2_config::set_attribute(hwc2_attribute_t attribute, int32_t value)
 {
