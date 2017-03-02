@@ -73,3 +73,10 @@ void hwc2_callback::call_hotplug(hwc2_display_t dpy_id,
     else
         hotplug_pending.push(std::make_pair(dpy_id, connection));
 }
+
+void hwc2_callback::call_vsync(hwc2_display_t dpy_id, int64_t timestamp)
+{
+    std::lock_guard<std::mutex> lock(state_mutex);
+    if (vsync)
+        vsync(vsync_data, dpy_id, timestamp);
+}

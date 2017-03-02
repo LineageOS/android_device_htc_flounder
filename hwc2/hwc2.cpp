@@ -229,10 +229,11 @@ hwc2_error_t set_power_mode(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_power_mode(display, mode);
 }
 
-hwc2_error_t set_vsync_enabled(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_vsync_t /*enabled*/)
+hwc2_error_t set_vsync_enabled(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_vsync_t enabled)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_vsync_enabled(display, static_cast<hwc2_vsync_t>(enabled));
 }
 
 hwc2_error_t validate_display(hwc2_device_t* /*device*/,

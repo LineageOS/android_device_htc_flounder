@@ -22,9 +22,10 @@
 
 #include "hwc2.h"
 
-static void hwc2_vsync(void* /*data*/, int /*dpy_id*/, uint64_t /*timestamp*/)
+static void hwc2_vsync(void *data, int dpy_id, uint64_t timestamp)
 {
-    return;
+    hwc2_dev *dev = static_cast<hwc2_dev *>(data);
+    dev->vsync(static_cast<hwc2_display_t>(dpy_id), timestamp);
 }
 
 static void hwc2_hotplug(void *data, int dpy_id, bool connected)
@@ -181,6 +182,57 @@ void hwc2_dev::hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection)
         return;
 
     callback_handler.call_hotplug(dpy_id, connection);
+}
+
+void hwc2_dev::vsync(hwc2_display_t dpy_id, uint64_t timestamp)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGW("dpy %" PRIu64 ": invalid display handle preventing vsync"
+                " callback", dpy_id);
+        return;
+    }
+
+    callback_handler.call_vsync(dpy_id, timestamp);
+}
+
+hwc2_error_t hwc2_dev::set_vsync_enabled(hwc2_display_t dpy_id,
+        hwc2_vsync_t enabled)
+{
+    auto it = displays.find(dpy_id);
+    if (it == displays.end()) {
+        ALOGE("dpy %" PRIu64 ": invalid display handle", dpy_id);
+        return HWC2_ERROR_BAD_DISPLAY;
+    }
+
+    if (it->second.get_type() != HWC2_DISPLAY_TYPE_PHYSICAL)
+        return HWC2_ERROR_NONE;
+
+    if (it->second.get_vsync_enabled() == enabled)
+        return HWC2_ERROR_NONE;
+
+    bool adf_enabled;
+    switch (enabled) {
+    case HWC2_VSYNC_ENABLE:
+        adf_enabled = true;
+        break;
+    case HWC2_VSYNC_DISABLE:
+        adf_enabled = false;
+        break;
+    default:
+        ALOGW("dpy %" PRIu64 ": invalid vsync enable parameter %u", dpy_id,
+                enabled);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    int ret = adf_eventControl(adf_helper, dpy_id, HWC_EVENT_VSYNC, adf_enabled);
+    if (ret < 0) {
+        ALOGW("dpy %" PRIu64 ": failed to set vsync enabled: %s", dpy_id,
+                strerror(ret));
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    return it->second.set_vsync_enabled(enabled);
 }
 
 hwc2_error_t hwc2_dev::register_callback(hwc2_callback_descriptor_t descriptor,

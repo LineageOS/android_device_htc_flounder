@@ -31,6 +31,7 @@ hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
       connection(connection),
       type(type),
       layers(),
+      vsync_enabled(HWC2_VSYNC_DISABLE),
       configs(),
       active_config(0),
       power_mode(power_mode),
@@ -83,6 +84,17 @@ hwc2_error_t hwc2_display::set_power_mode(hwc2_power_mode_t mode)
 hwc2_error_t hwc2_display::get_doze_support(int32_t *out_support) const
 {
     *out_support = 0;
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::set_vsync_enabled(hwc2_vsync_t enabled)
+{
+    if (enabled == HWC2_VSYNC_INVALID) {
+        ALOGE("dpy %" PRIu64 ": invalid vsync enabled", id);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    this->vsync_enabled = enabled;
     return HWC2_ERROR_NONE;
 }
 

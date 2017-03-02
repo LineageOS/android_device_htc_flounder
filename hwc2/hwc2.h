@@ -55,6 +55,7 @@ public:
             hwc2_function_pointer_t pointer);
 
     void call_hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
+    void call_vsync(hwc2_display_t dpy_id, int64_t timestamp);
 
 private:
     std::mutex state_mutex;
@@ -101,8 +102,10 @@ public:
     hwc2_display_t get_id() const { return id; }
     hwc2_display_type_t get_type() const { return type; }
     hwc2_connection_t get_connection() const { return connection; }
+    hwc2_vsync_t get_vsync_enabled() const { return vsync_enabled; }
 
     hwc2_error_t set_connection(hwc2_connection_t connection);
+    hwc2_error_t set_vsync_enabled(hwc2_vsync_t enabled);
 
     /* Power modes */
     hwc2_error_t set_power_mode(hwc2_power_mode_t mode);
@@ -138,6 +141,9 @@ private:
 
     /* The layers currently in use */
     std::unordered_map<hwc2_layer_t, hwc2_layer> layers;
+
+    /* Is vsync enabled */
+    hwc2_vsync_t vsync_enabled;
 
     /* All the valid configurations for the display */
     std::unordered_map<hwc2_config_t, hwc2_config> configs;
@@ -188,6 +194,9 @@ public:
 
     /* Callback functions */
     void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
+    void vsync(hwc2_display_t dpy_id, uint64_t timestamp);
+
+    hwc2_error_t set_vsync_enabled(hwc2_display_t dpy_id, hwc2_vsync_t enabled);
 
     hwc2_error_t register_callback(hwc2_callback_descriptor_t descriptor,
                     hwc2_callback_data_t callback_data,
