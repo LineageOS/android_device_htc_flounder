@@ -311,6 +311,18 @@ hwc2_error_t hwc2_display::set_layer_plane_alpha(hwc2_layer_t lyr_id, float plan
     return it->second.set_plane_alpha(plane_alpha);
 }
 
+hwc2_error_t hwc2_display::set_layer_transform(hwc2_layer_t lyr_id,
+        const hwc_transform_t transform)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    return it->second.set_transform(transform);
+}
+
 hwc2_display_t hwc2_display::get_next_id()
 {
     return display_cnt++;
