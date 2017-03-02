@@ -27,11 +27,34 @@
 #include <adf/adf.h>
 #include <adfhwc/adfhwc.h>
 
+class hwc2_gralloc {
+public:
+    /* hwc2_gralloc follows the singleton design pattern */
+    static const hwc2_gralloc &get_instance();
+
+    bool is_valid(buffer_handle_t handle) const;
+
+private:
+    hwc2_gralloc();
+    ~hwc2_gralloc();
+
+    /* The address of the nvgr_is_valid symbol. This NVIDIA function checks if a
+     * buffer is valid */
+    bool (*nvgr_is_valid)(buffer_handle_t handle);
+
+    /* A symbol table handle to the NVIDIA gralloc .so file. */
+    void *nvgr;
+};
+
 class hwc2_buffer {
 public:
     hwc2_buffer();
+    ~hwc2_buffer();
+
+    void close_acquire_fence();
 
     /* Set properties */
+    hwc2_error_t set_buffer(buffer_handle_t handle, int32_t acquire_fence);
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
     hwc2_error_t set_display_frame(const hwc_rect_t &display_frame);
     hwc2_error_t set_source_crop(const hwc_frect_t &source_crop);
@@ -42,6 +65,14 @@ public:
     hwc2_error_t set_transform(hwc_transform_t transform);
 
 private:
+    /* A handle to the buffer */
+    buffer_handle_t handle;
+
+    /* A sync fence object which will be signaled when it is safe to read
+     * from the buffer. If the acquire_fence is -1, it is already safe to
+     * read from the buffer */
+    int32_t acquire_fence;
+
     /* Provides more info on how to interpret the buffer contents such as
      * the encoding standard and color transformation */
     android_dataspace_t dataspace;
@@ -130,6 +161,7 @@ public:
 
     /* Set properties */
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
+    hwc2_error_t set_buffer(buffer_handle_t handle, int32_t acquire_fence);
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
     hwc2_error_t set_display_frame(const hwc_rect_t &display_frame);
     hwc2_error_t set_source_crop(const hwc_frect_t &source_crop);
@@ -194,6 +226,8 @@ public:
 
     hwc2_error_t set_layer_composition_type(hwc2_layer_t lyr_id,
                     hwc2_composition_t comp_type);
+    hwc2_error_t set_layer_buffer(hwc2_layer_t lyr_id, buffer_handle_t handle,
+                    int32_t acquire_fence);
     hwc2_error_t set_layer_dataspace(hwc2_layer_t lyr_id,
                     android_dataspace_t dataspace);
     hwc2_error_t set_layer_display_frame(hwc2_layer_t lyr_id,
@@ -286,6 +320,8 @@ public:
 
     hwc2_error_t set_layer_composition_type(hwc2_display_t dpy_id,
                     hwc2_layer_t lyr_id, hwc2_composition_t comp_type);
+    hwc2_error_t set_layer_buffer(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
+                    buffer_handle_t handle, int32_t acquire_fence);
     hwc2_error_t set_layer_dataspace(hwc2_display_t dpy_id, hwc2_layer_t lyr_id,
                     android_dataspace_t dataspace);
     hwc2_error_t set_layer_display_frame(hwc2_display_t dpy_id,

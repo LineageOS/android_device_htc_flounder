@@ -251,11 +251,11 @@ hwc2_error_t set_cursor_position(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_cursor_position(display, layer, x, y);
 }
 
-hwc2_error_t set_layer_buffer(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/,
-        buffer_handle_t /*buffer*/, int32_t /*acquire_fence*/)
+hwc2_error_t set_layer_buffer(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_layer_t layer, buffer_handle_t buffer, int32_t acquire_fence)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_buffer(display, layer, buffer, acquire_fence);
 }
 
 hwc2_error_t set_layer_surface_damage(hwc2_device_t *device,

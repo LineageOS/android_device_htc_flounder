@@ -19,7 +19,9 @@
 #include "hwc2.h"
 
 hwc2_buffer::hwc2_buffer()
-    : dataspace(),
+    : handle(),
+      acquire_fence(-1),
+      dataspace(),
       display_frame(),
       source_crop(),
       z_order(0),
@@ -27,6 +29,38 @@ hwc2_buffer::hwc2_buffer()
       blend_mode(HWC2_BLEND_MODE_NONE),
       plane_alpha(1.0),
       transform() { }
+
+hwc2_buffer::~hwc2_buffer()
+{
+    close_acquire_fence();
+}
+
+void hwc2_buffer::close_acquire_fence()
+{
+    if (acquire_fence >= 0) {
+        close(acquire_fence);
+        acquire_fence = -1;
+    }
+}
+
+hwc2_error_t hwc2_buffer::set_buffer(buffer_handle_t handle,
+        int32_t acquire_fence)
+{
+    /* Only check if non-null buffers are valid. Layer buffers are determined to
+     * be non-null in hwc2_layer. Client target buffers can be null and should
+     * not produce an error. */
+    if (handle && !hwc2_gralloc::get_instance().is_valid(handle)) {
+        ALOGE("invalid buffer handle");
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    close_acquire_fence();
+
+    this->handle = handle;
+    this->acquire_fence = acquire_fence;
+
+    return HWC2_ERROR_NONE;
+}
 
 hwc2_error_t hwc2_buffer::set_dataspace(android_dataspace_t dataspace)
 {
