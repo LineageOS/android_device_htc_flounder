@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <queue>
 #include <mutex>
+#include <string>
 
 #include <adf/adf.h>
 #include <adfhwc/adfhwc.h>
@@ -99,10 +100,13 @@ public:
                 hwc2_display_type_t type, hwc2_power_mode_t power_mode);
     ~hwc2_display();
 
-    hwc2_display_t get_id() const { return id; }
+    /* Display functions */
+    hwc2_display_t      get_id() const { return id; }
     hwc2_display_type_t get_type() const { return type; }
-    hwc2_connection_t get_connection() const { return connection; }
-    hwc2_vsync_t get_vsync_enabled() const { return vsync_enabled; }
+    hwc2_connection_t   get_connection() const { return connection; }
+    hwc2_vsync_t        get_vsync_enabled() const { return vsync_enabled; }
+    hwc2_error_t        get_name(uint32_t *out_size, char *out_name) const;
+    void                init_name();
 
     hwc2_error_t set_connection(hwc2_connection_t connection);
     hwc2_error_t set_vsync_enabled(hwc2_vsync_t enabled);
@@ -132,6 +136,9 @@ public:
 private:
     /* Identifies the display to the client */
     hwc2_display_t id;
+
+    /* A human readable version of the display's name */
+    std::string name;
 
     /* The display is connected to an output */
     hwc2_connection_t connection;
@@ -170,6 +177,9 @@ public:
     hwc2_dev();
     ~hwc2_dev();
 
+    /* Display functions */
+    hwc2_error_t get_display_name(hwc2_display_t dpy_id, uint32_t *out_size,
+                    char *out_name) const;
     hwc2_error_t get_display_type(hwc2_display_t dpy_id,
                     hwc2_display_type_t *out_type) const;
 

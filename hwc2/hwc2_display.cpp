@@ -28,6 +28,7 @@ hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
         const struct adf_device &adf_dev, hwc2_connection_t connection,
         hwc2_display_type_t type, hwc2_power_mode_t power_mode)
     : id(id),
+      name(),
       connection(connection),
       type(type),
       layers(),
@@ -36,7 +37,10 @@ hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
       active_config(0),
       power_mode(power_mode),
       adf_intf_fd(adf_intf_fd),
-      adf_dev(adf_dev) { }
+      adf_dev(adf_dev)
+{
+    init_name();
+}
 
 hwc2_display::~hwc2_display()
 {
@@ -53,6 +57,30 @@ hwc2_error_t hwc2_display::set_connection(hwc2_connection_t connection)
 
     this->connection = connection;
     return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::get_name(uint32_t *out_size, char *out_name) const
+{
+    if (!out_name) {
+        *out_size = name.size();
+        return HWC2_ERROR_NONE;
+    }
+
+    /* out_name does not require a NULL terminator so strncpy can truncate
+     * the output safely */
+    strncpy(out_name, name.c_str(), *out_size);
+    *out_size = (*out_size < name.size())? *out_size: name.size();
+    return HWC2_ERROR_NONE;
+}
+
+void hwc2_display::init_name()
+{
+    name.append("dpy-");
+    if (HWC2_DISPLAY_TYPE_PHYSICAL)
+        name.append("phys-");
+    else
+        name.append("virt-");
+    name.append(std::to_string(id));
 }
 
 hwc2_error_t hwc2_display::set_power_mode(hwc2_power_mode_t mode)
