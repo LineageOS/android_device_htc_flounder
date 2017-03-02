@@ -30,6 +30,7 @@ hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
     : id(id),
       connection(connection),
       type(type),
+      layers(),
       configs(),
       active_config(0),
       adf_intf_fd(adf_intf_fd),
@@ -105,6 +106,28 @@ int hwc2_display::retrieve_display_configs(struct adf_hwc_helper *adf_helper)
     }
 
     return ret;
+}
+
+hwc2_error_t hwc2_display::create_layer(hwc2_layer_t *out_layer)
+{
+    hwc2_layer_t lyr_id = hwc2_layer::get_next_id();
+    layers.emplace(std::piecewise_construct, std::forward_as_tuple(lyr_id),
+            std::forward_as_tuple(lyr_id));
+
+    *out_layer = lyr_id;
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_display::destroy_layer(hwc2_layer_t lyr_id)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    layers.erase(lyr_id);
+    return HWC2_ERROR_NONE;
 }
 
 hwc2_display_t hwc2_display::get_next_id()

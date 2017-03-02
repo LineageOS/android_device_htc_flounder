@@ -80,16 +80,18 @@ hwc2_error_t accept_display_changes(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t create_layer(hwc2_device_t* /*device*/, hwc2_display_t /*display*/,
-        hwc2_layer_t* /*out_layer*/)
+hwc2_error_t create_layer(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_layer_t *out_layer)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->create_layer(display, out_layer);
 }
 
-hwc2_error_t destroy_layer(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/)
+hwc2_error_t destroy_layer(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_layer_t layer)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->destroy_layer(display, layer);
 }
 
 hwc2_error_t get_active_config(hwc2_device_t* /*device*/,
