@@ -76,10 +76,12 @@ private:
 class hwc2_display {
 public:
     hwc2_display(hwc2_display_t id, int adf_intf_fd,
-                const struct adf_device &adf_dev, hwc2_connection_t connection);
+                const struct adf_device &adf_dev, hwc2_connection_t connection,
+                hwc2_display_type_t type);
     ~hwc2_display();
 
     hwc2_display_t get_id() const { return id; }
+    hwc2_display_type_t get_type() const { return type; }
     hwc2_connection_t get_connection() const { return connection; }
 
     hwc2_error_t set_connection(hwc2_connection_t connection);
@@ -96,6 +98,9 @@ private:
 
     /* The display is connected to an output */
     hwc2_connection_t connection;
+
+    /* Physical or virtual */
+    hwc2_display_type_t type;
 
     /* All the valid configurations for the display */
     std::unordered_map<hwc2_config_t, hwc2_config> configs;
@@ -118,6 +123,9 @@ class hwc2_dev {
 public:
     hwc2_dev();
     ~hwc2_dev();
+
+    hwc2_error_t get_display_type(hwc2_display_t dpy_id,
+                    hwc2_display_type_t *out_type) const;
 
     void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
 

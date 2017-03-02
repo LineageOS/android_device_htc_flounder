@@ -148,10 +148,11 @@ hwc2_error_t get_display_requests(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t get_display_type(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_display_type_t* /*out_type*/)
+hwc2_error_t get_display_type(hwc2_device_t *device, hwc2_display_t display,
+        hwc2_display_type_t *out_type)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_display_type(display, out_type);
 }
 
 hwc2_error_t get_doze_support(hwc2_device_t* /*device*/,

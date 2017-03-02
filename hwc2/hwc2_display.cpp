@@ -25,9 +25,11 @@
 uint64_t hwc2_display::display_cnt = 0;
 
 hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
-        const struct adf_device &adf_dev, hwc2_connection_t connection)
+        const struct adf_device &adf_dev, hwc2_connection_t connection,
+        hwc2_display_type_t type)
     : id(id),
       connection(connection),
+      type(type),
       configs(),
       active_config(0),
       adf_intf_fd(adf_intf_fd),
