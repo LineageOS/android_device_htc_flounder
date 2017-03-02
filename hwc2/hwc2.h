@@ -20,6 +20,8 @@
 #include <hardware/hwcomposer2.h>
 
 #include <unordered_map>
+#include <queue>
+#include <mutex>
 
 #include <adf/adf.h>
 #include <adfhwc/adfhwc.h>
@@ -51,7 +53,15 @@ public:
             hwc2_callback_data_t callback_data,
             hwc2_function_pointer_t pointer);
 
+    void call_hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
+
 private:
+    std::mutex state_mutex;
+
+    /* A queue of all the hotplug notifications that were called before the
+     * callback was registered */
+    std::queue<std::pair<hwc2_display_t, hwc2_connection_t>> hotplug_pending;
+
     /* All of the client callback functions and their data */
     hwc2_callback_data_t hotplug_data;
     HWC2_PFN_HOTPLUG hotplug;
@@ -66,10 +76,13 @@ private:
 class hwc2_display {
 public:
     hwc2_display(hwc2_display_t id, int adf_intf_fd,
-                const struct adf_device &adf_dev);
+                const struct adf_device &adf_dev, hwc2_connection_t connection);
     ~hwc2_display();
 
     hwc2_display_t get_id() const { return id; }
+    hwc2_connection_t get_connection() const { return connection; }
+
+    hwc2_error_t set_connection(hwc2_connection_t connection);
 
     int retrieve_display_configs(struct adf_hwc_helper *adf_helper);
 
@@ -80,6 +93,9 @@ public:
 private:
     /* Identifies the display to the client */
     hwc2_display_t id;
+
+    /* The display is connected to an output */
+    hwc2_connection_t connection;
 
     /* All the valid configurations for the display */
     std::unordered_map<hwc2_config_t, hwc2_config> configs;
@@ -102,6 +118,8 @@ class hwc2_dev {
 public:
     hwc2_dev();
     ~hwc2_dev();
+
+    void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
 
     hwc2_error_t register_callback(hwc2_callback_descriptor_t descriptor,
                     hwc2_callback_data_t callback_data,

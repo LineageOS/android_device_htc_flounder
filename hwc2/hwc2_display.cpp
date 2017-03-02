@@ -25,8 +25,9 @@
 uint64_t hwc2_display::display_cnt = 0;
 
 hwc2_display::hwc2_display(hwc2_display_t id, int adf_intf_fd,
-        const struct adf_device &adf_dev)
+        const struct adf_device &adf_dev, hwc2_connection_t connection)
     : id(id),
+      connection(connection),
       configs(),
       active_config(0),
       adf_intf_fd(adf_intf_fd),
@@ -36,6 +37,17 @@ hwc2_display::~hwc2_display()
 {
     close(adf_intf_fd);
     adf_device_close(&adf_dev);
+}
+
+hwc2_error_t hwc2_display::set_connection(hwc2_connection_t connection)
+{
+    if (connection == HWC2_CONNECTION_INVALID) {
+        ALOGE("dpy %" PRIu64 ": invalid connection", id);
+        return HWC2_ERROR_BAD_PARAMETER;
+    }
+
+    this->connection = connection;
+    return HWC2_ERROR_NONE;
 }
 
 int hwc2_display::retrieve_display_configs(struct adf_hwc_helper *adf_helper)

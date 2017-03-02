@@ -19,7 +19,9 @@
 #include "hwc2.h"
 
 hwc2_callback::hwc2_callback()
-   : hotplug_data(nullptr),
+   : state_mutex(),
+     hotplug_pending(),
+     hotplug_data(nullptr),
      hotplug(nullptr),
      refresh_data(nullptr),
      refresh(nullptr),
@@ -30,6 +32,8 @@ hwc2_error_t hwc2_callback::register_callback(
         hwc2_callback_descriptor_t descriptor,
         hwc2_callback_data_t callback_data, hwc2_function_pointer_t pointer)
 {
+    std::lock_guard<std::mutex> lock(state_mutex);
+
     switch (descriptor) {
     case HWC2_CALLBACK_HOTPLUG:
         hotplug = (HWC2_PFN_HOTPLUG) pointer;
@@ -48,5 +52,24 @@ hwc2_error_t hwc2_callback::register_callback(
         return HWC2_ERROR_BAD_PARAMETER;
     }
 
+    if (descriptor == HWC2_CALLBACK_HOTPLUG && hotplug) {
+        while (!hotplug_pending.empty()) {
+            hotplug(hotplug_data, std::get<0>(hotplug_pending.front()),
+                    std::get<1>(hotplug_pending.front()));
+            hotplug_pending.pop();
+        }
+    }
+
     return HWC2_ERROR_NONE;
+}
+
+void hwc2_callback::call_hotplug(hwc2_display_t dpy_id,
+        hwc2_connection_t connection)
+{
+    std::lock_guard<std::mutex> lock(state_mutex);
+
+    if (hotplug)
+        hotplug(hotplug_data, dpy_id, connection);
+    else
+        hotplug_pending.push(std::make_pair(dpy_id, connection));
 }
