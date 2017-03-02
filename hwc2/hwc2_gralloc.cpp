@@ -40,7 +40,11 @@
 #define NVGR_GET_STRUCT_MEMBER(ptr, member_type, member_offset) \
         (*((member_type *)((char *) ptr + member_offset)))
 
-#define NVGR_SURFACE_OFFSET_LAYOUT 12
+#define NVGR_SURFACE_OFFSET_LAYOUT            12
+#define NVGR_SURFACE_OFFSET_PITCH             16
+#define NVGR_SURFACE_OFFSET_HMEM              20
+#define NVGR_SURFACE_OFFSET_OFFSET            24
+#define NVGR_SURFACE_OFFSET_BLOCK_HEIGHT_LOG2 32
 
 hwc2_gralloc::hwc2_gralloc()
 {
@@ -63,6 +67,15 @@ hwc2_gralloc::hwc2_gralloc()
 
     *(void **)(&nvgr_get_surfaces) = dlsym(nvgr, "nvgr_get_surfaces");
     LOG_ALWAYS_FATAL_IF(!nvgr_get_surfaces, "failed to find nvgr_get_surfaces"
+            " symbol");
+
+    *(void **)(&NvRmMemDmaBufFdFromHandle) = dlsym(nvgr,
+            "NvRmMemDmaBufFdFromHandle");
+    LOG_ALWAYS_FATAL_IF(!NvRmMemDmaBufFdFromHandle, "failed to find"
+            " NvRmMemDmaBufFdFromHandle symbol");
+
+    *(void **)(&nvgr_decompress) = dlsym(nvgr, "nvgr_decompress");
+    LOG_ALWAYS_FATAL_IF(!nvgr_decompress, "failed to find nvgr_decompress"
             " symbol");
 }
 
@@ -120,6 +133,12 @@ void hwc2_gralloc::get_surfaces(buffer_handle_t handle,
     nvgr_get_surfaces(handle, surf, surf_cnt);
 }
 
+void hwc2_gralloc::get_dma_buf(const void *surf, uint32_t surf_idx,
+        int *out_fd) const
+{
+    NvRmMemDmaBufFdFromHandle(get_hmem(surf, surf_idx), out_fd);
+}
+
 int32_t hwc2_gralloc::get_layout(const void *surf, uint32_t surf_idx) const
 {
     uint32_t layout = NVGR_GET_STRUCT_MEMBER(NVGR_GET_SURFACE(surf, surf_idx),
@@ -136,4 +155,34 @@ int32_t hwc2_gralloc::get_layout(const void *surf, uint32_t surf_idx) const
         ALOGE("Unrecognized layout");
         return -1;
     }
+}
+
+uint32_t hwc2_gralloc::get_pitch(const void *surf, uint32_t surf_idx) const
+{
+    return NVGR_GET_STRUCT_MEMBER(NVGR_GET_SURFACE(surf, surf_idx),
+            uint32_t, NVGR_SURFACE_OFFSET_PITCH);
+}
+
+uint32_t hwc2_gralloc::get_hmem(const void *surf, uint32_t surf_idx) const
+{
+    return NVGR_GET_STRUCT_MEMBER(NVGR_GET_SURFACE(surf, surf_idx),
+            uint32_t, NVGR_SURFACE_OFFSET_HMEM);
+}
+
+uint32_t hwc2_gralloc::get_offset(const void *surf, uint32_t surf_idx) const
+{
+    return NVGR_GET_STRUCT_MEMBER(NVGR_GET_SURFACE(surf, surf_idx),
+            uint32_t, NVGR_SURFACE_OFFSET_OFFSET);
+}
+
+uint32_t hwc2_gralloc::get_block_height_log2(const void *surf, uint32_t surf_idx) const
+{
+    return NVGR_GET_STRUCT_MEMBER(NVGR_GET_SURFACE(surf, surf_idx),
+            uint32_t, NVGR_SURFACE_OFFSET_BLOCK_HEIGHT_LOG2);
+}
+
+uint32_t hwc2_gralloc::decompress(buffer_handle_t handle, int in_fence,
+        int *out_fence) const
+{
+    return nvgr_decompress(handle, in_fence, out_fence);
 }

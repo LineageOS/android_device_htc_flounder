@@ -27,6 +27,19 @@ hwc2_layer::hwc2_layer(hwc2_layer_t id)
       comp_type(HWC2_COMPOSITION_INVALID),
       modified(true) { }
 
+hwc2_error_t hwc2_layer::decompress_buffer()
+{
+    return buffer.decompress();
+}
+
+hwc2_error_t hwc2_layer::get_adf_post_props(
+        struct tegra_adf_flip_windowattr *win_attr,
+        struct adf_buffer_config *adf_buf, size_t win_idx,
+        size_t buf_idx, uint32_t z_order) const
+{
+    return buffer.get_adf_post_props(win_attr, adf_buf, win_idx, buf_idx, z_order);
+}
+
 buffer_handle_t hwc2_layer::get_buffer_handle() const
 {
     return buffer.get_buffer_handle();

@@ -15,6 +15,10 @@
  */
 
 #include <cutils/log.h>
+#include <tegra_dc_ext.h>
+#include <tegrafb.h>
+#include <tegra_adf.h>
+#include <android-base/macros.h>
 
 #include "hwc2.h"
 
@@ -66,6 +70,173 @@ hwc2_buffer::hwc2_buffer()
 hwc2_buffer::~hwc2_buffer()
 {
     close_acquire_fence();
+}
+
+hwc2_error_t hwc2_buffer::decompress()
+{
+    int ret = hwc2_gralloc::get_instance().decompress(handle, acquire_fence,
+            &acquire_fence);
+    if (ret < 0) {
+        ALOGE("failed to decompress buffer: %s", strerror(ret));
+        return HWC2_ERROR_NO_RESOURCES;
+    }
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::get_adf_post_props(
+        struct tegra_adf_flip_windowattr *win_attr,
+        struct adf_buffer_config *adf_buf, size_t win_idx,
+        size_t buf_idx, uint32_t z_order) const
+{
+    if (!hwc2_gralloc::get_instance().is_valid(handle)) {
+        ALOGE("invalid buffer handle");
+        return HWC2_ERROR_NO_RESOURCES;
+    }
+
+    hwc2_error_t ret = get_adf_buf_config(adf_buf);
+    if (ret != HWC2_ERROR_NONE) {
+        ALOGE("failed to set adf buf configs");
+        return ret;
+    }
+
+    ret = get_adf_win_attr(win_attr, win_idx, buf_idx, z_order);
+    if (ret != HWC2_ERROR_NONE) {
+        ALOGE("failed to set win attr");
+        return ret;
+    }
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::get_adf_buf_config(
+        struct adf_buffer_config *adf_buf) const
+{
+    const hwc2_gralloc& gralloc = hwc2_gralloc::get_instance();
+
+    adf_buf->overlay_engine = 0;
+    adf_buf->w = (uint32_t) (ceil(source_crop.right) - ceil(source_crop.left));
+    adf_buf->h = (uint32_t) (ceil(source_crop.bottom) - ceil(source_crop.top));
+    adf_buf->format = gralloc.get_format(handle);
+
+    const void *surf;
+    size_t surf_cnt;
+    gralloc.get_surfaces(handle, &surf, &surf_cnt);
+    if (!surf || surf_cnt == 0) {
+        ALOGE("failed to get surfaces");
+        return HWC2_ERROR_NO_RESOURCES;
+    }
+
+    adf_buf->n_planes = surf_cnt;
+
+    int fd;
+    gralloc.get_dma_buf(surf, 0, &fd);
+    for (size_t idx = 0; idx < arraysize(adf_buf->fd); idx++) {
+        if (idx < adf_buf->n_planes)
+            adf_buf->fd[idx] = fd;
+        else
+            adf_buf->fd[idx] = -1;
+    }
+
+    adf_buf->pitch[0] = gralloc.get_pitch(surf, 0);
+    adf_buf->offset[0] = gralloc.get_offset(surf, 0);
+
+    if (surf_cnt == 1) {
+        adf_buf->pitch[1] = 0;
+        adf_buf->pitch[2] = 0;
+        adf_buf->offset[1] = 0;
+        adf_buf->offset[2] = 0;
+    } else {
+        switch (surf_cnt) {
+        case 2:
+            adf_buf->pitch[1] = gralloc.get_pitch(surf, 1);
+            adf_buf->pitch[2] = gralloc.get_pitch(surf, 1);
+            adf_buf->offset[1] = gralloc.get_offset(surf, 1);
+            adf_buf->offset[2] = 0;
+            break;
+        case 3:
+            adf_buf->pitch[1] = gralloc.get_pitch(surf, 1);
+            adf_buf->pitch[2] = gralloc.get_pitch(surf, 1);
+            adf_buf->offset[1] = gralloc.get_offset(surf, 1);
+            adf_buf->offset[2] = gralloc.get_offset(surf, 2);
+            break;
+        default:
+            LOG_ALWAYS_FATAL("Invalid surface count. There must be between 1 to"
+                    " 3 surfaces per buffer.");
+            break;
+        }
+    }
+
+    adf_buf->acquire_fence = acquire_fence;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::get_adf_win_attr(
+        struct tegra_adf_flip_windowattr *win_attr, size_t win_idx,
+        size_t buf_idx, uint32_t z_order) const
+{
+    const hwc2_gralloc& gralloc = hwc2_gralloc::get_instance();
+    const void *surf;
+    size_t surf_cnt;
+    uint32_t layout;
+
+    win_attr->win_index = win_idx;
+    win_attr->buf_index = buf_idx;
+
+    switch (blend_mode) {
+    case HWC2_BLEND_MODE_PREMULTIPLIED:
+        win_attr->blend = TEGRA_ADF_BLEND_PREMULT;
+        break;
+    case HWC2_BLEND_MODE_COVERAGE:
+        win_attr->blend = TEGRA_ADF_BLEND_COVERAGE;
+        break;
+    case HWC2_BLEND_MODE_NONE:
+        win_attr->blend = TEGRA_ADF_BLEND_NONE;
+        break;
+    default:
+        ALOGW("invalid blend mode %d", blend_mode);
+        win_attr->blend = TEGRA_ADF_BLEND_NONE;
+    }
+
+    win_attr->x = ((uint32_t) ceil(source_crop.left)) << 12;
+    win_attr->y = ((uint32_t) ceil(source_crop.top)) << 12;
+    win_attr->out_x = display_frame.left;
+    win_attr->out_y = display_frame.top;
+    win_attr->out_w = display_frame.right - display_frame.left;
+    win_attr->out_h = display_frame.bottom - display_frame.top;
+    win_attr->z = z_order;
+    win_attr->flags = 0;
+
+    gralloc.get_surfaces(handle, &surf, &surf_cnt);
+    if (!surf || surf_cnt == 0) {
+        ALOGE("failed to get surfaces");
+        return HWC2_ERROR_NO_RESOURCES;
+    }
+
+    layout = gralloc.get_layout(surf, 0);
+    if (layout == HWC2_WINDOW_CAP_TILED)
+        win_attr->flags |= TEGRA_FB_WIN_FLAG_TILED;
+
+    if (layout == HWC2_WINDOW_CAP_BLOCK_LINEAR) {
+        win_attr->flags |= TEGRA_DC_EXT_FLIP_FLAG_BLOCKLINEAR;
+        win_attr->block_height_log2 = gralloc.get_block_height_log2(surf, 0);
+    }
+
+    win_attr->flags |= TEGRA_DC_EXT_FLIP_FLAG_GLOBAL_ALPHA;
+    win_attr->global_alpha = (uint8_t) (plane_alpha * 0xFF);
+
+    if (transform & HWC_TRANSFORM_FLIP_H)
+        win_attr->flags |= TEGRA_DC_EXT_FLIP_FLAG_INVERT_H;
+
+    if (transform & HWC_TRANSFORM_FLIP_V)
+        win_attr->flags |= TEGRA_DC_EXT_FLIP_FLAG_INVERT_V;
+
+    if (transform & HWC_TRANSFORM_ROT_90) {
+        win_attr->flags |= TEGRA_DC_EXT_FLIP_FLAG_SCAN_COLUMN;
+        win_attr->flags ^= TEGRA_DC_EXT_FLIP_FLAG_INVERT_V;
+    }
+
+    return HWC2_ERROR_NONE;
 }
 
 void hwc2_buffer::close_acquire_fence()
