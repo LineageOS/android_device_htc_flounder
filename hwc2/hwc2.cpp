@@ -279,11 +279,11 @@ hwc2_error_t set_layer_color(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t set_layer_composition_type(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/,
-        hwc2_composition_t /*type*/)
+hwc2_error_t set_layer_composition_type(hwc2_device_t *device,
+        hwc2_display_t display, hwc2_layer_t layer, hwc2_composition_t type)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_composition_type(display, layer, type);
 }
 
 hwc2_error_t set_layer_dataspace(hwc2_device_t* /*device*/,

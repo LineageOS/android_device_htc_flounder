@@ -80,13 +80,21 @@ class hwc2_layer {
 public:
     hwc2_layer(hwc2_layer_t id);
 
-    hwc2_layer_t get_id() const { return id; }
+    /* Get properties */
+    hwc2_layer_t        get_id() const { return id; }
+    hwc2_composition_t  get_comp_type() const { return comp_type; }
+
+    /* Set properties */
+    hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
 
     static hwc2_layer_t get_next_id();
 
 private:
     /* Identifies the layer to the client */
     hwc2_layer_t id;
+
+    /* Composition type of the layer */
+    hwc2_composition_t comp_type;
 
     /* Keep track to total number of layers so new layer ids can be
      * generated */
@@ -128,6 +136,9 @@ public:
     /* Set layer functions */
     hwc2_error_t create_layer(hwc2_layer_t *out_layer);
     hwc2_error_t destroy_layer(hwc2_layer_t lyr_id);
+
+    hwc2_error_t set_layer_composition_type(hwc2_layer_t lyr_id,
+                    hwc2_composition_t comp_type);
 
     static hwc2_display_t get_next_id();
 
@@ -201,6 +212,9 @@ public:
     /* Layer functions */
     hwc2_error_t create_layer(hwc2_display_t dpy_id, hwc2_layer_t *out_layer);
     hwc2_error_t destroy_layer(hwc2_display_t dpy_id, hwc2_layer_t lyr_id);
+
+    hwc2_error_t set_layer_composition_type(hwc2_display_t dpy_id,
+                    hwc2_layer_t lyr_id, hwc2_composition_t comp_type);
 
     /* Callback functions */
     void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);

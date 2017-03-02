@@ -264,6 +264,18 @@ hwc2_error_t hwc2_display::destroy_layer(hwc2_layer_t lyr_id)
     return HWC2_ERROR_NONE;
 }
 
+hwc2_error_t hwc2_display::set_layer_composition_type(hwc2_layer_t lyr_id,
+        hwc2_composition_t comp_type)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    return it->second.set_comp_type(comp_type);
+}
+
 hwc2_display_t hwc2_display::get_next_id()
 {
     return display_cnt++;
