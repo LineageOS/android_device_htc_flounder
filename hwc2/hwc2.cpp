@@ -41,18 +41,19 @@ hw_module_t HAL_MODULE_INFO_SYM = {
 };
 
 
-hwc2_error_t create_virtual_display(hwc2_device_t* /*device*/,
-        uint32_t /*width*/, uint32_t /*height*/,
-        android_pixel_format_t* /*format*/,
-        hwc2_display_t* /*out_display*/)
+hwc2_error_t create_virtual_display(hwc2_device_t *device, uint32_t width,
+        uint32_t height, android_pixel_format_t *format,
+        hwc2_display_t *out_display)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->create_virtual_display(width, height, format, out_display);
 }
 
-hwc2_error_t destroy_virtual_display(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/)
+hwc2_error_t destroy_virtual_display(hwc2_device_t *device,
+        hwc2_display_t display)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->destroy_virtual_display(display);
 }
 
 void dump(hwc2_device_t* /*device*/, uint32_t* /*out_size*/,
@@ -61,9 +62,10 @@ void dump(hwc2_device_t* /*device*/, uint32_t* /*out_size*/,
     return;
 }
 
-uint32_t get_max_virtual_display_count(hwc2_device_t* /*device*/)
+uint32_t get_max_virtual_display_count(hwc2_device_t *device)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->get_max_virtual_display_count();
 }
 
 hwc2_error_t register_callback(hwc2_device_t *device,
@@ -229,11 +231,11 @@ hwc2_error_t set_color_transform(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_color_transform(display, matrix, hint);
 }
 
-hwc2_error_t set_output_buffer(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, buffer_handle_t /*buffer*/,
-        int32_t /*release_fence*/)
+hwc2_error_t set_output_buffer(hwc2_device_t *device, hwc2_display_t display,
+        buffer_handle_t buffer, int32_t release_fence)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_output_buffer(display, buffer, release_fence);
 }
 
 hwc2_error_t set_power_mode(hwc2_device_t *device, hwc2_display_t display,

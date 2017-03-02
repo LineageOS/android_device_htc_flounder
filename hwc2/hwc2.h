@@ -590,6 +590,15 @@ public:
     hwc2_error_t get_display_type(hwc2_display_t dpy_id,
                     hwc2_display_type_t *out_type) const;
 
+    /* Virtual display functions */
+    uint32_t     get_max_virtual_display_count() const;
+    hwc2_error_t create_virtual_display(uint32_t width, uint32_t height,
+                    android_pixel_format_t *format,
+                    hwc2_display_t *out_display);
+    hwc2_error_t destroy_virtual_display(hwc2_display_t dpy_id);
+    hwc2_error_t set_output_buffer(hwc2_display_t dpy_id,
+                    buffer_handle_t buffer, int32_t release_fence);
+
     /* Power modes */
     hwc2_error_t set_power_mode(hwc2_display_t dpy_id, hwc2_power_mode_t mode);
     hwc2_error_t get_doze_support(hwc2_display_t dpy_id, int32_t *out_support)

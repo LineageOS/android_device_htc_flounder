@@ -86,6 +86,35 @@ hwc2_error_t hwc2_dev::get_display_type(hwc2_display_t dpy_id,
     return HWC2_ERROR_NONE;
 }
 
+uint32_t hwc2_dev::get_max_virtual_display_count() const
+{
+    return 0;
+}
+
+hwc2_error_t hwc2_dev::create_virtual_display(uint32_t /*width*/,
+        uint32_t /*height*/, android_pixel_format_t* /*format*/,
+        hwc2_display_t* /*out_display*/)
+{
+    return HWC2_ERROR_NO_RESOURCES;
+}
+
+hwc2_error_t hwc2_dev::destroy_virtual_display(hwc2_display_t dpy_id)
+{
+    if (displays.find(dpy_id) != displays.end())
+        return HWC2_ERROR_BAD_PARAMETER;
+    else
+        return HWC2_ERROR_BAD_DISPLAY;
+}
+
+hwc2_error_t hwc2_dev::set_output_buffer(hwc2_display_t dpy_id,
+        buffer_handle_t /*buffer*/, int32_t /*release_fence*/)
+{
+    if (displays.find(dpy_id) != displays.end())
+        return HWC2_ERROR_UNSUPPORTED;
+    else
+        return HWC2_ERROR_BAD_DISPLAY;
+}
+
 hwc2_error_t hwc2_dev::set_power_mode(hwc2_display_t dpy_id,
         hwc2_power_mode_t mode)
 {
