@@ -300,10 +300,11 @@ hwc2_error_t set_layer_display_frame(hwc2_device_t* /*device*/,
     return HWC2_ERROR_NONE;
 }
 
-hwc2_error_t set_layer_plane_alpha(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/, float /*alpha*/)
+hwc2_error_t set_layer_plane_alpha(hwc2_device_t *device,
+        hwc2_display_t display, hwc2_layer_t layer, float alpha)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_plane_alpha(display, layer, alpha);
 }
 
 hwc2_error_t set_layer_source_crop(hwc2_device_t* /*device*/,

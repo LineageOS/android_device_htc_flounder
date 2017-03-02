@@ -34,6 +34,7 @@ public:
     /* Set properties */
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
+    hwc2_error_t set_plane_alpha(float plane_alpha);
 
 private:
     /* Provides more info on how to interpret the buffer contents such as
@@ -42,6 +43,10 @@ private:
 
     /* The blend mode of the buffer */
     hwc2_blend_mode_t blend_mode;
+
+    /* An alpha value in the range [0.0, 1.0] to be applied to the whole
+     * buffer */
+    float plane_alpha;
 };
 
 class hwc2_config {
@@ -105,6 +110,7 @@ public:
     hwc2_error_t set_comp_type(hwc2_composition_t comp_type);
     hwc2_error_t set_dataspace(android_dataspace_t dataspace);
     hwc2_error_t set_blend_mode(hwc2_blend_mode_t blend_mode);
+    hwc2_error_t set_plane_alpha(float plane_alpha);
 
     static hwc2_layer_t get_next_id();
 
@@ -165,6 +171,7 @@ public:
                     android_dataspace_t dataspace);
     hwc2_error_t set_layer_blend_mode(hwc2_layer_t lyr_id,
                     hwc2_blend_mode_t blend_mode);
+    hwc2_error_t set_layer_plane_alpha(hwc2_layer_t lyr_id, float plane_alpha);
 
     static hwc2_display_t get_next_id();
 
@@ -245,6 +252,8 @@ public:
                     android_dataspace_t dataspace);
     hwc2_error_t set_layer_blend_mode(hwc2_display_t dpy_id,
                     hwc2_layer_t lyr_id, hwc2_blend_mode_t blend_mode);
+    hwc2_error_t set_layer_plane_alpha(hwc2_display_t dpy_id,
+                    hwc2_layer_t lyr_id, float plane_alpha);
 
     /* Callback functions */
     void hotplug(hwc2_display_t dpy_id, hwc2_connection_t connection);
