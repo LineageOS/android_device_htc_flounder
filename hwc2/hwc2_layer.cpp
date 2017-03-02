@@ -107,6 +107,11 @@ hwc2_error_t hwc2_layer::set_transform(const hwc_transform_t transform)
     return buffer.set_transform(transform);
 }
 
+hwc2_error_t hwc2_layer::set_visible_region(const hwc_region_t &visible_region)
+{
+    return buffer.set_visible_region(visible_region);
+}
+
 hwc2_layer_t hwc2_layer::get_next_id()
 {
     return layer_cnt++;

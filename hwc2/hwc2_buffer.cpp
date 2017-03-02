@@ -28,7 +28,8 @@ hwc2_buffer::hwc2_buffer()
       surface_damage(),
       blend_mode(HWC2_BLEND_MODE_NONE),
       plane_alpha(1.0),
-      transform() { }
+      transform(),
+      visible_region() { }
 
 hwc2_buffer::~hwc2_buffer()
 {
@@ -121,6 +122,15 @@ hwc2_error_t hwc2_buffer::set_plane_alpha(float plane_alpha)
 hwc2_error_t hwc2_buffer::set_transform(const hwc_transform_t transform)
 {
     this->transform = transform;
+
+    return HWC2_ERROR_NONE;
+}
+
+hwc2_error_t hwc2_buffer::set_visible_region(const hwc_region_t &visible_region)
+{
+    this->visible_region.clear();
+    for (size_t idx = 0; idx < visible_region.numRects; idx++)
+        this->visible_region.push_back(visible_region.rects[idx]);
 
     return HWC2_ERROR_NONE;
 }

@@ -382,6 +382,18 @@ hwc2_error_t hwc2_display::set_layer_transform(hwc2_layer_t lyr_id,
     return it->second.set_transform(transform);
 }
 
+hwc2_error_t hwc2_display::set_layer_visible_region(hwc2_layer_t lyr_id,
+        const hwc_region_t &visible_region)
+{
+    auto it = layers.find(lyr_id);
+    if (it == layers.end()) {
+        ALOGE("dpy %" PRIu64 ": lyr %" PRIu64 ": bad layer handle", id, lyr_id);
+        return HWC2_ERROR_BAD_LAYER;
+    }
+
+    return it->second.set_visible_region(visible_region);
+}
+
 hwc2_error_t hwc2_display::set_layer_color(hwc2_layer_t lyr_id,
         const hwc_color_t& /*color*/)
 {

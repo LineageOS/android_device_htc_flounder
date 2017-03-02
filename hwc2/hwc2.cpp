@@ -322,11 +322,11 @@ hwc2_error_t set_layer_transform(hwc2_device_t *device, hwc2_display_t display,
     return dev->set_layer_transform(display, layer, transform);
 }
 
-hwc2_error_t set_layer_visible_region(hwc2_device_t* /*device*/,
-        hwc2_display_t /*display*/, hwc2_layer_t /*layer*/,
-        hwc_region_t /*visible*/)
+hwc2_error_t set_layer_visible_region(hwc2_device_t *device,
+        hwc2_display_t display, hwc2_layer_t layer, hwc_region_t visible)
 {
-    return HWC2_ERROR_NONE;
+    hwc2_dev *dev = reinterpret_cast<hwc2_context *>(device)->hwc2_dev;
+    return dev->set_layer_visible_region(display, layer, visible);
 }
 
 hwc2_error_t set_layer_z_order(hwc2_device_t *device, hwc2_display_t display,
