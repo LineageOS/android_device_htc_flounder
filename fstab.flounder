@@ -1,11 +1,12 @@
 # Android fstab file.
-#<src>                                                  <mnt_point>         <type>    <mnt_flags and options>                       <fs_mgr_flags>
-# The filesystem that contains the filesystem checker binary (typically /system) cannot
-# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+# The filesystem that contains the filesystem e2fsck binary (typically /system) cannot
+# specify 'check', and must come before any filesystems that do specify 'check'
 
+# NOTE: /vendor partition is now early-mounted and the fstab entry is specified in device tree:
+#       /proc/device-tree/firmware/android/fstab/vendor
+
+#<src>                                          <mnt_point>         <type>    <mnt_flags and options>                               <fs_mgr_flags>
 /dev/block/platform/sdhci-tegra.3/by-name/APP   /system             ext4      ro                                                    wait
-# 'vendor' partition is now early-mounted and fstab entry is specified in device tree
-# /dev/block/platform/sdhci-tegra.3/by-name/VNR   /vendor             ext4      ro                                                    wait
 /dev/block/platform/sdhci-tegra.3/by-name/CAC   /cache              f2fs      noatime,nosuid,nodev,errors=panic                     wait,check
 /dev/block/platform/sdhci-tegra.3/by-name/CAC   /cache              ext4      noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait,check
 /dev/block/platform/sdhci-tegra.3/by-name/UDA   /data               f2fs      noatime,nosuid,nodev,errors=panic                     wait,check,latemount,forceencrypt=/dev/block/platform/sdhci-tegra.3/by-name/MD1
