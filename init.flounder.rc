@@ -23,7 +23,7 @@ on late-fs
     start audioserver
     start bootanim
     # mount RW partitions which need run fsck
-    mount_all /fstab.flounder --late
+    mount_all /vendor/etc/fstab.flounder --late
 
 on post-fs
     # turn off nvmap page pool b/29389829
@@ -33,7 +33,7 @@ on post-fs
     write /sys/power/gpu_power_on 1
     write /sys/module/input_cfboost/parameters/gpu_wakeup 1
     # Turn on swap
-    swapon_all /fstab.flounder
+    swapon_all /vendor/etc/fstab.flounder
 
 on post-fs-data
     # Now that are booted all the way and out of mount panics, ensure that we panic on later errors.
@@ -131,7 +131,7 @@ on boot
     chown wifi wifi /sys/module/bcmdhd/parameters/firmware_path
 
 on fs
-    mount_all /fstab.flounder --early
+    mount_all /vendor/etc/fstab.flounder --early
     # Update dm-verity state and set partition.*.verified properties
     verity_update_state
 

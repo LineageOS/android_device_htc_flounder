@@ -39,12 +39,12 @@ PRODUCT_COPY_FILES := \
     $(LOCAL_PATH)/init.flounder.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.usb.rc \
     $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder.rc \
-    $(LOCAL_FSTAB):root/fstab.flounder \
+    $(LOCAL_FSTAB):$(TARGET_COPY_OUT_VENDOR)/etc/fstab.flounder \
     $(LOCAL_PATH)/ueventd.flounder.rc:$(TARGET_COPY_OUT_VENDOR)/ueventd.rc
 
 # Copy flounder files as flounder64 so that ${ro.hardware} can find them
 PRODUCT_COPY_FILES += \
-    $(LOCAL_FSTAB):root/fstab.flounder64 \
+    $(LOCAL_FSTAB):$(TARGET_COPY_OUT_VENDOR)/etc/fstab.flounder64 \
     $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder64.rc
 
 PRODUCT_COPY_FILES += \
