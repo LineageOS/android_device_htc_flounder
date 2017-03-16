@@ -21,11 +21,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 $(call inherit-product, device/htc/flounder/device.mk)
 
 PRODUCT_COPY_FILES += \
-	device/htc/flounder/init.flounder_svelte.rc:root/init.flounder_svelte.rc:google \
-
-# Copy flounder files as flounder64 so ${ro.hardware} can find them
-PRODUCT_COPY_FILES += \
-	device/htc/flounder/init.flounder_svelte.rc:root/init.flounder64_svelte.rc:google \
+	$(LOCAL_PATH)/init.flounder_svelte.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.svelte.rc
 
 #TODO: figure out if we need an overlay
 #DEVICE_PACKAGE_OVERLAYS := vendor/lge/hammerhead/svelte-overlay

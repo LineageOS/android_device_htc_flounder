@@ -1,6 +1,3 @@
-import init.flounder.usb.rc
-import init.flounder_svelte.rc
-
 on early-init
     mount debugfs /sys/kernel/debug /sys/kernel/debug mode=755
 
