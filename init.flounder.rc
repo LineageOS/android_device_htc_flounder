@@ -17,11 +17,17 @@ on init
 
 on late-fs
     # Start services for bootanim
-    start hwservicemanager
     start servicemanager
     start surfaceflinger
     start bootanim
-    # mount RW partitions which need run fsck
+
+    # Make sure HW service manager started and start required HAL services
+    wait_for_prop hwservicemanager.ready true
+    start hwcomposer-2-1
+    start configstore-hal-1-0
+    start gralloc-2-0
+
+    # Mount RW partitions which need run fsck
     mount_all /vendor/etc/fstab.flounder --late
 
 on post-fs
@@ -133,6 +139,9 @@ on fs
     mount_all /vendor/etc/fstab.flounder --early
     # Update dm-verity state and set partition.*.verified properties
     verity_update_state
+
+    # Start HW service manager early
+    start hwservicemanager
 
 on verity-logging
     exec u:r:slideshow:s0 -- /sbin/slideshow warning/verity_red_1 warning/verity_red_2
