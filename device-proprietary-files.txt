@@ -1,2 +1,10 @@
 # Audio
+etc/fmas_eq.dat
+etc/permissions/com.google.android.media.effects.xml
 lib/soundfx/libfmas.so
+
+# DRM
+etc/permissions/com.google.widevine.software.drm.xml
+-framework/com.google.android.media.effects.jar
+-framework/com.google.widevine.software.drm.jar
+lib/drm/libdrmwvmplugin.so
