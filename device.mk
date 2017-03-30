@@ -254,6 +254,10 @@ PRODUCT_PACKAGES += \
 #PRODUCT_PACKAGES += \
 #    VolantisLayout
 
+# Default OMX service to non-Treble
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.media.treble_omx=false
+
 # drmservice prop
 PRODUCT_PROPERTY_OVERRIDES += \
     drm.service.enabled=true
