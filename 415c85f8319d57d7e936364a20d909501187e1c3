@@ -16,6 +16,24 @@
       "revId": "415c85f8319d57d7e936364a20d909501187e1c3",
       "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a51691d_b502aab2",
+        "filename": "power/power_flounder.c",
+        "patchSetId": 3
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 13897
+      },
+      "writtenOn": "2017-04-08T07:23:51Z",
+      "side": 1,
+      "message": "Yes. Since the type is bool (_Bool), low_power_mode is 0 if we assign NULL/0, 1 otherwise, as per the C specification.\n\nIn any case, since low_power_mode is used in conditional statements as a bool, its value shouldn\u0027t matter as long as \"0 \u003d\u003d false\" and \"!0 \u003d\u003d true\".\n\nWe can do the conversion explicitly or move the assignment inside the if, the decision isn\u0027t up to me.",
+      "parentUuid": "7a51691d_550a56d3",
+      "revId": "415c85f8319d57d7e936364a20d909501187e1c3",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
     }
   ]
 }
