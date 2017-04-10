@@ -1,6 +1,6 @@
 # touch_fusion
 type touch_fusion, domain, device_domain_deprecated;
-type touch_fusion_exec, exec_type, file_type;
+type touch_fusion_exec, exec_type, vendor_file_type, file_type;
 
 # Why net_admin?
 allow touch_fusion self:capability { net_admin sys_nice };
