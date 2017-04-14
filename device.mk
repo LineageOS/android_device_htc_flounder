@@ -208,11 +208,15 @@ PRODUCT_PROPERTY_OVERRIDES := \
     ro.hwui.disable_scissor_opt=true \
     ro.bt.bdaddr_path=/sys/module/flounder_bdaddress/parameters/bdaddress \
     ro.frp.pst=/dev/block/platform/sdhci-tegra.3/by-name/PST \
+    ro.product.first_api_level=23 \
     ro.ril.def.agps.mode=1 \
     persist.tegra.compositor=glcomposer
 
 # setup dalvik vm configs.
 $(call inherit-product, frameworks/native/build/tablet-10in-xhdpi-2048-dalvik-heap.mk)
+# N9 has only two CPUs, so drop dex2oat pressure after boot at runtime
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.dex2oat-threads=1
 
 # for off charging mode
 PRODUCT_PACKAGES += \
