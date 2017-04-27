@@ -2,10 +2,10 @@
 
 # Audio
 etc/fmas_eq.dat
-lib/soundfx/libfmas.so
+lib/soundfx/libfmas.so:vendor/lib/soundfx/libfmas.so
 vendor/etc/model_frontal.xml
-vendor/lib/libLifevibes_lvverx.so
-vendor/lib/libLifevibes_lvvetx.so
+vendor/lib/libLifevibes_lvverx.so:vendor/lib/soundfx/libLifevibes_lvverx.so
+vendor/lib/libLifevibes_lvvetx.so:vendor/lib/soundfx/libLifevibes_lvvetx.so
 vendor/lib/libaudioavp.so
 vendor/lib/libhtcacoustic.so
 
