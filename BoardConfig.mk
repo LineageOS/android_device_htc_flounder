@@ -87,6 +87,7 @@ BOARD_USES_QCOM_HARDWARE_GPS := true
 
 # HIDL
 DEVICE_MANIFEST_FILE := device/htc/flounder/manifest.xml
+DEVICE_MATRIX_FILE   := device/htc/flounder/compatibility_matrix.xml
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := NL80211
