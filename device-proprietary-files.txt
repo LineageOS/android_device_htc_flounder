@@ -1,4 +1,5 @@
 # Audio
+etc/fmas_eq.dat
 lib/soundfx/libfmas.so
 
 # Hotword Enrollment
