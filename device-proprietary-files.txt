@@ -1,2 +1,5 @@
 # Audio
 lib/soundfx/libfmas.so
+etc/fmas_eq.dat
+etc/permissions/com.google.android.media.effects.xml
+-framework/com.google.android.media.effects.jar
