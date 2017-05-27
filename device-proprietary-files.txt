@@ -1,5 +1,10 @@
 # Audio
 lib/soundfx/libfmas.so
 
+# DRM
+etc/permissions/com.google.widevine.software.drm.xml
+-framework/com.google.widevine.software.drm.jar
+lib/drm/libdrmwvmplugin.so
+
 # Hotword Enrollment
 -priv-app/HotwordEnrollment/HotwordEnrollment.apk:priv-app/HotwordEnrollment/HotwordEnrollment.apk:PRESIGNED
