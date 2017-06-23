@@ -33,8 +33,6 @@ on post-fs
 
     write /sys/power/gpu_power_on 1
     write /sys/module/input_cfboost/parameters/gpu_wakeup 1
-    # Turn on swap
-    swapon_all /vendor/etc/fstab.flounder
 
 on post-fs-data
     # Now that are booted all the way and out of mount panics, ensure that we panic on later errors.
@@ -141,6 +139,10 @@ on fs
 
     # Start HW service manager early
     start hwservicemanager
+
+on property:sys.boot_completed=1
+    # Enable ZRAM on boot_complete
+    swapon_all /vendor/etc/fstab.flounder
 
 on verity-logging
     exec u:r:slideshow:s0 -- /sbin/slideshow warning/verity_red_1 warning/verity_red_2
