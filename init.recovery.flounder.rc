@@ -6,3 +6,5 @@ on init
 service watchdogd /sbin/watchdogd 10 20
     class core
     seclabel u:r:watchdogd:s0
+
+    setprop sys.usb.ffs.aio_compat 1
