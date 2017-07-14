@@ -1,6 +1,7 @@
 on init
     start watchdogd
     write /proc/sys/vm/extra_free_kbytes 36864
+    setprop sys.usb.ffs.aio_compat 1
 
 # Set watchdog timer to 30 seconds and pet it every 10 seconds to get a 20 second margin
 service watchdogd /sbin/watchdogd 10 20
