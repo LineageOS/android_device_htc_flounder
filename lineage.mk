@@ -1,4 +1,4 @@
-# CyanogenMod Specific Changes
+# Lineage specific changes
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 2048
@@ -15,8 +15,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.sys.sdcardfs=true
 
-# Inherit some common CM stuff.
-$(call inherit-product, vendor/cm/config/common_full_tablet_wifionly.mk)
+# Inherit some common Lineage stuff
+$(call inherit-product, vendor/lineage/config/common_full_tablet_wifionly.mk)
 
 # Inherit device configuration
 $(call inherit-product, device/htc/flounder/aosp_flounder.mk)
@@ -34,8 +34,8 @@ BOARD_KERNEL_IMAGE_NAME := Image.gz-dtb
 PRODUCT_PACKAGES += \
     com.android.nfc_extras
 
-# CM Overlays
-DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-cm
+# Lineage overlays
+DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-lineage
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_NAME=flounder \
