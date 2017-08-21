@@ -1,0 +1,9 @@
+This hardware composer implements version 2.0. It is to be used as a reference
+guide for writing HWC 2.0 implementations. It is a 2D HAL (no GL acceleration).
+Enabling it will degrade performance. The NVIDIA hardware composer is still the
+supported hwcomposer for flounder.
+
+Future hardware composers should be written using drm_hwcomposer.
+
+To enable, add "TARGET_USES_HWC2 := true" to flounder's BoardConfig.mk.
+To disable, remove "TARGET_USES_HWC2 := true" and run "make installclean"
