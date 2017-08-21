@@ -74,7 +74,7 @@ BOARD_USES_ALSA_AUDIO := true
 BOARD_HAL_STATIC_LIBRARIES := libdumpstate.flounder libhealthd.flounder
 
 # Use flounder's libhealthd
-WITH_CM_CHARGER := false
+WITH_LINEAGE_CHARGER := false
 
 BOARD_VENDOR_USE_SENSOR_HAL := sensor_hub
 
