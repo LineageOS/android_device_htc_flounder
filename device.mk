@@ -279,7 +279,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.power@1.0-impl \
     android.hardware.renderscript@1.0-impl \
-    android.hardware.drm@1.0-impl
+    android.hardware.drm@1.0-impl \
+    android.hardware.light@2.0-impl
 
 # for launcher layout
 #PRODUCT_PACKAGES += \
