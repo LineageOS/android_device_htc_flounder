@@ -288,6 +288,10 @@ PRODUCT_PACKAGES += \
     camera.device@3.2-impl \
     android.hardware.camera.provider@2.4-impl
 
+# Sensors
+PRODUCT_PACKAGES += \
+    android.hardware.sensors@1.0-impl
+
 # for launcher layout
 #PRODUCT_PACKAGES += \
 #    VolantisLayout
