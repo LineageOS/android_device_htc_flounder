@@ -255,6 +255,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     sound_trigger.primary.flounder
 
+# Media
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.media.treble_omx=false
+
 # for keyboard key mappings
 PRODUCT_PACKAGES += \
 	VolantisKeyboard
