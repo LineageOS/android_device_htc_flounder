@@ -255,6 +255,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     sound_trigger.primary.flounder
 
+# Camera HAL
+PRODUCT_PACKAGES += \
+    camera.device@3.2-impl \
+    android.hardware.camera.provider@2.4-impl
+
 # Media
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.media.treble_omx=false
