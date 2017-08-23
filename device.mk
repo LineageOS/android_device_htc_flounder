@@ -60,6 +60,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl
 
 PRODUCT_PACKAGES += \
+    android.hardware.wifi@1.0-service \
     libwpa_client \
     hostapd \
     wpa_supplicant \
@@ -241,6 +242,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.audio.monitorRotation=true
 
+PRODUCT_PACKAGES += \
+    android.hardware.audio@2.0-impl \
+    android.hardware.audio.effect@2.0-impl \
+    android.hardware.broadcastradio@1.0-impl \
+    android.hardware.soundtrigger@2.0-impl
+
 # for sound trigger on DSP
 PRODUCT_PACKAGES += \
     sound_trigger.primary.flounder
@@ -248,6 +255,24 @@ PRODUCT_PACKAGES += \
 # for keyboard key mappings
 PRODUCT_PACKAGES += \
 	VolantisKeyboard
+
+# Gralloc HAL
+PRODUCT_PACKAGES += \
+    android.hardware.graphics.mapper@2.0-impl \
+    android.hardware.graphics.allocator@2.0-impl \
+    android.hardware.graphics.allocator@2.0-service
+
+PRODUCT_PACKAGES += \
+    android.hardware.graphics.composer@2.1-impl
+
+# Keymaster HAL
+PRODUCT_PACKAGES += \
+    android.hardware.keymaster@3.0-impl
+
+PRODUCT_PACKAGES += \
+    android.hardware.power@1.0-impl \
+    android.hardware.renderscript@1.0-impl \
+    android.hardware.drm@1.0-impl
 
 # for launcher layout
 #PRODUCT_PACKAGES += \
