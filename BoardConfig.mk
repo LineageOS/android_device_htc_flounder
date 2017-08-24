@@ -83,6 +83,9 @@ BOARD_VENDOR_USE_SENSOR_HAL := sensor_hub
 TARGET_NO_RPC := true
 BOARD_USES_QCOM_HARDWARE_GPS := true
 
+# HIDL
+DEVICE_MANIFEST_FILE := device/htc/flounder/manifest.xml
+
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := NL80211
 WPA_SUPPLICANT_VERSION      := VER_0_8_X
