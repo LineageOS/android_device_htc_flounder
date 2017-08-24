@@ -14,8 +14,9 @@
 # limitations under the License.
 #
 
-# Build a separate vendor.img
-TARGET_COPY_OUT_VENDOR := system
+# Separate vendor partition no longer in use since O,
+# so copy vendor files to /system/vendor instead
+TARGET_COPY_OUT_VENDOR := system/vendor
 
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
