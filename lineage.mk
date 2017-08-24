@@ -29,7 +29,7 @@ PRODUCT_PACKAGES += \
     com.android.nfc_extras
 
 # Lineage overlays
-DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-lineage
+#DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-lineage
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_NAME=flounder \
