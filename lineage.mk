@@ -35,7 +35,7 @@ PRODUCT_PACKAGES += \
     com.android.nfc_extras
 
 # CM Overlays
-DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-cm
+#DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-cm
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_NAME=flounder \
