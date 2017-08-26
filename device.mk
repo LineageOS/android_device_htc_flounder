@@ -178,7 +178,7 @@ endif
 
 # NFC packages
 PRODUCT_PACKAGES += \
-    nfc_nci.bcm2079x.default \
+    nfc_nci.flounder \
     NfcNci \
     Tag \
     android.hardware.nfc@1.0-impl
