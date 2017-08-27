@@ -67,6 +67,7 @@ BOARD_OVERRIDE_RS_CPU_VARIANT_64 := cortex-a57
 
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/htc/flounder/bluetooth
+BOARD_CUSTOM_BT_CONFIG := device/htc/flounder/bluetooth/vnd_flounder.txt
 BOARD_HAVE_BLUETOOTH_BCM := true
 
 BOARD_USES_GENERIC_AUDIO := false
