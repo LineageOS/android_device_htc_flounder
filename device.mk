@@ -173,10 +173,10 @@ endif
 
 # NFC packages
 PRODUCT_PACKAGES += \
+    android.hardware.nfc@1.0-impl-bcm \
     nfc_nci.bcm2079x.default \
     NfcNci \
-    Tag \
-    android.hardware.nfc@1.0-impl
+    Tag
 
 # Bluetooth HAL
 PRODUCT_PACKAGES += \
