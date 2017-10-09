@@ -214,6 +214,10 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.mapper@2.0-impl \
     hwcomposer.flounder
 
+# Health HAL
+PRODUCT_PACKAGES += \
+    android.hardware.health@1.0-impl
+
 # Keymaster HAL
 PRODUCT_PACKAGES += \
     android.hardware.keymaster@3.0-impl
