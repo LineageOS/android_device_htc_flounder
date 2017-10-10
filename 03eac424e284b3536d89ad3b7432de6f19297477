@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "bed33d2b_fc8096e5",
+        "filename": "BoardConfig.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2017-10-10T09:54:34Z",
+      "side": 1,
+      "message": "This flag is meant for QCOM devices only (used in the display HAL).",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 49,
+        "endChar": 28
+      },
+      "revId": "03eac424e284b3536d89ad3b7432de6f19297477",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "0340d166_0e65921f",
         "filename": "BoardConfig.mk",
         "patchSetId": 1
