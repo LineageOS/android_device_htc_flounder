@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+# Wifi
 PRODUCT_PACKAGES := \
     libwpa_client \
     hostapd \
@@ -57,12 +58,6 @@ PRODUCT_COPY_FILES += \
 # headset keylayout
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl
-
-PRODUCT_PACKAGES += \
-    libwpa_client \
-    hostapd \
-    wpa_supplicant \
-    wpa_supplicant.conf
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/tablet_core_hardware.xml:system/etc/permissions/tablet_core_hardware.xml \
