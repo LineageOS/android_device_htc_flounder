@@ -45,7 +45,8 @@ setup_vendor "$DEVICE_COMMON" "$VENDOR" "$LINEAGE_ROOT" true
 # Copyright headers and common guards
 write_headers "flounder flounder_lte"
 
-write_makefiles "$MY_DIR"/common-proprietary-files.txt
+# Generate Treble compatible makefiles
+write_makefiles "$MY_DIR"/common-proprietary-files.txt true
 
 write_footers
 
@@ -56,8 +57,9 @@ if [ -s "$MY_DIR"/proprietary-files.txt ] || [ -s "$MY_DIR"/../$DEVICE/device-pr
     # Copyright headers and guards
     write_headers
 
-    write_makefiles "$MY_DIR"/proprietary-files.txt
-    write_makefiles "$MY_DIR"/../$DEVICE/device-proprietary-files.txt
+    # Generate Treble compatible makefiles
+    write_makefiles "$MY_DIR"/proprietary-files.txt true
+    write_makefiles "$MY_DIR"/../$DEVICE/device-proprietary-files.txt true
 
     write_footers
 fi
