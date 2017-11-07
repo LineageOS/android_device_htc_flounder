@@ -377,8 +377,8 @@ endif
 
 $(call inherit-product-if-exists, hardware/nvidia/tegra132/tegra132.mk)
 $(call inherit-product-if-exists, vendor/nvidia/proprietary-tegra132/tegra132-vendor.mk)
-$(call inherit-product-if-exists, vendor/htc/flounder-common/flounder-common-vendor.mk)
-$(call inherit-product-if-exists, vendor/htc/$(TARGET_DEVICE)/$(TARGET_DEVICE)-vendor.mk)
+$(call inherit-product, vendor/htc/flounder-common/flounder-common-vendor.mk)
+$(call inherit-product, vendor/htc/$(TARGET_DEVICE)/$(TARGET_DEVICE)-vendor.mk)
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/firmware/bcm4354/device-bcm.mk)
 $(call inherit-product-if-exists, vendor/htc/flounder/audio/lifevibes/lvve/device-vendor-lvve.mk)
 $(call inherit-product-if-exists, vendor/htc/flounder/audio/tfa/device-vendor-tfa.mk)

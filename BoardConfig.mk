@@ -15,7 +15,7 @@
 #
 
 # Build a separate vendor.img
-TARGET_COPY_OUT_VENDOR := system
+TARGET_COPY_OUT_VENDOR := vendor
 
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
@@ -54,6 +54,8 @@ BOARD_SYSTEMIMAGE_PARTITION_SIZE := 2782920704
 # BOARD_USERDATAIMAGE_PARTITION_SIZE := 13287555072
 BOARD_CACHEIMAGE_PARTITION_SIZE := 268435456
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
+BOARD_VENDORIMAGE_PARTITION_SIZE := 268435456
+BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_FLASH_BLOCK_SIZE := 4096
 
 BOARD_CHARGER_DISABLE_INIT_BLANK := true
@@ -127,6 +129,6 @@ MALLOC_SVELTE := true
 
 USE_CLANG_PLATFORM_BUILD := true
 
-# Use the non-open-source parts, if they're present
--include vendor/htc/flounder-common/BoardConfigVendor.mk
--include vendor/htc/$(TARGET_DEVICE)/BoardConfigVendor.mk
+# Forcebly use the non-open-source parts
+include vendor/htc/flounder-common/BoardConfigVendor.mk
+include vendor/htc/$(TARGET_DEVICE)/BoardConfigVendor.mk
