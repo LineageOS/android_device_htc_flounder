@@ -19,8 +19,6 @@ $(call inherit-product, device/htc/flounder/aosp_flounder.mk)
 
 $(call inherit-product-if-exists, vendor/htc/flounder/device-vendor.mk)
 
-BOARD_NEEDS_VENDORIMAGE_SYMLINK := true
-
 # Inline kernel building
 TARGET_KERNEL_SOURCE := kernel/htc/flounder
 TARGET_KERNEL_CONFIG := lineage_flounder_defconfig
@@ -35,8 +33,10 @@ DEVICE_PACKAGE_OVERLAYS += device/htc/flounder/overlay-lineage
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
     PRODUCT_NAME=flounder \
-    BUILD_FINGERPRINT=google/volantis/flounder:7.1.1/N9F27M/4333998:user/release-keys \
     PRIVATE_BUILD_DESC="volantis-user 7.1.1 N9F27M 4333998 release-keys"
+
+# Set BUILD_FINGERPRINT variable to be picked up by both system and vendor build.prop
+BUILD_FINGERPRINT := google/volantis/flounder:7.1.1/N9F27M/4333998:user/release-keys
 
 ## Device identifier. This must come after all inclusions
 PRODUCT_NAME := lineage_flounder
