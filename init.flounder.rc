@@ -57,6 +57,9 @@ on post-fs-data
     mkdir /data/efs 0771 system system
     mkdir /data/qcks/mdm 0770 system system
 
+    # hack to workaround wifitracing causing panic
+    setprop sys.wifitracing.started 1
+
     setprop vold.post_fs_data_done 1
 
 on boot
