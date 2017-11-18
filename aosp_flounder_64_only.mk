@@ -21,12 +21,6 @@
 # lines, aosp and flounder, hence its name.
 #
 
-# Live Wallpapers
-PRODUCT_PACKAGES += \
-        LiveWallpapersPicker \
-        librs_jni \
-        rild
-
 # Inherit from those products. Most specific first.
 $(call inherit-product, device/htc/flounder/product_64_only.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
