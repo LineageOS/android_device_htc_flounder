@@ -21,20 +21,12 @@
 # lines, aosp and flounder, hence its name.
 #
 
-# Live Wallpapers
-PRODUCT_PACKAGES += \
-        rild \
-        CarrierConfig \
-        Launcher3
-
 PRODUCT_PROPERTY_OVERRIDES := \
         net.dns1=8.8.8.8 \
         net.dns2=8.8.4.4
 
 # Inherit from those products. Most specific first.
 $(call inherit-product, device/htc/flounder/product.mk)
-$(call inherit-product, device/htc/flounder/device-lte.mk)
-$(call inherit-product-if-exists, vendor/htc/flounder_lte/device-vendor.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
 
 PRODUCT_NAME := aosp_flounder
