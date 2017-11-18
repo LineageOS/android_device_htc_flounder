@@ -1,1 +1,29 @@
-# Device-specific proprietary files sharing a common name
+# Device-specific proprietary files sharing a common name - from N9F27M / N4F27P factory images, unless pinned
+
+# Audio
+vendor/lib64/libhtcacoustic.so
+
+# Media
+vendor/lib/libnvodm_imager.so
+
+# DRM
+vendor/lib/mediadrm/libwvdrmengine.so
+
+# Gatekeeper
+vendor/lib64/hw/gatekeeper.flounder.so
+
+# Graphics
+vendor/lib64/hw/gralloc.tegra132.so
+vendor/lib64/hw/hwcomposer.tegra132.so
+vendor/lib64/hw/memtrack.tegra132.so
+vendor/lib64/libnvgr.so
+vendor/lib64/libnvrm.so
+vendor/lib64/libnvrm_graphics.so
+
+# Keymaster
+vendor/lib64/hw/keystore.flounder.so
+
+# Misc dependencies
+vendor/lib64/libfrsdk.so
+vendor/lib64/libnvapputil.so
+vendor/lib64/libnvos.so
