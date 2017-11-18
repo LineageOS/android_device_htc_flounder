@@ -18,7 +18,10 @@
 
 set -e
 
-DEVICE=flounder
+if [ -z "$DEVICE" ]; then
+    DEVICE=flounder
+fi
+DEVICE_COMMON=flounder-common
 VENDOR=htc
 
 INITIAL_COPYRIGHT_YEAR=2016
@@ -36,13 +39,25 @@ if [ ! -f "$HELPER" ]; then
 fi
 . "$HELPER"
 
-# Initialize the helper
-setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT"
+# Initialize the helper for common device
+setup_vendor "$DEVICE_COMMON" "$VENDOR" "$LINEAGE_ROOT" true
 
-# Copyright headers and guards
-write_headers
+# Copyright headers and common guards
+write_headers "flounder flounder_lte"
 
-write_makefiles "$MY_DIR"/device-proprietary-files.txt
+write_makefiles "$MY_DIR"/common-proprietary-files.txt
 
-# Finish
 write_footers
+
+if [ -s "$MY_DIR"/proprietary-files.txt ] || [ -s "$MY_DIR"/../$DEVICE/device-proprietary-files.txt ]; then
+    # Reinitialize the helper for device
+    setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT"
+
+    # Copyright headers and guards
+    write_headers
+
+    write_makefiles "$MY_DIR"/proprietary-files.txt
+    write_makefiles "$MY_DIR"/../$DEVICE/device-proprietary-files.txt
+
+    write_footers
+fi
