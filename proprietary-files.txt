@@ -1,1 +1,19 @@
 # Device-specific proprietary files sharing a common name
+
+# DRM
+vendor/lib/mediadrm/libwvdrmengine.so
+
+# Misc
+vendor/lib64/hw/gatekeeper.flounder.so
+vendor/lib64/hw/gralloc.tegra132.so
+vendor/lib64/hw/hwcomposer.tegra132.so
+vendor/lib64/hw/keystore.flounder.so
+vendor/lib64/hw/memtrack.tegra132.so
+vendor/lib64/libfrsdk.so
+vendor/lib64/libhtcacoustic.so
+vendor/lib64/libnvapputil.so
+vendor/lib64/libnvgr.so
+vendor/lib64/libnvos.so
+vendor/lib64/libnvrm.so
+vendor/lib64/libnvrm_graphics.so
+vendor/lib/libnvodm_imager.so
