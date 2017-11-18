@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "78e95272_d349c46c",
+        "filename": "proprietary-files.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2017-11-18T14:54:17Z",
+      "side": 1,
+      "message": "I know it may sound strange, but these files are different when comparing vendor image N9F27M with N4F27P. I\u0027d say leave it like this since we have no way to test LTE.",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 29
+      },
+      "revId": "34f37caeaf2c78d0c7e1c07bde5113ed935420df",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
