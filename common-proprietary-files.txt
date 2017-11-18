@@ -1,0 +1,5 @@
+# Audio
+lib/soundfx/libfmas.so
+
+# Hotword Enrollment
+-priv-app/HotwordEnrollment/HotwordEnrollment.apk:priv-app/HotwordEnrollment/HotwordEnrollment.apk:PRESIGNED
