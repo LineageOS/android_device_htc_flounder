@@ -18,7 +18,10 @@
 
 set -e
 
-DEVICE=flounder
+if [ -z "$DEVICE" ]; then
+    DEVICE=flounder
+fi
+DEVICE_COMMON=flounder-common
 VENDOR=htc
 
 # Load extract_utils and do some sanity checks
@@ -56,9 +59,17 @@ if [ -z "$SRC" ]; then
     SRC=adb
 fi
 
-# Initialize the helper
-setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT" false "$CLEAN_VENDOR"
+# Initialize the helper for common device
+setup_vendor "$DEVICE_COMMON" "$VENDOR" "$LINEAGE_ROOT" true "$CLEAN_VENDOR"
 
-extract "$MY_DIR"/device-proprietary-files.txt "$SRC" "$SECTION"
+extract "$MY_DIR"/common-proprietary-files.txt "$SRC" "$SECTION"
+
+if [ -s "$MY_DIR"/proprietary-files.txt ] || [ -s "$MY_DIR"/../$DEVICE/device-proprietary-files.txt ]; then
+    # Reinitialize the helper for device
+    setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT" false "$CLEAN_VENDOR"
+
+    extract "$MY_DIR"/proprietary-files.txt "$SRC" "$SECTION"
+    extract "$MY_DIR"/../$DEVICE/device-proprietary-files.txt "$SRC" "$SECTION"
+fi
 
 "$MY_DIR"/setup-makefiles.sh
