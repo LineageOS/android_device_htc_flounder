@@ -128,4 +128,9 @@ MALLOC_SVELTE := true
 USE_CLANG_PLATFORM_BUILD := true
 
 # Use the non-open-source parts, if they're present
+-include vendor/htc/flounder-common/BoardConfigVendor.mk
+ifeq ($(TARGET_DEVICE),flounder_lte)
+-include vendor/htc/flounder_lte/BoardConfigVendor.mk
+else
 -include vendor/htc/flounder/BoardConfigVendor.mk
+endif
