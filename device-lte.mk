@@ -19,6 +19,7 @@
 # Everything in this directory will become public
 
 PRODUCT_PACKAGES += \
+    rild \
     CarrierConfig
 
 PRODUCT_PROPERTY_OVERRIDES += \
