@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16aef1d2_8da80999",
+        "filename": "common-proprietary-files.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2017-11-20T10:07:14Z",
+      "side": 1,
+      "message": "This is overriding https://github.com/LineageOS/android_device_htc_flounder/blob/lineage-15.0/device.mk#L113-L115.",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 99,
+        "endChar": 27
+      },
+      "revId": "d8bbef3a795c8fd3292715b647c1ce7c0215e409",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "f056abb4_75c6bd1b",
+        "filename": "common-proprietary-files.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2017-11-20T10:07:14Z",
+      "side": 1,
+      "message": "This is overriding https://github.com/LineageOS/android_device_htc_flounder/blob/lineage-15.0/device.mk#L382 + https://github.com/LineageOS/android_hardware_broadcom_wlan/blob/cm-14.1/bcmdhd/firmware/bcm4354/device-bcm.mk#L24-L25. Sidenote: android_hardware_broadcom_wlan needs a 15.0 branch.",
+      "range": {
+        "startLine": 100,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 35
+      },
+      "revId": "d8bbef3a795c8fd3292715b647c1ce7c0215e409",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "be3cdc85_6d718379",
+        "filename": "common-proprietary-files.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2017-11-20T10:07:14Z",
+      "side": 1,
+      "message": "This is overriding https://github.com/LineageOS/android_device_htc_flounder/blob/lineage-15.0/device.mk#L55.",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 30
+      },
+      "revId": "d8bbef3a795c8fd3292715b647c1ce7c0215e409",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8faa1e40_960f301f",
+        "filename": "proprietary-files.txt",
+        "patchSetId": 5
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2017-11-20T10:07:14Z",
+      "side": 1,
+      "message": "N9F27M / N4F27P factory images",
+      "range": {
+        "startLine": 1,
+        "startChar": 65,
+        "endLine": 1,
+        "endChar": 85
+      },
+      "revId": "d8bbef3a795c8fd3292715b647c1ce7c0215e409",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
