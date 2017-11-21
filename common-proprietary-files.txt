@@ -3,7 +3,6 @@
 # Audio
 etc/fmas_eq.dat
 lib/soundfx/libfmas.so
-vendor/etc/audio_effects.conf
 vendor/etc/model_frontal.xml
 vendor/lib/libLifevibes_lvverx.so
 vendor/lib/libLifevibes_lvvetx.so
