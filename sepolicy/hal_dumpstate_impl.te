@@ -6,3 +6,23 @@ init_daemon_domain(hal_dumpstate_impl)
 
 # Access to files for dumping
 allow hal_dumpstate_impl sysfs:file { open read };
+
+userdebug_or_eng(`
+    allow hal_dumpstate_impl debugfs_nvavp:dir r_dir_perms;
+    allow hal_dumpstate_impl debugfs_nvavp:file r_file_perms;
+
+    allow hal_dumpstate_impl debugfs_usb:dir r_dir_perms;
+    allow hal_dumpstate_impl debugfs_usb:file r_file_perms;
+
+    allow hal_dumpstate_impl debugfs_fg:dir r_dir_perms;
+    allow hal_dumpstate_impl debugfs_fg:file r_file_perms;
+
+    allow hal_dumpstate_impl debugfs_nvavp:dir r_dir_perms;
+    allow hal_dumpstate_impl debugfs_nvavp:file r_file_perms;
+
+    allow hal_dumpstate_impl debugfs_shrinker:dir r_dir_perms;
+    allow hal_dumpstate_impl debugfs_shrinker:file r_file_perms;
+
+    allow hal_dumpstate_impl debugfs_tegradc:dir r_dir_perms;
+    allow hal_dumpstate_impl debugfs_tegradc:file r_file_perms;
+')

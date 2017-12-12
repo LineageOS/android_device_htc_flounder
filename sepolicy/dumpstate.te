@@ -1,0 +1,4 @@
+allow dumpstate gatekeeper_service:service_manager find;
+allow dumpstate system_block_device:blk_file getattr;
+r_dir_file(dumpstate, sysfs_zram)
+userdebug_or_eng(`r_dir_file(dumpstate, debugfs_mmc)')
