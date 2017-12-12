@@ -18,7 +18,12 @@ type sysfs_socinfo, sysfs_type, fs_type;
 
 type sysfs_tegra_fuse, sysfs_type, fs_type;
 
+type debugfs_nvavp, debugfs_type, fs_type;
 type debugfs_nvmap, debugfs_type, fs_type;
+type debugfs_usb, debugfs_type, fs_type;
+type debugfs_fg, debugfs_type, fs_type;
+type debugfs_shrinker, debugfs_type, fs_type;
+type debugfs_tegradc, debugfs_type, fs_type;
 
 # /data/gps
 type gps_data_file, file_type, data_file_type;
