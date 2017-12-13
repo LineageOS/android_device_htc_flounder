@@ -62,6 +62,8 @@ struct effect_info_s {
 #define DUALMIC_CONFIG_NONE 0
 #define DUALMIC_CONFIG_1 1
 
+#define MIXER_PATH_MAX_LENGTH 100
+
 /* Sound devices specific to the platform
  * The DEVICE_OUT_* and DEVICE_IN_* should be mapped to these sound
  * devices to enable corresponding mixer paths
