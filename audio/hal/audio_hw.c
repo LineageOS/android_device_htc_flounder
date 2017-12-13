@@ -53,6 +53,8 @@
 #define MIXER_CTL_CODEC_VMIXER_CODEC_SWITCH "Codec VMixer Codec Switch"
 #define MIXER_CTL_SPK_VMIXER_SPK_SWITCH "SPK VMixer SPK Switch"
 
+#define MIXER_XML_BASE_STRING "mixer_paths"
+
 /* TODO: the following PCM device profiles could be read from a config file */
 static struct pcm_device_profile pcm_device_playback = {
     .config = {
@@ -342,6 +344,25 @@ static void free_mixer_list(struct audio_device *adev)
     }
 }
 
+// Treblized config files will be located in /odm/etc or /vendor/etc.
+static const char *kConfigLocationList[] =
+        {"/odm/etc", "/vendor/etc", "/system/etc"};
+static const int kConfigLocationListSize =
+        (sizeof(kConfigLocationList) / sizeof(kConfigLocationList[0]));
+
+bool resolveConfigFile(char file_name[PATH_MAX]) {
+    char full_config_path[PATH_MAX];
+    for (int i = 0; i < kConfigLocationListSize; i++) {
+        snprintf(full_config_path, PATH_MAX, "%s/%s",
+                kConfigLocationList[i], file_name);
+        if (F_OK == access(full_config_path, 0)) {
+            strcpy(file_name, full_config_path);
+            return true;
+        }
+    }
+    return false;
+}
+
 static int mixer_init(struct audio_device *adev)
 {
     int i;
@@ -349,7 +370,7 @@ static int mixer_init(struct audio_device *adev)
     int retry_num;
     struct mixer *mixer;
     struct audio_route *audio_route;
-    char mixer_path[PATH_MAX];
+    char mixer_xml_file[PATH_MAX]= {0};
     struct mixer_card *mixer_card;
     struct listnode *node;
 
@@ -371,8 +392,10 @@ static int mixer_init(struct audio_device *adev)
                 }
             } while (mixer == NULL);
 
-            sprintf(mixer_path, "/system/etc/mixer_paths_%d.xml", card);
-            audio_route = audio_route_init(card, mixer_path);
+            snprintf(mixer_xml_file, sizeof(mixer_xml_file), "%s_%d.xml",
+                    MIXER_XML_BASE_STRING, card);
+            resolveConfigFile(mixer_xml_file);
+            audio_route = audio_route_init(card, mixer_xml_file);
             if (!audio_route) {
                 ALOGE("%s: Failed to init audio route controls for card %d, aborting.",
                       __func__, card);
