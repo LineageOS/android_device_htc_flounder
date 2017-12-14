@@ -217,7 +217,7 @@ service wpa_supplicant /vendor/bin/hw/wpa_supplicant \
     disabled
     oneshot
 
-service gpsd /system/bin/glgps -c /system/etc/gpsconfig.xml
+service gpsd /vendor/bin/glgps -c /vendor/etc/gpsconfig.xml
     class late_start
     disabled
     user gps
