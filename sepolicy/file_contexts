@@ -38,7 +38,7 @@
 /data/nvcam(/.*)?		u:object_r:camera_data_file:s0
 
 # gps
-/system/bin/glgps		u:object_r:gpsd_exec:s0
+/vendor/bin/glgps		u:object_r:gpsd_exec:s0
 /dev/ttyTHS1			u:object_r:gps_device:s0
 /dev/socket/gps		        u:object_r:gps_socket:s0
 /data/gps(/.*)?		        u:object_r:gps_data_file:s0
