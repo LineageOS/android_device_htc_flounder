@@ -1,1 +1,5 @@
-# Device-specific proprietary files
+# Device-specific proprietary files - from N9F27M factory image, unless pinned
+
+# GPS
+bin/glgps:vendor/bin/glgps
+lib64/hw/gps.bcm47521.so:vendor/lib64/hw/gps.bcm47521.so
