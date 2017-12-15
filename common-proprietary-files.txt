@@ -90,12 +90,12 @@ vendor/lib/libnvsm.so
 vendor/lib/libnvvicsi_v3.so
 vendor/lib/libopencv24_tegra.so
 
-# DRM
-vendor/lib/libdrmdecrypt.so
+# DRM - from ryu - OPM1.171019.011
+vendor/lib64/mediadrm/libwvdrmengine.so|07396adfe1776d195114305c2e60ecf8f72aa667
+vendor/lib64/libdrm.so|df89d1684b634e094015012461c3cd75d6875196
+vendor/lib/mediadrm/libwvdrmengine.so|2e14c962b447ea67e00a9dd7af9c11038d15929c
+vendor/lib/libdrm.so|46921119e5d8de02f48a3b98de734361bdf1145c
 vendor/lib/liboemcrypto.so
-vendor/lib/libwvdrm_L1.so
-vendor/lib/libwvm.so
-vendor/lib/libWVStreamControlAPI_L1.so
 
 # Gatekeeper
 vendor/lib/hw/gatekeeper.flounder.so
