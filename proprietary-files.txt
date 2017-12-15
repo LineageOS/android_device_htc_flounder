@@ -6,9 +6,6 @@ vendor/lib64/libhtcacoustic.so
 # Media
 vendor/lib/libnvodm_imager.so
 
-# DRM
-vendor/lib/mediadrm/libwvdrmengine.so
-
 # Gatekeeper
 vendor/lib64/hw/gatekeeper.flounder.so
 
