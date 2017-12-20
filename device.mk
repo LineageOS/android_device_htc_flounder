@@ -340,13 +340,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_COPY_FILES += \
     device/htc/flounder/seccomp_policy/mediacodec.policy:$(TARGET_COPY_OUT_VENDOR)/etc/seccomp_policy/mediacodec.policy
 
-# only include verity on user builds for CM
+# Verity dependencies (only on user builds for Lineage)
 ifeq ($(TARGET_BUILD_VARIANT),user)
-PRODUCT_COPY_FILES += \
-    device/htc/flounder/fstab-verity.flounder:root/fstab.flounder \
-    device/htc/flounder/fstab-verity.flounder:root/fstab.flounder64
-
-# add verity dependencies
 $(call inherit-product, build/target/product/verity.mk)
 PRODUCT_SUPPORTS_BOOT_SIGNER := false
 PRODUCT_SYSTEM_VERITY_PARTITION := /dev/block/platform/sdhci-tegra.3/by-name/APP
