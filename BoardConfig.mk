@@ -111,7 +111,7 @@ endif
 # Don't dex preopt apps to avoid I/O congestion due to paging larger sized
 # pre-compiled .odex files as opposed to background generated interpret-only
 # odex files.
-WITH_DEXPREOPT_BOOT_IMG_ONLY := true
+WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := true
 
 TARGET_RELEASETOOLS_EXTENSIONS := device/htc/flounder
 
