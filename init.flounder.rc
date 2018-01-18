@@ -219,10 +219,7 @@ on property:audio_hal.period_size=128
 #    keycodes 114 115 116
 
 service wpa_supplicant /vendor/bin/hw/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
-    -I/system/etc/wifi/p2p_supplicant_overlay.conf \
     -puse_p2p_group_interface=1p2p_device=1 \
-    -m/data/misc/wifi/p2p_supplicant.conf \
     -g@android:wpa_wlan0
     interface android.hardware.wifi.supplicant@1.0::ISupplicant default
     interface android.hardware.wifi.supplicant@1.1::ISupplicant default
