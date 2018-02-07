@@ -4,10 +4,6 @@
 TARGET_SCREEN_HEIGHT := 2048
 TARGET_SCREEN_WIDTH := 1536
 
-# Camera
-PRODUCT_PACKAGES += \
-    Snap
-
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.camera.cpp.duplication=false
 
