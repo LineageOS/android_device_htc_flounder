@@ -14,7 +14,8 @@
 # limitations under the License.
 #
 
-# Build a separate vendor.img
+# Build a separate vendor image holding only device specific properties
+BOARD_PROPERTY_OVERRIDES_SPLIT_ENABLED := true
 TARGET_COPY_OUT_VENDOR := vendor
 
 TARGET_ARCH := arm64
