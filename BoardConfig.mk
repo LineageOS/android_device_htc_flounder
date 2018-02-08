@@ -15,6 +15,7 @@
 #
 
 # Build a separate vendor.img
+BOARD_PROPERTY_OVERRIDES_SPLIT_ENABLED := true
 TARGET_COPY_OUT_VENDOR := vendor
 
 TARGET_ARCH := arm64
