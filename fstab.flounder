@@ -2,11 +2,13 @@
 # The filesystem that contains the filesystem e2fsck binary (typically /system) cannot
 # specify 'check', and must come before any filesystems that do specify 'check'
 
-# NOTE: /system and /vendor partitions are now early-mounted and the fstab entries are specified in device tree:
+# NOTE: /system and /vendor partitions are now early-mounted and the fstab entries are specified in device tree (duplicated below for recovery image purposes only):
 #       /proc/device-tree/firmware/android/fstab/system
 #       /proc/device-tree/firmware/android/fstab/vendor
 
 #<src>                                          <mnt_point>         <type>    <mnt_flags and options>                               <fs_mgr_flags>
+/dev/block/platform/sdhci-tegra.3/by-name/APP   /system             ext4      ro                                                    wait,recoveryonly
+/dev/block/platform/sdhci-tegra.3/by-name/VNR   /vendor             ext4      ro                                                    wait,recoveryonly
 /dev/block/platform/sdhci-tegra.3/by-name/CAC   /cache              f2fs      noatime,nosuid,nodev,errors=panic                     wait,check
 /dev/block/platform/sdhci-tegra.3/by-name/CAC   /cache              ext4      noatime,nosuid,nodev,nomblk_io_submit,errors=panic    wait,check
 /dev/block/platform/sdhci-tegra.3/by-name/UDA   /data               f2fs      noatime,nosuid,nodev,errors=panic                     wait,check,latemount,forceencrypt=/dev/block/platform/sdhci-tegra.3/by-name/MD1
