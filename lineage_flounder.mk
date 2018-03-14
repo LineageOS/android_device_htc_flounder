@@ -4,9 +4,6 @@
 TARGET_SCREEN_HEIGHT := 2048
 TARGET_SCREEN_WIDTH := 1536
 
-# Inherit some common Lineage stuff
-$(call inherit-product, vendor/lineage/config/common_full_tablet_wifionly.mk)
-
 # Inherit device configuration
 $(call inherit-product, device/htc/flounder/aosp_flounder.mk)
 
