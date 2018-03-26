@@ -103,6 +103,9 @@
 
 /sys/module/tegra_fuse(/.*)?    u:object_r:sysfs_tegra_fuse:s0
 
+/sys/devices/platform/tegra-dsi-backlight\.0/backlight/tegra-dsi-backlight\.0/brightness   u:object_r:sysfs_leds:s0
+/sys/devices/virtual/htc_sensorhub/sensor_hub/led_en                                       u:object_r:sysfs_leds:s0
+
 # mmc rpmb
 /dev/block/mmcblk0rpmb                 u:object_r:mmc_rpmb_block_device:s0
 
@@ -127,8 +130,7 @@
 # label the wifi MAC address
 /sys/devices/platform/sdhci-tegra\.0/mmc_host/mmc1/mmc1:0001/mmc1:0001:2/net/wlan0/address u:object_r:sysfs_mac_address:s0
 
-# dumpstate
+# HALs
 /vendor/bin/hw/android\.hardware\.dumpstate@1\.0-service.flounder      u:object_r:hal_dumpstate_impl_exec:s0
-
-# USB HAL
+/vendor/bin/hw/android\.hardware\.light@2\.0-service\.flounder         u:object_r:hal_light_default_exec:s0
 /vendor/bin/hw/android\.hardware\.usb@1\.0-service\.flounder           u:object_r:hal_usb_default_exec:s0
