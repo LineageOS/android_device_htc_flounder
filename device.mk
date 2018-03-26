@@ -227,8 +227,7 @@ PRODUCT_PACKAGES += \
 
 # Light HAL
 PRODUCT_PACKAGES += \
-    android.hardware.light@2.0-impl \
-    lights.flounder
+    android.hardware.light@2.0-service.flounder
 
 # Memtrack HAL
 PRODUCT_PACKAGES += \
