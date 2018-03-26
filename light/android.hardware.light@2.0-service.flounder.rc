@@ -1,0 +1,9 @@
+on boot
+    # white notification LED
+    chown system system /sys/class/htc_sensorhub/sensor_hub/led_en
+    chmod 664 /sys/class/htc_sensorhub/sensor_hub/led_en
+
+service light-hal-2-0 /vendor/bin/hw/android.hardware.light@2.0-service.flounder
+    class hal
+    user system
+    group system
