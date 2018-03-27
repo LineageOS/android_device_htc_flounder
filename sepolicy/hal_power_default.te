@@ -1,0 +1,7 @@
+# Allow power HAL to adjust max frequency
+allow system_server sysfs_devices_system_cpu:file w_file_perms;
+allow system_server gpu_freq_device:chr_file w_file_perms;
+
+# Allow power HAL to write to sensor_hub and touchscreen nodes
+allow hal_power_default sysfs_sensors:file w_file_perms;
+allow hal_power_default sysfs_touchscreen:file w_file_perms;
