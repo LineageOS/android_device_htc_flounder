@@ -236,8 +236,7 @@ PRODUCT_PACKAGES += \
 
 # Power HAL
 PRODUCT_PACKAGES += \
-    android.hardware.power@1.0-impl \
-    power.flounder
+    android.hardware.power@1.0-service.flounder
 
 # RenderScript HAL
 PRODUCT_PACKAGES += \
