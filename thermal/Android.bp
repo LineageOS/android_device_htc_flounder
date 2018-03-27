@@ -1,0 +1,20 @@
+cc_binary {
+    name: "android.hardware.thermal@1.1-service.flounder",
+    relative_install_path: "hw",
+    init_rc: ["android.hardware.thermal@1.1-service.flounder.rc"],
+    srcs: ["service.cpp", "Thermal.cpp", "thermal-helper.cpp"],
+    shared_libs: [
+        "liblog",
+        "libcutils",
+        "libhardware",
+        "libbase",
+        "libcutils",
+        "libutils",
+        "libhidlbase",
+        "libhidltransport",
+        "libhwbinder",
+        "android.hardware.thermal@1.0",
+        "android.hardware.thermal@1.1",
+    ],
+    proprietary: true,
+}
