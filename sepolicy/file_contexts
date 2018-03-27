@@ -136,5 +136,8 @@
 
 /vendor/bin/hw/android\.hardware\.light@2\.0-service\.flounder                             u:object_r:hal_light_default_exec:s0
 
+# Thermal HAL
+/vendor/bin/hw/android\.hardware\.thermal@1\.1-service\.flounder       u:object_r:hal_thermal_default_exec:s0
+
 # USB HAL
 /vendor/bin/hw/android\.hardware\.usb@1\.0-service\.flounder           u:object_r:hal_usb_default_exec:s0
