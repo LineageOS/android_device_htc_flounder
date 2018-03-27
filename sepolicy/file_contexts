@@ -106,6 +106,10 @@
 /sys/devices/platform/tegra-dsi-backlight\.0/backlight/tegra-dsi-backlight\.0/brightness   u:object_r:sysfs_leds:s0
 /sys/devices/virtual/htc_sensorhub/sensor_hub/led_en                                       u:object_r:sysfs_leds:s0
 
+/sys/devices/platform/spi-tegra114\.2/spi_master/spi2/spi2\.0/input/input0/interactive     u:object_r:sysfs_touchscreen:s0
+/sys/devices/platform/spi-tegra114\.2/spi_master/spi2/spi2\.0/input/input0/wake_gesture    u:object_r:sysfs_touchscreen:s0
+/sys/devices/virtual/htc_sensorhub/sensor_hub/facedown_enabled                             u:object_r:sysfs_sensors:s0
+
 # mmc rpmb
 /dev/block/mmcblk0rpmb                 u:object_r:mmc_rpmb_block_device:s0
 
@@ -133,5 +137,6 @@
 # HALs
 /vendor/bin/hw/android\.hardware\.dumpstate@1\.0-service.flounder      u:object_r:hal_dumpstate_impl_exec:s0
 /vendor/bin/hw/android\.hardware\.light@2\.0-service\.flounder         u:object_r:hal_light_default_exec:s0
+/vendor/bin/hw/android\.hardware\.power@1\.0-service\.flounder         u:object_r:hal_power_default_exec:s0
 /vendor/bin/hw/android\.hardware\.thermal@1\.1-service\.flounder       u:object_r:hal_thermal_default_exec:s0
 /vendor/bin/hw/android\.hardware\.usb@1\.0-service\.flounder           u:object_r:hal_usb_default_exec:s0
