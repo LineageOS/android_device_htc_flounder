@@ -106,13 +106,6 @@ TARGET_USES_64_BIT_BINDER := true
 
 BOARD_WIDEVINE_OEMCRYPTO_LEVEL := 1
 
-# HACK: Build apps as 64b for volantis_64_only
-ifneq (,$(filter ro.zygote=zygote64, $(PRODUCT_DEFAULT_PROPERTY_OVERRIDES)))
-TARGET_PREFER_32_BIT_APPS :=
-TARGET_SUPPORTS_32_BIT_APPS :=
-TARGET_SUPPORTS_64_BIT_APPS := true
-endif
-
 # Don't dex preopt apps to avoid I/O congestion due to paging larger sized
 # pre-compiled .odex files as opposed to background generated interpret-only
 # odex files.

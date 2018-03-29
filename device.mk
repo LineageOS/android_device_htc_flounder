@@ -41,11 +41,6 @@ PRODUCT_COPY_FILES := \
     $(LOCAL_FSTAB):$(TARGET_COPY_OUT_VENDOR)/etc/fstab.flounder \
     $(LOCAL_PATH)/ueventd.flounder.rc:$(TARGET_COPY_OUT_VENDOR)/ueventd.rc
 
-# Copy flounder files as flounder64 so that ${ro.hardware} can find them
-PRODUCT_COPY_FILES += \
-    $(LOCAL_FSTAB):$(TARGET_COPY_OUT_VENDOR)/etc/fstab.flounder64 \
-    $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder64.rc
-
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/touch/touch_fusion.cfg:$(TARGET_COPY_OUT_VENDOR)/firmware/touch_fusion.cfg \
     $(LOCAL_PATH)/touch/maxim_fp35.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/maxim_fp35.bin \
