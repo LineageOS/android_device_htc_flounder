@@ -154,8 +154,8 @@ vendor/lib/libnvmmlite_audio.so
 vendor/lib/libnvmmlite_image.so
 vendor/lib/libnvmmlite_utils.so
 vendor/lib/libnvmmlite_video.so
-vendor/lib/libnvomx.so
-vendor/lib/libnvomxilclient.so
+vendor/lib/libnvomx.so|86b6425add1c119654998fc0bf7b9266700fb9c5
+vendor/lib/libnvomxilclient.so|e79b42d653c7ddaec228916046f746f6eb68fdd1
 vendor/lib/libnvparser.so
 vendor/lib/libnvtnr.so
 vendor/lib/libnvtvmr.so
