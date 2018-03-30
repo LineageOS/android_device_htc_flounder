@@ -82,7 +82,7 @@ Only the three quirks included above are recognized at this point:
     <Settings>
         <Setting name="max-video-encoder-input-buffers" value="6" />
     </Settings>
-    <Decoders>
+    <!--Decoders>
         <MediaCodec name="OMX.Nvidia.mp4.decode" type="video/mp4v-es" >
             <Limit name="size" min="32x32" max="1920x1088" />
             <Limit name="alignment" value="2x2" />
@@ -135,9 +135,9 @@ Only the three quirks included above are recognized at this point:
             <Feature name="adaptive-playback" />
             <Limit name="concurrent-instances" max="32" />
         </MediaCodec>
-    </Decoders>
+    </Decoders-->
 
-    <Encoders>
+    <!--Encoders>
         <MediaCodec name="OMX.Nvidia.h264.encoder" type="video/avc" >
             <Limit name="size" min="48x48" max="3840x2176" />
             <Limit name="alignment" value="2x2" />
@@ -155,6 +155,6 @@ Only the three quirks included above are recognized at this point:
             <Limit name="bitrate" range="1-50000000" />
             <Limit name="concurrent-instances" max="32" />
         </MediaCodec>
-    </Encoders>
+    </Encoders-->
     <Include href="media_codecs_google_video.xml" />
 </MediaCodecs>
