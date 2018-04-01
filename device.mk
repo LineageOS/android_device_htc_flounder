@@ -22,23 +22,11 @@ PRODUCT_PACKAGES := \
     wpa_supplicant \
     wpa_supplicant.conf
 
-BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := f2fs
-
-# This ensures the needed build tools are available.
-# TODO: make non-linux builds happy with external/f2fs-tool; system/extras/f2fs_utils
-ifeq ($(HOST_OS),linux)
-TARGET_USERIMAGES_USE_F2FS := true
-endif
-
-LOCAL_FSTAB := $(LOCAL_PATH)/fstab.flounder
-
-TARGET_RECOVERY_FSTAB = $(LOCAL_FSTAB)
-
 PRODUCT_COPY_FILES := \
     $(LOCAL_PATH)/init.flounder.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.rc \
     $(LOCAL_PATH)/init.flounder.usb.rc:$(TARGET_COPY_OUT_VENDOR)/etc/init/init.usb.rc \
     $(LOCAL_PATH)/init.recovery.flounder.rc:root/init.recovery.flounder.rc \
-    $(LOCAL_FSTAB):$(TARGET_COPY_OUT_VENDOR)/etc/fstab.flounder \
+    $(LOCAL_PATH)/fstab.flounder:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.flounder \
     $(LOCAL_PATH)/ueventd.flounder.rc:$(TARGET_COPY_OUT_VENDOR)/ueventd.rc
 
 PRODUCT_COPY_FILES += \
