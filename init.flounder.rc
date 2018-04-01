@@ -154,8 +154,8 @@ service watchdogd /sbin/watchdogd 10 20
     disabled
     seclabel u:r:watchdogd:s0
 
-# on userdebug and eng builds, enable kgdb on the serial console
-on property:ro.debuggable=1
+# on eng builds, enable kgdb on the serial console
+on property:ro.build.type=eng
     write /sys/module/kgdboc/parameters/kgdboc ttyFIQ0
     write /sys/module/fiq_debugger/parameters/kgdb_enable 1
 
