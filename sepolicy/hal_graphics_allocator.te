@@ -1,1 +1,0 @@
-allow hal_graphics_allocator sysfs_gpu:file r_file_perms;
