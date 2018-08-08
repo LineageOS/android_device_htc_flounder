@@ -36,6 +36,7 @@ BUILD_EMULATOR := false
 TARGET_NO_BOOTLOADER := true
 
 BOARD_KERNEL_CMDLINE += androidboot.hardware=flounder
+BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
 
 TARGET_NO_RADIOIMAGE := true
 
@@ -105,7 +106,7 @@ WIFI_DRIVER_FW_PATH_PARAM   := "/sys/module/bcmdhd/parameters/firmware_path"
 WIFI_DRIVER_FW_PATH_STA     := "/vendor/firmware/fw_bcmdhd.bin"
 WIFI_DRIVER_FW_PATH_AP      := "/vendor/firmware/fw_bcmdhd_apsta.bin"
 
-BOARD_SEPOLICY_DIRS += device/htc/flounder/sepolicy
+#BOARD_SEPOLICY_DIRS += device/htc/flounder/sepolicy
 
 TARGET_USES_64_BIT_BCMDHD := true
 TARGET_USES_64_BIT_BINDER := true
