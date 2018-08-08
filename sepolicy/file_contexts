@@ -93,15 +93,11 @@
 /sys/devices/platform/host1x/tegradc\.0/smartdimmer/enable                         u:object_r:sysfs_didim:s0
 /sys/devices/platform/host1x/tegradc\.0/smartdimmer/sd_window                      u:object_r:sysfs_didim:s0
 /sys/devices/platform/host1x/tegradc\.0/smartdimmer/sd_window_enable               u:object_r:sysfs_didim:s0
-/sys/devices/platform/host1x/capabilities/[^/]*                                    u:object_r:sysfs_gpu:s0
-/sys/devices/platform/host1x/gk20a\.0/ptimer_scale_factor                          u:object_r:sysfs_gpu:s0
 /sys/devices/platform/tegra12-i2c\.0/i2c-0/0-0036/power_supply/battery/capacity    u:object_r:sysfs_batteryinfo:s0
 /sys/devices/platform/tegra-ehci\.[0-9]+(/.*)?                                     u:object_r:sysfs_usb:s0
 /sys/devices/virtual/block/zram0/mm_stat                                           u:object_r:sysfs_swap:s0
 /sys/devices/virtual/block/zram0/mem_used_total                                    u:object_r:sysfs_swap:s0
-/sys/devices/soc0/family                                                           u:object_r:sysfs_socinfo:s0
 
-/sys/module/tegra_fuse(/.*)?    u:object_r:sysfs_tegra_fuse:s0
 
 /sys/devices/platform/tegra-dsi-backlight\.0/backlight/tegra-dsi-backlight\.0/brightness   u:object_r:sysfs_leds:s0
 /sys/devices/virtual/htc_sensorhub/sensor_hub/led_en                                       u:object_r:sysfs_leds:s0
