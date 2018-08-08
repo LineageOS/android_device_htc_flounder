@@ -10,8 +10,6 @@ qmux_socket(system_server)
 
 r_dir_file(system_server, debugfs_nvmap)
 
-allow system_server sysfs_gpu:file r_file_perms;
-allow system_server sysfs_socinfo:file r_file_perms;
 allow system_server sysfs_swap:file r_file_perms;
 
 unix_socket_connect(system_server, gps, gpsd)
