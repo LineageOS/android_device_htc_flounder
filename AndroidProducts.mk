@@ -15,4 +15,5 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/aosp_flounder.mk
+    $(LOCAL_DIR)/aosp_flounder.mk \
+    $(LOCAL_DIR)/lineage_flounder.mk
