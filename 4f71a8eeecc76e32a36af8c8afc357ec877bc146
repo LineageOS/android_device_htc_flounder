@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f30acc5a_df10c170",
+        "filename": "init.flounder.rc",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 13648
+      },
+      "writtenOn": "2018-08-15T22:15:07Z",
+      "side": 1,
+      "message": "This one is not needed, if we aren\u0027t going to use control sockets.",
+      "range": {
+        "startLine": 68,
+        "startChar": 3,
+        "endLine": 68,
+        "endChar": 54
+      },
+      "revId": "4f71a8eeecc76e32a36af8c8afc357ec877bc146",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
