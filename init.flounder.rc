@@ -62,6 +62,11 @@ on post-fs-data
     mkdir /data/efs 0771 system system
     mkdir /data/qcks/mdm 0770 system system
 
+    # wifi
+    mkdir /data/vendor/wifi 0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa 0770 wifi wifi
+    mkdir /data/vendor/wifi/wpa/sockets 0770 wifi wifi
+
     # hack to workaround wifitracing causing panic
     setprop sys.wifitracing.started 1
 
