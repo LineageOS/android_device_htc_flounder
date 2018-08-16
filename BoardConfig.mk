@@ -94,6 +94,9 @@ BOARD_USES_QCOM_HARDWARE_GPS := true
 DEVICE_MANIFEST_FILE := device/htc/flounder/manifest.xml
 DEVICE_MATRIX_FILE   := device/htc/flounder/compatibility_matrix.xml
 
+# Shims
+TARGET_LD_SHIM_LIBS := /vendor/lib/hw/camera.tegra132.so|libcamera_shim.so
+
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := NL80211
 WPA_SUPPLICANT_VERSION      := VER_0_8_X
