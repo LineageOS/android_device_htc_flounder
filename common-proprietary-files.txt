@@ -4,9 +4,9 @@
 etc/fmas_eq.dat
 lib/soundfx/libfmas.so:vendor/lib/soundfx/libfmas.so
 vendor/etc/model_frontal.xml
-vendor/lib/libLifevibes_lvverx.so:vendor/lib/soundfx/libLifevibes_lvverx.so
-vendor/lib/libLifevibes_lvvetx.so:vendor/lib/soundfx/libLifevibes_lvvetx.so
-vendor/lib/libaudioavp.so
+vendor/lib/soundfx/libLifevibes_lvverx.so|ea31e56c67b232033b047832147298893bfd005a
+vendor/lib/soundfx/libLifevibes_lvvetx.so|492edf8b42b8f1e29ad43561b2b466507092d74e
+vendor/lib/libaudioavp.so|675b80bcf78096198780cd3b893ed945f499f680
 vendor/lib/libhtcacoustic.so
 
 # Audio amplifier configurations
@@ -82,13 +82,13 @@ vendor/etc/tfa/voip_l.eq
 vendor/etc/tfa/voip_l.preset
 
 # Camera
-vendor/lib/hw/camera.tegra132.so
-vendor/lib/libnvcam_imageencoder.so
-vendor/lib/libnvcamerahdr.so
-vendor/lib/libnvisp_v3.so
+vendor/lib/hw/camera.tegra132.so|575f92e40b799b16189b37668165079c01ca3afb
+vendor/lib/libnvcam_imageencoder.so|ec874f26954cce463c3089a4875663aee8bffc62
+vendor/lib/libnvcamerahdr.so|0f7ef14e05322f0301e9a47376ca04431ae3c75a
+vendor/lib/libnvisp_v3.so|3a565fb7e5a2b8da1d95490b04c9160f555aba9f
 vendor/lib/libnvsm.so
-vendor/lib/libnvvicsi_v3.so
-vendor/lib/libopencv24_tegra.so
+vendor/lib/libnvvicsi_v3.so|4ca591cfc34f038cc8194762856b8b179f7728ba
+vendor/lib/libopencv24_tegra.so|fbddbb5213549ffd5053ceed6a8bc790ecf73b09
 
 # DRM - from ryu - OPM1.171019.011
 vendor/lib64/mediadrm/libwvdrmengine.so|07396adfe1776d195114305c2e60ecf8f72aa667
@@ -142,9 +142,10 @@ vendor/lib/hw/keystore.flounder.so
 
 # Media
 vendor/lib/libnvfusebypass.so
+vendor/lib/libnvodm_imager.so|9a6639df3232af8b832bc926767bdbe3f725d7f3
 vendor/lib/libnvmm.so
 vendor/lib/libnvmm_audio.so
-vendor/lib/libnvmm_camera_v3.so
+vendor/lib/libnvmm_camera_v3.so|a12a36ea9032fe697cf7e1dfa5c33aa4f8ebdbc0
 vendor/lib/libnvmm_contentpipe.so
 vendor/lib/libnvmm_parser.so
 vendor/lib/libnvmm_utils.so
@@ -153,31 +154,32 @@ vendor/lib/libnvmmlite.so
 vendor/lib/libnvmmlite_audio.so
 vendor/lib/libnvmmlite_image.so
 vendor/lib/libnvmmlite_utils.so
-vendor/lib/libnvmmlite_video.so
+vendor/lib/libnvmmlite_video.so|9d0c36077adc9ffd88841b91828df4c386ce5fac
 vendor/lib/libnvomx.so
 vendor/lib/libnvomxilclient.so
 vendor/lib/libnvparser.so
 vendor/lib/libnvtnr.so
 vendor/lib/libnvtvmr.so
 vendor/lib/libstagefrighthw.so
-vendor/lib/libtsechdcp.so
+vendor/lib/libtsechdcp.so|1ae867e3d2f7b3c6c045c9fc2f23f0289776755a
 vendor/media/LMspeed_508.emd
 vendor/media/PFFprec_600.emd
 
 # Misc dependencies
 vendor/lib64/libnvcms.so
-vendor/lib64/libnvcompute.so
+vendor/lib64/libnvcompute.so|63d6b630372ca0143039f649926f5f4ae1c9519e
 vendor/lib64/libnvddk_2d_v2.so
-vendor/lib/libfrsdk.so
+vendor/lib/libfrsdk.so|e266645cec3534c329f0bde5cad3f00fd3b57526
 vendor/lib/libnvapputil.so
 vendor/lib/libnvavp.so
-vendor/lib/libnvcapclk.so
+vendor/lib/libnvcapclk.so|1a5aefa35513bd04f81b5df6240b22544518546d
 vendor/lib/libnvcms.so
 vendor/lib/libnvcompute.so
 vendor/lib/libnvddk_2d.so
 vendor/lib/libnvddk_2d_v2.so
 vendor/lib/libnvodm_query.so
 vendor/lib/libnvos.so
+vendor/lib/libw.so|cc6721943aa401a388dd0c2acee58fd77d6fcb40
 
 # Misc firmware
 vendor/firmware/bcm20795_firmware.ncd
