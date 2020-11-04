@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Copyright (C) 2016 The CyanogenMod Project
-# Copyright (C) 2017-2019 The LineageOS Project
+# Copyright (C) 2017-2020 The LineageOS Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,44 @@ if [ ! -f "${HELPER}" ]; then
     exit 1
 fi
 source "${HELPER}"
+
+function blob_fixup() {
+    case "${1}" in
+        vendor/lib/hw/camera.tegra132.so)
+            ;&
+        vendor/lib/soundfx/libLifevibes_lvverx.so)
+            ;&
+        vendor/lib/soundfx/libLifevibes_lvvetx.so)
+            ;&
+        vendor/lib/libaudioavp.so)
+            ;&
+        vendor/lib/libfrsdk.so)
+            ;&
+        vendor/lib/libnvcam_imageencoder.so)
+            ;&
+        vendor/lib/libnvcamerahdr.so)
+            ;&
+        vendor/lib/libnvcapclk.so)
+            ;&
+        vendor/lib/libnvcompute.so)
+            ;&
+        vendor/lib/libnvisp_v3.so)
+            ;&
+        vendor/lib/libnvmm_camera_v3.so)
+            ;&
+        vendor/lib/libnvmmlite_video.so)
+            ;&
+        vendor/lib/libnvodm_imager.so)
+            ;&
+        vendor/lib/libnvvicsi_v3.so)
+            ;&
+        vendor/lib/libopencv24_tegra.so)
+            ;&
+        vendor/lib/libtsechdcp.so)
+            sed -i "s/libm.so/libw.so/g" "${2}"
+            ;;
+    esac
+}
 
 # Default to sanitizing the vendor folder before extraction
 CLEAN_VENDOR=true

@@ -178,6 +178,7 @@ vendor/lib/libnvddk_2d.so
 vendor/lib/libnvddk_2d_v2.so
 vendor/lib/libnvodm_query.so
 vendor/lib/libnvos.so
+vendor/lib/libw.so|cc6721943aa401a388dd0c2acee58fd77d6fcb40
 
 # Misc firmware
 vendor/firmware/bcm20795_firmware.ncd
