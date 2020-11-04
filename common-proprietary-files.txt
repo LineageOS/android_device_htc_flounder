@@ -154,6 +154,7 @@ vendor/lib/libnvmmlite_audio.so
 vendor/lib/libnvmmlite_image.so
 vendor/lib/libnvmmlite_utils.so
 vendor/lib/libnvmmlite_video.so
+vendor/lib/libnvodm_imager.so
 vendor/lib/libnvomx.so
 vendor/lib/libnvomxilclient.so
 vendor/lib/libnvparser.so
@@ -178,6 +179,7 @@ vendor/lib/libnvddk_2d.so
 vendor/lib/libnvddk_2d_v2.so
 vendor/lib/libnvodm_query.so
 vendor/lib/libnvos.so
+vendor/lib/libw.so|cc6721943aa401a388dd0c2acee58fd77d6fcb40
 
 # Misc firmware
 vendor/firmware/bcm20795_firmware.ncd
