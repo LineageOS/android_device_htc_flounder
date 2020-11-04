@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Copyright (C) 2016 The CyanogenMod Project
-# Copyright (C) 2017-2019 The LineageOS Project
+# Copyright (C) 2017-2020 The LineageOS Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,16 @@ if [ ! -f "${HELPER}" ]; then
     exit 1
 fi
 source "${HELPER}"
+
+function blob_fixup() {
+    case "${1}" in
+        vendor/lib/libglcore.so)
+            ;&
+        vendor/lib64/libglcore.so)
+            patchelf --add-needed "libutilscallstack.so" "${2}"
+            ;;
+    esac
+}
 
 # Default to sanitizing the vendor folder before extraction
 CLEAN_VENDOR=true
