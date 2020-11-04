@@ -72,6 +72,11 @@ function blob_fixup() {
         vendor/lib/libtsechdcp.so)
             sed -i "s/libm.so/libw.so/g" "${2}"
             ;;
+    vendor/lib/libglcore.so)
+            ;&
+    vendor/lib64/libglcore.so)
+        patchelf --add-needed "libutilscallstack.so" "${2}"
+        ;;
     esac
 }
 
